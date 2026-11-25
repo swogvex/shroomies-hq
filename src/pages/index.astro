@@ -1,0 +1,37 @@
+---
+import Base from '../layouts/Base.astro';
+---
+
+<Base
+  title="Shroomies HQ · unofficial Tiffany Day fan site"
+  description="An unofficial Tiffany Day fan site: the whole discography, a release tracker, her rooms through the eras and a wall of notes for Tiff."
+>
+  <main class="hello">
+    <img src="/brand/badge.svg" width="200" height="200" alt="Shroomies HQ club badge" />
+    <h1>Shroomies HQ</h1>
+    <p>An unofficial Tiffany Day fan site. Being pinned to the corkboard, come back soon.</p>
+  </main>
+</Base>
+
+<style>
+  .hello {
+    display: grid;
+    justify-items: center;
+    gap: 1rem;
+    width: var(--column);
+    margin-inline: auto;
+    padding-block: 4rem;
+    text-align: center;
+  }
+  h1 {
+    font-family: var(--font-display);
+    font-size: var(--fs-display);
+    line-height: 1.05;
+    padding: 0.25em 0.5em;
+    border: var(--border-strong) solid var(--line);
+    background: var(--surface);
+    box-shadow: var(--shadow-md);
+    rotate: -1.5deg;
+  }
+  p { max-width: 45ch; color: var(--muted); }
+</style>
