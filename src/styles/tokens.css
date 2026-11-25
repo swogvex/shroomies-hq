@@ -1,0 +1,66 @@
+/* Design tokens approved in Phase 2 (owner approval needed to change any value). */
+@layer tokens {
+  :root {
+    /* base palette — components use the semantic tokens below */
+    --c-ink: #121216;
+    --c-paper: #ededea;
+    --c-flash: #ffffff;
+    --c-strobe: #2335f0;
+    --c-aura: #ff4a1c;
+    --c-aura-text: #d4330a;
+    --c-plush: #ff8fc7;
+    --c-dot-red: #e5302a;
+    --c-lcd-1: #c7f26a;
+    --c-lcd-2: #a9dc45;
+    --c-lcd-ink: #1d2a08;
+
+    /* type */
+    --font-display: "Anybody", "Atkinson Hyperlegible Next", sans-serif;
+    --font-body: "Atkinson Hyperlegible Next", sans-serif;
+    --font-lcd: "VT323", ui-monospace, monospace;
+    --font-hand: "Permanent Marker", cursive;
+    --fs-display: clamp(2.75rem, 2rem + 3vw, 4rem);
+    --fs-h2: clamp(1.75rem, 1.4rem + 1.2vw, 2.25rem);
+    --fs-h3: clamp(1.25rem, 1.15rem + .4vw, 1.375rem);
+    --fs-body: clamp(1.0625rem, 1rem + .2vw, 1.125rem);
+    --fs-small: .8125rem;
+
+    /* layout */
+    --column: min(100% - 2rem, 1000px);
+    --remote-safe: 112px; /* bottom space so the floating remote never hides focus */
+
+    /* surfaces */
+    --border: 2px;
+    --border-strong: 3px;
+    --shadow-sm: 3px 3px 0 var(--shadow);
+    --shadow-md: 5px 5px 0 var(--shadow);
+    --shadow-lg: 8px 8px 0 var(--shadow);
+    --radius-remote: 22px;
+    --radius-key: 9px;
+    --focus: 3px solid var(--c-aura);
+  }
+
+  :root,
+  [data-theme="original"] {
+    --bg: #ededea; --surface: #ffffff; --ink: #121216; --muted: #4a4b55; --line: #121216; --shadow: #121216;
+    --accent: #2335f0; --on-accent: #ffffff; --link: #121216; --hot: #ff4a1c; --on-hot: #121216;
+    --inverse: #121216; --inverse-ink: #ffffff; --inverse-muted: #c9cbd6;
+    --band: #2335f0; --band-ink: #ffffff; --cork: #e2cfa6; --cork-ink: #121216;
+  }
+  [data-theme="light"] {
+    --bg: #f7f6f2; --surface: #ffffff; --ink: #121216; --muted: #4a4b55; --line: #121216; --shadow: #121216;
+    --accent: #2335f0; --on-accent: #ffffff; --link: #2335f0; --hot: #ff4a1c; --on-hot: #121216;
+    --inverse: #ffffff; --inverse-ink: #121216; --inverse-muted: #4a4b55;
+    --band: #e6e9ff; --band-ink: #121216; --cork: #f2e8cf; --cork-ink: #121216;
+  }
+  [data-theme="dark"] {
+    --bg: #121216; --surface: #1c1d24; --ink: #ededea; --muted: #b4b6c4; --line: #5a5c6c; --shadow: #000000;
+    --accent: #2335f0; --on-accent: #ffffff; --link: #a9b2ff; --hot: #ff6a3d; --on-hot: #121216;
+    --inverse: #0a0a0d; --inverse-ink: #ffffff; --inverse-muted: #b4b6c4;
+    --band: #18206a; --band-ink: #ffffff; --cork: #2b2720; --cork-ink: #ededea;
+  }
+
+  /* era skins: accent only (HALO and Projects approved; the rest are proposals) */
+  [data-era="halo"]     { --era-accent: #2335f0; }
+  [data-era="projects"] { --era-accent: #ff4a1c; }
+}

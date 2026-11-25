@@ -1,0 +1,35 @@
+{
+  "name": "shroomies-hq",
+  "type": "module",
+  "version": "0.0.0",
+  "private": true,
+  "license": "UNLICENSED",
+  "engines": {
+    "node": "24.x"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "check": "astro check",
+    "test": "vitest run --passWithNoTests",
+    "test:e2e": "playwright test",
+    "lhci": "lhci autorun && lhci autorun --collect.settings.preset=desktop"
+  },
+  "dependencies": {
+    "@astrojs/vercel": "11.0.22",
+    "astro": "7.4.13"
+  },
+  "devDependencies": {
+    "@astrojs/check": "0.9.12",
+    "@axe-core/playwright": "4.14.1",
+    "@lhci/cli": "0.16.1",
+    "@playwright/test": "1.65.1",
+    "typescript": "6.0.3",
+    "vitest": "5.1.2"
+  },
+  "overrides": {
+    "@vercel/routing-utils": {
+      "path-to-regexp": "6.3.0"
+    }
+  }
+}
