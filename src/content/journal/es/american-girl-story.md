@@ -5,8 +5,8 @@ type: press
 source: https://www.yahoo.com/entertainment/music/articles/dance-comer-month-tiffany-day-204624114.html
 sourceLabel: Billboard (vía Yahoo) · entrevista de Katie Bain
 translationOf: american-girl-story
-reviewed: false
-draft: true
+reviewed: true
+draft: false
 ---
 En su entrevista con Billboard, Tiff cuenta que *American Girl* tuvo el peor arranque de todas las canciones que había sacado. Hoy es su canción más escuchada en Spotify.
 

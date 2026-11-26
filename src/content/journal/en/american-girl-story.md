@@ -4,7 +4,7 @@ date: 2026-10-13
 type: press
 source: https://www.yahoo.com/entertainment/music/articles/dance-comer-month-tiffany-day-204624114.html
 sourceLabel: Billboard (via Yahoo) · interview by Katie Bain
-draft: true
+draft: false
 ---
 In her Billboard interview, Tiff says *American Girl* had the weakest first days of any song she had put out. It is now her most-streamed song on Spotify.
 
