@@ -97,7 +97,7 @@ test.describe('search on phones', () => {
   test('opens from the tracklist and fits the screen', async ({ page }) => {
     await page.goto('/es/');
     await page.getByRole('button', { name: 'Lista de pistas' }).click();
-    await page.getByRole('button', { name: 'Buscar canciones, lanzamientos y el diario' }).click();
+    await page.getByRole('button', { name: 'Buscar en canciones, lanzamientos y el diario' }).click();
     await expect(box(page)).toBeFocused();
     await expect(page.locator('[data-tracklist-toggle]')).toHaveAttribute('aria-expanded', 'false');
     await box(page).fill('same');

@@ -1,5 +1,5 @@
 ---
-title: Sobre la web
+title: Quiénes somos
 description: Shroomies HQ es una web fan no oficial de Tiffany Day, hecha por un fan para los Shroomies.
 summary: Un hogar hecho por fans para los Shroomies. No oficial, sin ánimo de lucro, hecho con cariño.
 updated: 2026-11-26

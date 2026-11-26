@@ -18,7 +18,7 @@ Las portadas vienen del [Cover Art Archive](https://coverartarchive.org/) y se m
 
 - Discografía: [MusicBrainz](https://musicbrainz.org/), publicada bajo CC0. Gracias a su comunidad de editores voluntarios.
 - Fechas de la gira: su página oficial de la gira.
-- El nombre «Shroomies» viene de la comunidad de fans.
+- El nombre “Shroomies” viene de la comunidad de fans.
 
 ## Tipografías
 
