@@ -7,9 +7,11 @@ export type JournalType = (typeof journalTypes)[number];
 export const readingTime = (body: string) => Math.max(1, Math.ceil(body.split(/\s+/).filter(Boolean).length / 200));
 
 /** The first paragraph of a Markdown body as plain text (the RSS summary). */
-export function summary(body: string): string {
-  const first = body.trim().split(/\n\s*\n/)[0] ?? '';
-  return first
+export const summary = (body: string) => plain(body.trim().split(/\n\s*\n/)[0] ?? '');
+
+/** Markdown as plain text on one line (also the search index text). */
+export function plain(md: string): string {
+  return md
     .replace(/!?\[([^\]]*)\]\([^)]*\)/g, '$1') // links and images keep their text
     .replace(/[*_`~#>]/g, '')
     .replace(/\s+/g, ' ')
