@@ -34,6 +34,10 @@ const check = (what: string, fg: string | undefined, bg: string | undefined) => 
 for (const [name, t] of Object.entries(themes)) {
   for (const [fg, bg] of themePairs) check(`${name}: ${fg} on ${bg}`, t[fg], t[bg]);
 }
+for (const name of ['original', 'light'] as const) {
+  check(`${name}: --c-aura-text on --bg`, palette['--c-aura-text'], themes[name]['--bg']);
+  check(`${name}: --c-aura-text on --surface`, palette['--c-aura-text'], themes[name]['--surface']);
+}
 check('all: --c-lcd-ink on --c-lcd-1', palette['--c-lcd-ink'], palette['--c-lcd-1']);
 check('all: --c-lcd-ink on --c-lcd-2', palette['--c-lcd-ink'], palette['--c-lcd-2']);
 
