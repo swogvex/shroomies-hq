@@ -1,0 +1,487 @@
+---
+// 404 · "TRACK 404 · SKIPPED" (15-spec-navigation). A burned CD-R that keeps spinning and skipping. Ways out: home,
+// surprise me, search. Easter egg: scratch the disc three times (tap, Enter/Space, or drag it back and forth like a DJ):
+// 1 · a crack opens at the rim, 2 · it runs on and a chip breaks off there, 3 · it reaches the hub, five more race out and the disc shatters into
+// six shards that stay on the tray, uncovering the secret slot (the series-02 sticker is awarded in M7). "Load a new disc"
+// slides a fresh one in. Calm mode and reduced motion: no spin, no burst; every state still shows.
+// Served as /404.html and /es/404/ (integrations/search.ts).
+import Base from '../layouts/Base.astro';
+import { localePath, t, type Locale } from '../i18n';
+import { surprisePool } from '../lib/music';
+
+const locale = (Astro.currentLocale ?? 'en') as Locale;
+const pool = await surprisePool();
+// the whole disc (0) and its six shards: the same print, each shard cut out with its own clip-path
+const plates = [0, 1, 2, 3, 4, 5, 6];
+// The fracture, one set per scratch (viewBox 0 0 200 200), drawn as tapered polygons, not strokes: a dark gap that narrows
+// to its tip, a lit sliver on one lip (the polycarbonate's broken edge) and a blurred stress haze. It runs along the
+// shard edges, so the disc splits exactly where it cracked. Generated once from the shard polygons below.
+import fracture from './NotFound.fracture.json';
+const stages = [['s1', fracture.s1], ['s2', fracture.s2], ['s3', fracture.s3]] as const;
+const sparks = [['s1', fracture.s1[0]!.tip], ['s2', fracture.s2[1]!.tip]] as const;
+---
+
+<Base title={t(locale, 'notfound.title')} description={t(locale, 'notfound.description')} noindex lcd={t(locale, 'notfound.lcd')}>
+  <div class="lost" data-lost data-scratch={t(locale, 'notfound.scratch')} data-secret={t(locale, 'notfound.secret')}
+    data-secret-say={t(locale, 'notfound.secretSay')} data-reload-say={t(locale, 'notfound.reloadSay')}>
+    <div class="copy">
+      <p class="lcd-line"><span class="lcd" data-lost-lcd>{t(locale, 'notfound.lcd')}</span></p>
+      <h1 class="page-title" data-text={t(locale, 'notfound.heading')}>{t(locale, 'notfound.heading')}</h1>
+      <p class="lead">{t(locale, 'notfound.lead')}</p>
+      <p class="path js-only">{t(locale, 'notfound.path')} <code data-path></code></p>
+      <div class="actions">
+        <a class="btn btn-primary" href={localePath('/', locale)}>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5v14l12-7z" /></svg>{t(locale, 'notfound.home')}
+        </a>
+        <button type="button" class="btn btn-secondary js-only" data-surprise data-pool={JSON.stringify(pool)} data-base={localePath('/music/', locale)}>
+          <span aria-hidden="true">⚄</span> {t(locale, 'music.surprise')}
+        </button>
+        <button type="button" class="btn btn-secondary js-only" aria-haspopup="dialog" aria-controls="search" data-search-open>
+          <svg viewBox="0 0 24 24" aria-hidden="true" class="mag"><circle cx="10.5" cy="10.5" r="6.5" /><path d="m15.5 15.5 5 5" /></svg>{t(locale, 'notfound.search')}
+        </button>
+      </div>
+    </div>
+
+    <div class="stage">
+      <div class="tray">
+        <!-- under the disc: the secret slot, uncovered when it shatters -->
+        <div class="slot" aria-hidden="true">
+          <span class="slot-star">★</span>
+          <span class="slot-n">02</span>
+          <span class="slot-label">{t(locale, 'notfound.slot')}</span>
+        </div>
+
+        <button type="button" class="disc-btn" aria-describedby="psst" data-disc>
+          <span class="visually-hidden">{t(locale, 'notfound.disc')}</span>
+          <span class="disc" aria-hidden="true">
+            <span class="spin">
+              {
+                plates.map((k) => (
+                  <span class={k ? `shard k${k}` : 'whole'}>
+                    <span class="plate">
+                      <svg class="face" viewBox="0 0 200 200">
+                        {k === 0 && (
+                          <defs>
+                            <path id="lost-arc" d="M26 100a74 74 0 0 0 148 0" /><!-- the lower half, so the crack (upper right) never runs through the writing -->
+                            <filter id="lost-soft" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="1.8" /></filter>
+                            <linearGradient id="lost-fringe" gradientUnits="userSpaceOnUse" x1="140" y1="40" x2="200" y2="130">
+                              <stop offset="0" stop-color="#ff8fc7" />
+                              <stop offset="0.35" stop-color="#9aa6ff" />
+                              <stop offset="0.65" stop-color="#7fe0ff" />
+                              <stop offset="1" stop-color="#fff36b" />
+                            </linearGradient>
+                            <linearGradient id="lost-stress" x1="0" y1="0" x2="1" y2="1">
+                              <stop offset="0" stop-color="#ffffff" />
+                              <stop offset="0.5" stop-color="#ffd3ec" />
+                              <stop offset="1" stop-color="#bfe7ff" />
+                            </linearGradient>
+                          </defs>
+                        )}
+                        <text class="marker" font-size="15"><textPath href="#lost-arc" startOffset="50%" text-anchor="middle">shroomies mix ✶ trk 404</textPath></text>
+                        {stages.map(([stage, cracks]) => (
+                          <g class={`frac frac-${stage}`}>
+                            {cracks.map((c) => <polygon class="haze" points={c.haze} />)}
+                            {cracks.map((c) => <polygon class="fringe" points={c.fringe} />)}
+                            {cracks.map((c) => <polygon class="gap" points={c.gap} />)}
+                            {cracks.map((c) => <polygon class="lit" points={c.lit} />)}
+                          </g>
+                        ))}
+                        {sparks.map(([stage, [x, y]]) => (
+                          <g transform={`translate(${x} ${y})`}><path class={`spark spark-${stage}`} d="M0-7 1.3-1.3 7 0 1.3 1.3 0 7-1.3 1.3-7 0-1.3-1.3Z" /></g>
+                        ))}
+                      </svg>
+                    </span>
+                  </span>
+                ))
+              }
+            </span>
+          </span>
+        </button>
+
+        <button type="button" class="btn btn-sm btn-secondary reload" hidden data-reload>
+          <span aria-hidden="true">⏏</span> {t(locale, 'notfound.reload')}
+        </button>
+      </div>
+      <p class="psst" id="psst"><span class="tape" aria-hidden="true"></span>{t(locale, 'notfound.psst')}</p>
+      <svg class="arrow" viewBox="0 0 80 60" aria-hidden="true"><path d="M74 52C58 50 34 44 22 14M22 14l-6 14M22 14l13 9" /></svg>
+    </div>
+    <p class="visually-hidden" aria-live="polite" data-lost-say></p>
+  </div>
+</Base>
+
+<script>
+  import '../scripts/surprise';
+
+  const lost = document.querySelector<HTMLElement>('[data-lost]');
+  if (lost) {
+    // the address that missed, as text (never as HTML)
+    const path = lost.querySelector<HTMLElement>('[data-path]')!;
+    try {
+      path.textContent = decodeURIComponent(location.pathname);
+    } catch {
+      path.textContent = location.pathname;
+    }
+
+    const disc = lost.querySelector<HTMLButtonElement>('[data-disc]')!;
+    const face = disc.querySelector<HTMLElement>('.disc')!;
+    const reload = lost.querySelector<HTMLButtonElement>('[data-reload]')!;
+    const lcd = lost.querySelector<HTMLElement>('[data-lost-lcd]')!;
+    const say = lost.querySelector<HTMLElement>('[data-lost-say]')!;
+    const { scratch, secret, secretSay, reloadSay } = lost.dataset as Record<string, string>;
+    const idle = lcd.textContent!;
+    const still = () => matchMedia('(prefers-reduced-motion: reduce)').matches || document.documentElement.hasAttribute('data-calm');
+    const restart = (el: Element, cls: string) => {
+      el.classList.remove(cls);
+      void (el as HTMLElement).offsetWidth; // restart the animation
+      el.classList.add(cls);
+    };
+    let n = 0;
+    let timers: number[] = [];
+
+    const hit = () => {
+      if (n >= 3) return;
+      n++;
+      lost.toggleAttribute(`data-s${n}`, true);
+      restart(disc, 'scratching');
+      restart(lost, 'jolt');
+      if (n < 3) {
+        lcd.textContent = say.textContent = scratch!.replace('{n}', String(n));
+        return;
+      }
+      // third: the crack runs to the hub, the disc shudders, then it shatters
+      lcd.textContent = secret!;
+      say.textContent = secretSay!;
+      const wait = still() ? 0 : 460;
+      timers = [
+        window.setTimeout(() => lost.toggleAttribute('data-broken', true), wait), // M7: award the hidden series-02 sticker here
+        window.setTimeout(() => {
+          reload.hidden = false;
+          if (document.activeElement === disc) reload.focus();
+        }, wait + (still() ? 0 : 900)),
+      ];
+    };
+
+    reload.addEventListener('click', () => {
+      timers.forEach(clearTimeout);
+      n = 0;
+      lost.classList.add('reset'); // no transitions while the cracks are wiped
+      for (const a of ['data-s1', 'data-s2', 'data-s3', 'data-broken']) lost.removeAttribute(a);
+      void lost.offsetWidth;
+      lost.classList.remove('reset');
+      restart(disc, 'loading');
+      reload.hidden = true;
+      lcd.textContent = idle;
+      say.textContent = reloadSay!;
+      disc.focus();
+    });
+
+    // a DJ scratch: drag the disc back and forth; enough travel counts as one scratch (a tap is a click)
+    let last: number | null = null;
+    let travel = 0;
+    let turned = 0;
+    let dragged = false;
+    const angle = (e: PointerEvent) => {
+      const r = face.getBoundingClientRect();
+      return (Math.atan2(e.clientY - (r.top + r.height / 2), e.clientX - (r.left + r.width / 2)) * 180) / Math.PI;
+    };
+    const end = () => {
+      if (last === null) return;
+      last = null;
+      face.classList.add('release');
+      face.style.setProperty('--drag', '0deg');
+      if (travel >= 50) {
+        dragged = true;
+        hit();
+      }
+    };
+    disc.addEventListener('pointerdown', (e) => {
+      if (n >= 3 || e.button !== 0) return;
+      last = angle(e);
+      travel = turned = 0;
+      face.classList.remove('release');
+      disc.setPointerCapture(e.pointerId);
+    });
+    disc.addEventListener('pointermove', (e) => {
+      if (last === null) return;
+      const a = angle(e);
+      const d = ((a - last + 540) % 360) - 180;
+      last = a;
+      travel += Math.abs(d);
+      turned = Math.max(-70, Math.min(70, turned + d));
+      face.style.setProperty('--drag', `${turned}deg`);
+    });
+    disc.addEventListener('pointerup', end);
+    disc.addEventListener('pointercancel', end);
+    disc.addEventListener('click', () => {
+      if (dragged) return void (dragged = false);
+      hit();
+    });
+  }
+</script>
+
+<style>
+  .lost {
+    width: var(--column);
+    margin-inline: auto;
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    align-items: center;
+    gap: clamp(2rem, 5vw, 4rem);
+    padding-block: clamp(1rem, 4vw, 3rem) 1rem;
+  }
+
+  /* ---- the copy ---- */
+  .lcd-line { margin-bottom: 0.75rem; }
+  .lcd-line .lcd { font-size: 1.375rem; padding-inline: 0.625rem; }
+  /* the title skips like the disc: two offset prints in the era blue and orange (none in calm mode);
+     one line in every language ("Skipped.", "Saltada."), sized to the column, never broken mid-word */
+  .page-title { position: relative; width: fit-content; font-size: min(12.5vw, 5rem); white-space: nowrap; isolation: isolate; }
+  .page-title::before, .page-title::after {
+    content: attr(data-text);
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+  }
+  .page-title::before { color: var(--c-strobe); translate: -3px 0; clip-path: inset(10% 0 52% 0); animation: skip-a 4.2s steps(1) infinite; }
+  .page-title::after { color: var(--hot); translate: 3px 0; clip-path: inset(58% 0 8% 0); animation: skip-b 4.2s steps(1) infinite; }
+  @keyframes skip-a { 0%, 86%, 100% { translate: -3px 0; } 88% { translate: -9px 1px; } 92% { translate: 4px -1px; } }
+  @keyframes skip-b { 0%, 86%, 100% { translate: 3px 0; } 88% { translate: 10px 0; } 92% { translate: -5px 1px; } }
+  /* every scratch jolts the title too */
+  .jolt .page-title::before { animation: jolt-a 380ms steps(1); }
+  .jolt .page-title::after { animation: jolt-b 380ms steps(1); }
+  @keyframes jolt-a { 0% { translate: -14px 2px; } 30% { translate: 8px -2px; } 60% { translate: -6px 0; } 100% { translate: -3px 0; } }
+  @keyframes jolt-b { 0% { translate: 15px -1px; } 30% { translate: -9px 2px; } 60% { translate: 6px 0; } 100% { translate: 3px 0; } }
+  .lead { max-width: 30ch; margin-top: 1.25rem; font-size: clamp(1.125rem, 1rem + 0.5vw, 1.375rem); line-height: 1.4; text-wrap: pretty; }
+  .path { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.25rem 0.5rem; margin-top: 1rem; font-size: var(--fs-small); color: var(--muted); }
+  .path code {
+    max-width: 100%;
+    padding: 0.125rem 0.5rem;
+    border: var(--border) dashed var(--line);
+    background: var(--surface);
+    color: var(--ink);
+    font: 400 1.125rem / 1.2 var(--font-lcd);
+    overflow-wrap: anywhere;
+  }
+  .path code:empty::before { content: '\00a0'; }
+  .actions { display: flex; flex-wrap: wrap; gap: 0.875rem; margin-top: 1.75rem; }
+  .actions svg { width: 1rem; height: 1rem; fill: currentColor; }
+  .actions .mag { fill: none; stroke: currentColor; stroke-width: 2.75; stroke-linecap: round; }
+  /* shown from the first paint when JS runs (html[data-js] is set before paint), so nothing shifts */
+  .js-only { display: none; }
+  :global(html[data-js]) .js-only { display: inline-flex; }
+  :global(html[data-js]) .path.js-only { display: flex; }
+
+  /* ---- the stage: a dark tray (blue shadow, as every dark block) with the disc on it ---- */
+  .stage { position: relative; justify-self: center; width: min(100%, 25rem); padding-bottom: 4.5rem; }
+  .tray {
+    position: relative;
+    display: grid;
+    place-items: center;
+    aspect-ratio: 1;
+    padding: 7%;
+    border: var(--border) solid var(--c-ink);
+    background:
+      radial-gradient(circle, transparent 0 48%, color-mix(in srgb, var(--c-flash) 5%, transparent) 48.5% 49.5%, transparent 50%),
+      linear-gradient(160deg, var(--c-remote-hi), var(--c-remote-lo));
+    box-shadow: 8px 8px 0 var(--c-strobe);
+    rotate: 2deg;
+  }
+  .tray > * { grid-area: 1 / 1; }
+  /* the shatter: a white flash ring from the hub and a shake of the tray */
+  .tray::after {
+    content: '';
+    grid-area: 1 / 1;
+    width: 30%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    border: 6px solid var(--c-flash);
+    opacity: 0;
+    pointer-events: none;
+  }
+  .lost[data-broken] .tray { animation: shake 420ms cubic-bezier(0.3, 0, 0.2, 1); }
+  .lost[data-broken] .tray::after { animation: ring 520ms ease-out; }
+  @keyframes shake { 0%, 100% { translate: 0 0; } 15% { translate: -7px 3px; } 35% { translate: 6px -4px; } 55% { translate: -4px 2px; } 75% { translate: 2px -1px; } }
+  @keyframes ring { 0% { opacity: 0.95; scale: 0.4; } 100% { opacity: 0; scale: 3.2; } }
+
+  /* the secret slot in the tray, under the disc: a recess with a glowing LCD number */
+  .slot {
+    z-index: 0;
+    display: grid;
+    place-items: center;
+    align-content: center;
+    width: 40%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--c-remote-lo) 0 58%, var(--c-remote-mid) 70%);
+    box-shadow: inset 0 4px 12px rgb(0 0 0 / 0.8), 0 0 0 2px var(--c-remote-line);
+    outline: 2px dashed color-mix(in srgb, var(--c-lcd-1) 55%, transparent);
+    outline-offset: 6px;
+    color: var(--c-lcd-1);
+    font-family: var(--font-lcd);
+    line-height: 0.9;
+    text-shadow: 0 0 10px color-mix(in srgb, var(--c-lcd-1) 60%, transparent);
+    opacity: 0;
+    scale: 0.6;
+    transition: opacity 300ms ease 260ms, scale 520ms cubic-bezier(0.3, 1.6, 0.5, 1) 260ms;
+  }
+  .slot-star { font-size: 1.25rem; }
+  .slot-n { font-size: clamp(2.5rem, 9vw, 3.5rem); }
+  .slot-label { font-size: 0.9375rem; letter-spacing: 0.08em; }
+  .lost[data-broken] .slot { opacity: 1; scale: 1; animation: glow 1.8s ease-in-out 900ms infinite; }
+  @keyframes glow { 50% { text-shadow: 0 0 18px var(--c-lcd-1); } }
+
+  /* ---- the disc ---- */
+  .disc-btn {
+    z-index: 1;
+    width: 100%;
+    aspect-ratio: 1;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: none;
+    cursor: grab;
+    touch-action: pan-y; /* sideways drags scratch, the page still scrolls */
+    -webkit-tap-highlight-color: transparent;
+  }
+  .disc-btn:active { cursor: grabbing; }
+  .disc-btn:focus-visible { outline: none; }
+  .disc-btn:focus-visible .whole .plate { box-shadow: 0 0 0 4px var(--c-remote-lo), 0 0 0 7px var(--c-strobe); }
+  .lost[data-broken] .disc-btn { cursor: default; }
+  .disc {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 100%;
+    rotate: var(--drag, 0deg);
+    transition: scale 120ms;
+  }
+  .disc.release { transition: scale 120ms, rotate 420ms cubic-bezier(0.3, 1.4, 0.5, 1); }
+  .disc-btn:hover .disc { scale: 1.015; }
+  .disc-btn:active .disc { scale: 0.985; }
+  .spin {
+    position: absolute;
+    inset: 0;
+    animation: spin 2.6s linear infinite, skip 5.2s cubic-bezier(0.3, 0, 0.2, 1) infinite;
+  }
+  /* the more it is damaged, the more often it skips */
+  .lost[data-s1] .spin { animation-duration: 2.6s, 3.4s; }
+  .lost[data-s2] .spin { animation-duration: 2.6s, 1.9s; }
+  /* broken: the shards stay where they fell */
+  .lost[data-broken] .spin { animation-play-state: paused; }
+  .whole, .shard { position: absolute; inset: 0; }
+  .whole { filter: drop-shadow(0 10px 14px rgb(0 0 0 / 0.6)); }
+  .shard { visibility: hidden; filter: drop-shadow(0 0 0.6px var(--c-ink)) drop-shadow(0 0 0.6px var(--c-ink)) drop-shadow(0 6px 6px rgb(0 0 0 / 0.65)); } /* a dark edge on every break */
+  .lost[data-broken] .whole { visibility: hidden; }
+  .lost[data-broken] .shard { visibility: visible; translate: var(--dx) var(--dy); rotate: var(--r); scale: 0.94; animation: burst 640ms cubic-bezier(0.15, 0.9, 0.3, 1); }
+  @keyframes burst {
+    0% { translate: 0 0; rotate: 0deg; scale: 1; }
+    55% { translate: calc(var(--dx) * 1.18) calc(var(--dy) * 1.18); rotate: calc(var(--r) * 1.3); scale: 1; }
+    100% { translate: var(--dx) var(--dy); rotate: var(--r); scale: 0.94; }
+  }
+  /* silver with the rainbow sheen of the shelf discs, a CD-R's dye ring and the clear hub */
+  .plate {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: var(--border) solid var(--c-ink);
+    background:
+      radial-gradient(circle, transparent 0 7%, #e9eaf0 7.5% 14%, rgb(0 0 0 / 0.3) 14.5% 15.5%, rgb(255 255 255 / 0.55) 16% 17%, transparent 17.5%),
+      radial-gradient(circle, transparent 0 94%, rgb(0 0 0 / 0.18) 94.5% 95.5%, transparent 96%),
+      conic-gradient(from 20deg, #d6d8e2, #ffffff, #c8d2ff, #ffd3ec, #f4f9d6, #d6d8e2, #ffffff, #bfe7ff, #ffd3ec, #d6d8e2);
+    /* the hub is a real hole: the tray shows through */
+    /* the hub is a real hole and nothing drawn on the disc spills past its rim */
+    mask: radial-gradient(closest-side, transparent 9.9%, #000 10.2% 99.6%, transparent 100%);
+  }
+  /* second scratch: a chip breaks off the rim (where the crack will start) */
+  .lost[data-s2] .plate {
+    mask:
+      radial-gradient(closest-side, transparent 9.9%, #000 10.2% 99.6%, transparent 100%),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cpath fill-rule='evenodd' d='M-10-10H210V210H-10Z M206 44 188 52 180 58 177 66 185 72 184 80 206 90Z'/%3E%3C/svg%3E") 0 0 / 100% 100%;
+    mask-composite: intersect;
+  }
+  .face { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .marker { font-family: var(--font-hand); fill: var(--c-ink); letter-spacing: 0.04em; }
+
+  /* the fracture: each stage races out from where it starts (a growing circle reveals it), with a spark at its tip */
+  .frac { clip-path: circle(0px at var(--fx) var(--fy)) view-box; transition: clip-path 420ms cubic-bezier(0.55, 0, 0.75, 0.3); }
+  .frac-s1 { --fx: 194px; --fy: 66px; }
+  .frac-s2 { --fx: 169px; --fy: 81px; }
+  .frac-s3 { --fx: 104px; --fy: 98px; transition-duration: 380ms; }
+  .lost[data-s1] .frac-s1, .lost[data-s2] .frac-s2, .lost[data-s3] .frac-s3 { clip-path: circle(150px at var(--fx) var(--fy)) view-box; }
+  .haze { fill: url(#lost-stress); filter: url(#lost-soft); opacity: 0.85; }
+  /* the rainbow a broken CD throws along each crack */
+  .fringe { fill: url(#lost-fringe); opacity: 0.75; }
+  .gap { fill: var(--c-ink); opacity: 0.9; }
+  .lit { fill: #ffffff; }
+  .spark { fill: #ffffff; opacity: 0; transform-box: fill-box; transform-origin: center; filter: drop-shadow(0 0 2px #bfe7ff); }
+  .lost[data-s1] .spark-s1, .lost[data-s2] .spark-s2 { animation: spark 700ms ease-out 220ms; }
+  @keyframes spark { 0% { opacity: 0; scale: 0.2; rotate: 0deg; } 35% { opacity: 1; scale: 1.25; } 100% { opacity: 0; scale: 0.6; rotate: 45deg; } }
+  .lost[data-s3]:not([data-broken]) .whole { animation: shudder 90ms linear 5; }
+  @keyframes shudder { 0%, 100% { translate: 0 0; } 25% { translate: 1.5px -1px; } 75% { translate: -1.5px 1px; } }
+  /* after a reset nothing animates back: the fresh disc slides in instead */
+  .reset, .reset * { transition: none !important; }
+
+  /* the six shards (cut along the crack and five more fault lines) and where each one lands */
+  .k1 .plate { clip-path: polygon(53.5% 48.1%, 63.5% 46.4%, 72.5% 39%, 84.7% 40.3%, 92% 28.8%, 125.2% 22.6%, 128.8% 36.1%, 129.7% 57%, 125.2% 77.4%, 115.5% 95.9%, 111.3% 101.4%, 89.6% 75.3%, 75.8% 75.1%, 71% 63.6%, 60% 59.8%, 53.3% 52.2%); }
+  .k2 .plate { clip-path: polygon(53.3% 52.2%, 60% 59.8%, 71% 63.6%, 75.8% 75.1%, 89.6% 75.3%, 111.3% 101.4%, 101.4% 111.3%, 83.8% 122.5%, 63.9% 128.8%, 43% 129.7%, 53.5% 96.9%, 41.3% 84.9%, 51.1% 75%, 47.7% 63.8%, 51.1% 53.8%); }
+  .k3 .plate { clip-path: polygon(51.1% 53.8%, 47.7% 63.8%, 51.1% 75%, 41.3% 84.9%, 53.5% 96.9%, 43% 129.7%, 29.3% 127.3%, 10% 119.3%, -6.6% 106.6%, -19.3% 90%, -25.2% 77.4%, 8.4% 71.8%, 14.9% 57.8%, 27.2% 60.3%, 36.3% 53%, 46.7% 52.2%); }
+  .k4 .plate { clip-path: polygon(46.7% 52.2%, 36.3% 53%, 27.2% 60.3%, 14.9% 57.8%, 8.4% 71.8%, -25.2% 77.4%, -28.8% 63.9%, -29.7% 43%, -25.2% 22.6%, -15.5% 4.1%, 7.7% 29.5%, 22.7% 26.5%, 28.4% 37.4%, 39.2% 41.1%, 47.9% 46.6%); }
+  .k5 .plate { clip-path: polygon(47.9% 46.6%, 39.2% 41.1%, 28.4% 37.4%, 22.7% 26.5%, 7.7% 29.5%, -15.5% 4.1%, -6.6% -6.6%, 10% -19.3%, 29.3% -27.3%, 50% -30%, 70.7% -27.3%, 56.9% 3.5%, 62.4% 16.2%, 54.3% 25.4%, 55% 36.9%, 49.7% 46%); }
+  .k6 .plate { clip-path: polygon(49.7% 46%, 55% 36.9%, 54.3% 25.4%, 62.4% 16.2%, 56.9% 3.5%, 70.7% -27.3%, 83.8% -22.5%, 101.4% -11.3%, 115.5% 4.1%, 125.2% 22.6%, 92% 28.8%, 84.7% 40.3%, 72.5% 39%, 63.5% 46.4%, 53.5% 48.1%); }
+  .k1 { --dx: 10.6%; --dy: 1.9%; --r: 10deg; }
+  .k2 { --dx: 4.2%; --dy: 10.2%; --r: -18deg; }
+  .k3 { --dx: -6.2%; --dy: 8.0%; --r: 20deg; }
+  .k4 { --dx: -10.0%; --dy: -1.4%; --r: 14deg; }
+  .k5 { --dx: -3.2%; --dy: -8.6%; --r: -19deg; }
+  .k6 { --dx: 6.1%; --dy: -6.8%; --r: 16deg; }
+
+  @keyframes spin { to { rotate: 360deg; } }
+  /* every few seconds the laser loses the track: a jolt and a stutter */
+  @keyframes skip { 0%, 80%, 100% { translate: 0 0; } 82% { translate: 2px -1px; } 84% { translate: -2px 1px; } 86% { translate: 1px 1px; } 88% { translate: 0 0; } }
+  /* a scratch pulls the disc back, like a DJ */
+  .scratching .disc { animation: scratch 520ms cubic-bezier(0.2, 0.8, 0.2, 1); }
+  @keyframes scratch { 0% { rotate: var(--drag, 0deg); } 35% { rotate: -38deg; } 70% { rotate: 10deg; } 100% { rotate: 0deg; } }
+  /* a new disc slides in from the side of the tray, spinning up */
+  .loading .disc { animation: load 620ms cubic-bezier(0.2, 0.9, 0.3, 1); }
+  @keyframes load { from { translate: -115% 0; rotate: -240deg; opacity: 0; } 30% { opacity: 1; } }
+
+  .reload { z-index: 2; align-self: start; justify-self: center; margin-top: -1.375rem; rotate: -2deg; }
+  .reload[hidden] { display: none; }
+
+  /* ---- the note: lemon paper, taped, in marker ---- */
+  .psst {
+    position: absolute;
+    right: -0.75rem;
+    bottom: 0;
+    max-width: 13.5rem;
+    padding: 1.125rem 1rem 0.875rem;
+    background: var(--c-lemon);
+    color: var(--c-ink);
+    font: 400 1.125rem / 1.25 var(--font-hand);
+    box-shadow: 3px 4px 0 color-mix(in srgb, var(--c-ink) 28%, transparent);
+    rotate: -4deg;
+  }
+  .psst .tape { --tape-tilt: 3deg; width: 4.5rem; }
+  .arrow { position: absolute; right: 12.5rem; bottom: 1.5rem; width: 4.5rem; fill: none; stroke: var(--ink); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+  .lost[data-broken] .psst { text-decoration: line-through 2px; }
+  .lost[data-broken] .arrow { opacity: 0; }
+
+  @media (max-width: 52rem) {
+    .lost { grid-template-columns: minmax(0, 1fr); gap: 2.5rem; }
+    .stage { width: min(100%, 21rem); padding-bottom: 5.5rem; }
+    .psst { right: auto; left: 50%; translate: -50% 0; }
+    .arrow { display: none; }
+  }
+
+  /* calm mode and reduced motion: still disc, no skip, no glitch, no burst; every damage state still shows */
+  @media (prefers-reduced-motion: reduce) {
+    .spin, .scratching .disc, .loading .disc, .page-title::before, .page-title::after, .lost[data-broken] .shard,
+    .lost[data-broken] .tray, .lost[data-broken] .tray::after, .lost[data-broken] .slot, .whole, .spark { animation: none; }
+  }
+  :global(html[data-calm]) .spin, :global(html[data-calm]) .scratching .disc, :global(html[data-calm]) .loading .disc,
+  :global(html[data-calm]) .lost[data-broken] .shard, :global(html[data-calm]) .lost[data-broken] .tray,
+  :global(html[data-calm]) .lost[data-broken] .tray::after, :global(html[data-calm]) .lost[data-broken] .slot,
+  :global(html[data-calm]) .whole, :global(html[data-calm]) .spark { animation: none; }
+  :global(html[data-calm]) .page-title::before, :global(html[data-calm]) .page-title::after { display: none; }
+</style>
