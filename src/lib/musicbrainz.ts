@@ -2,7 +2,8 @@
 // Pure functions only: the network part lives in scripts/sync-discography.ts.
 
 /** guest = she is featured on someone else's release (shown after a divider on the shelf). */
-export type ReleaseType = 'album' | 'ep' | 'single' | 'collab' | 'remix' | 'guest';
+export const releaseTypes = ['album', 'ep', 'single', 'collab', 'remix', 'guest'] as const;
+export type ReleaseType = (typeof releaseTypes)[number];
 export type Credit = { role: string; name: string };
 export type Track = { mbid: string; n: number; title: string; durationMs: number | null; credits: Credit[] };
 /** Official streaming pages, from the release's URL relations on MusicBrainz. */

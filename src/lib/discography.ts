@@ -1,7 +1,8 @@
 // The discography the pages use: MusicBrainz snapshot + the owner's corrections + eras. Applied at build time.
 import { byDate, type Credit, type RawRelease, type ReleaseType, type Track } from './musicbrainz.ts';
 
-export type EraId = 'covers' | 'first-singles' | 'projects' | 'ltf' | 'halo';
+export const eraIds = ['covers', 'first-singles', 'projects', 'ltf', 'halo'] as const;
+export type EraId = (typeof eraIds)[number];
 export type Release = RawRelease & { era: EraId };
 export type Override = Partial<{ title: string; date: string; type: ReleaseType; era: EraId; hidden: boolean; slug: string }>;
 export type Addition = Omit<RawRelease, 'releaseMbid' | 'label' | 'artistCredit' | 'tracks' | 'credits' | 'cover'> &
@@ -31,11 +32,14 @@ export function applyCorrections(raw: readonly RawRelease[], { overrides, additi
 
 export type CatalogueTrack = Track & { release: string; releaseTitle: string; date: string };
 
+/** Same title = same song (MusicBrainz sometimes keeps the single and EP versions as two recordings). */
+export const songKey = (title: string) => title.trim().toLowerCase();
+
 const preference: Record<ReleaseType, number> = { album: 0, ep: 1, single: 2, collab: 3, remix: 9, guest: 9 };
 
 /**
  * Her own songs, once each (remixes and guest features left out). A song on a single and later on an album is shown "from" the album.
- * Same title = same song: MusicBrainz sometimes keeps the single and EP versions as two recordings (e.g. Calone).
+ * Same song = same songKey (e.g. Calone, single and EP).
  * Order is by release date so the song-of-the-day shuffle stays stable when nothing new comes out.
  */
 export function ownTracks(releases: readonly Release[]): CatalogueTrack[] {
@@ -43,7 +47,7 @@ export function ownTracks(releases: readonly Release[]): CatalogueTrack[] {
   for (const r of releases) {
     if (preference[r.type] === 9) continue;
     for (const t of r.tracks) {
-      const key = t.title.trim().toLowerCase();
+      const key = songKey(t.title);
       const prev = best.get(key);
       if (!prev || preference[r.type] < prev.rank) best.set(key, { t: { ...t, release: r.slug, releaseTitle: r.title, date: r.date }, rank: preference[r.type] });
     }
