@@ -1,0 +1,316 @@
+---
+// 03 · The Waveform (09-spec-tracker, B2-Tracker board). Built for the UTC date with the day either side; the shared
+// local-day script shows the visitor's own day. All numbers come from the discography, upcoming.md and the tour feed.
+import { getCollection, getEntry } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import { localePath, t, type Locale } from '../i18n';
+import { anniversaries, aroundDay, formatDate } from '../lib/dates';
+import { countsAsRelease } from '../lib/discography';
+import { allShows, discography } from '../lib/music';
+import { lastRelease, nextShow } from '../lib/portal';
+import { averageGap, busiestYear, fridays, longestSilence, nextUpcoming, peaks } from '../lib/tracker';
+
+const locale = (Astro.currentLocale ?? 'en') as Locale;
+const releases = await discography();
+const own = releases.filter(countsAsRelease);
+const shows = await allShows();
+const { releases: upcoming } = (await getEntry('upcoming', 'upcoming'))!.data;
+const days = aroundDay();
+const buildDay = days[1]!;
+const date = (d: string) => formatDate(d, locale);
+
+const perDay = days.map((day) => ({
+  day,
+  last: lastRelease(own, day),
+  gap: averageGap(own, day),
+  silence: longestSilence(own, day),
+  busiest: busiestYear(own, day),
+  anniversary: anniversaries(releases, day, 3)[0],
+  countdown: nextUpcoming(upcoming, day),
+  show: nextShow(shows, day),
+  fridays: fridays(own, day),
+  collabs: releases.filter((r) => (r.type === 'collab' || r.type === 'guest') && r.date <= day).length,
+}));
+
+// ---- the waveform (SVG units: 1000 × 220, baseline in the middle) ----
+const START = '2015-01-01';
+const W = 1000;
+const MID = 100;
+const latest = lastRelease(own, buildDay)?.release.slug; // the release the "days since" tile names
+const marks = peaks(releases.map((r) => ({ ...r, tracks: r.tracks.length })), START, buildDay).map((p) => ({
+  ...p,
+  cx: Math.round(8 + p.x * (W - 16)),
+  half: Math.round(16 + p.height * 76),
+  kind: p.item.slug === latest ? 'latest' : countsAsRelease(p.item) ? 'own' : 'other',
+  label: `${p.item.title} · ${date(p.item.date)} · ${t(locale, p.item.tracks === 1 ? 'release.track' : 'release.tracks', { n: String(p.item.tracks) })}`,
+}));
+// flat "silence" between peaks: low bars with a fixed pseudo-random wobble, kept clear of the peaks
+const hush = Array.from({ length: Math.floor((W - 16) / 9) + 1 }, (_, i) => 8 + i * 9)
+  .filter((x) => marks.every((m) => Math.abs(m.cx - x) > 6))
+  .map((x) => ({ x, half: 4 + Math.round(Math.abs(Math.sin(x * 12.9898)) * 14) }));
+const eras = (await getCollection('eras')).sort((a, b) => a.data.startsOn.localeCompare(b.data.startsOn));
+const prefix: Record<string, string> = { ltf: 'LTF ', halo: 'HALO ' };
+const axis = [
+  { x: 8, text: START.slice(0, 4) },
+  ...eras.filter((e) => e.data.startsOn > START).map((e) => ({ x: Math.round(8 + (Date.parse(e.data.startsOn) - Date.parse(START)) / (Date.parse(buildDay) - Date.parse(START)) * (W - 16)), text: `${prefix[e.id] ?? ''}${e.data.startsOn.slice(0, 4)}` })),
+];
+---
+
+<Base title={t(locale, 'tracker.title')} description={t(locale, 'tracker.description')}>
+  <div class="tracker">
+    <header>
+      <p class="kicker">{t(locale, 'tracker.kicker')}</p>
+      <h1 class="page-title">{t(locale, 'tracker.heading')}</h1>
+    </header>
+
+    <section class="tiles" aria-label={t(locale, 'tracker.stats')} data-days>
+      {
+        perDay.map(({ day, last, gap, silence, busiest }) => (
+          <div class="tiles-day" data-day={day} hidden={day !== buildDay}>
+            <div class="tile ink">
+              <h2>{t(locale, 'tracker.since')}</h2>
+              <p class="n">{last?.days ?? '—'}</p>
+              {last && <p><a href={localePath(`/music/${last.release.slug}/`, locale)} lang="en">{last.release.title}</a> · {date(last.release.date)}</p>}
+            </div>
+            <div class="tile">
+              <h2>{t(locale, 'tracker.gap')}</h2>
+              <p class="n">{gap ?? '—'}</p>
+              <p>{t(locale, 'tracker.gapNote')}</p>
+            </div>
+            <div class="tile">
+              <h2>{t(locale, 'tracker.silence')}</h2>
+              <p class="n">{silence?.days ?? '—'}</p>
+              {silence && <p>{date(silence.from)} → {silence.to === day ? t(locale, 'tracker.today') : date(silence.to)}</p>}
+            </div>
+            <div class="tile hot">
+              <h2>{t(locale, 'tracker.busiest')}</h2>
+              <p class="n">{busiest?.year ?? '—'}</p>
+              {busiest && <p>{t(locale, 'tracker.busiestNote', { n: String(busiest.count) })}</p>}
+            </div>
+          </div>
+        ))
+      }
+    </section>
+
+    <section class="wave" aria-labelledby="wave-title">
+      <div class="wave-head">
+        <h2 id="wave-title" class="lcd">▶ {t(locale, 'tracker.wave').toUpperCase()}</h2>
+        <p class="hint">{t(locale, 'tracker.waveHint')}</p>
+      </div>
+      <div class="scroller" data-wave>
+        <p class="tip" role="status" data-tip hidden></p>
+        <svg viewBox={`0 0 ${W} 230`} aria-label={t(locale, 'tracker.waveLabel', { n: String(marks.length) })} role="group">
+          <g class="hush" aria-hidden="true">{hush.map((b) => <rect x={b.x - 2} y={MID - b.half} width="4" height={b.half * 2} rx="2" />)}</g>
+          {
+            marks.map((m) => (
+              <a class:list={['peak', m.kind]} href={localePath(`/music/${m.item.slug}/`, locale)} aria-label={m.label} data-label={m.label} data-x={m.cx / W} tabindex={m.item.slug === latest ? 0 : -1}>
+                <rect class="hit" x={m.cx - 7} y="0" width="14" height="200" />
+                <rect class="bar" x={m.cx - 3} y={MID - m.half} width="6" height={m.half * 2} rx="3" />
+              </a>
+            ))
+          }
+          <g class="axis" aria-hidden="true">
+            {axis.map((a) => <text x={a.x} y="224">{a.text}</text>)}
+            <text x={W - 8} y="224" text-anchor="end">{t(locale, 'tracker.now').toUpperCase()}</text>
+          </g>
+        </svg>
+      </div>
+      <details class="as-table">
+        <summary>{t(locale, 'tracker.table')}</summary>
+        <table>
+          <caption class="visually-hidden">{t(locale, 'tracker.tableCaption')}</caption>
+          <thead>
+            <tr><th scope="col">{t(locale, 'tracker.colRelease')}</th><th scope="col">{t(locale, 'tracker.colDate')}</th><th scope="col">{t(locale, 'tracker.colType')}</th><th scope="col">{t(locale, 'tracker.colTracks')}</th></tr>
+          </thead>
+          <tbody>
+            {
+              releases.toReversed().map((r) => (
+                <tr>
+                  <th scope="row"><a href={localePath(`/music/${r.slug}/`, locale)} lang="en">{r.title}</a></th>
+                  <td><time datetime={r.date}>{date(r.date)}</time></td>
+                  <td>{t(locale, `tracker.type.${r.type}`)}</td>
+                  <td>{r.tracks.length}</td>
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+      </details>
+    </section>
+
+    <div class="cards" data-days>
+      {
+        perDay.map(({ day, anniversary, countdown, show, fridays, collabs }) => (
+          <div class="cards-day" data-day={day} hidden={day !== buildDay}>
+            <section class="card day">
+              <h2>{t(locale, 'tracker.onThisDay')}</h2>
+              {anniversary ? (
+                <p>
+                  {t(locale, `tracker.${anniversary.years === 1 ? 'yearAgo' : 'yearsAgo'}${anniversary.offset === 0 ? 'Today' : 'On'}`, {
+                    n: String(anniversary.years),
+                    date: formatDate(anniversary.item.date, locale, { day: 'numeric', month: 'long' }),
+                    title: '\u0000', // placeholder: split there to put the release link in, whatever the word order
+                  })
+                    .split('\u0000')
+                    .flatMap((part, i) => (i ? [<a href={localePath(`/music/${anniversary.item.slug}/`, locale)} lang="en">{anniversary.item.title}</a>, part] : [part]))}
+                </p>
+              ) : (
+                <p>{t(locale, 'tracker.noAnniversary')}</p>
+              )}
+            </section>
+            <section class="card blue">
+              {countdown && (
+                <>
+                  <h2>{t(locale, 'tracker.countdown')}</h2>
+                  <p>{t(locale, 'tracker.countdownTo', { title: countdown.title, date: date(countdown.date) })}</p>
+                  <p class="count" data-countdown={countdown.date}>
+                    <b data-unit="d">{countdown.days}</b> {t(locale, 'tracker.days')} <b data-unit="h" hidden /> <span hidden>{t(locale, 'tracker.hours')}</span>{' '}
+                    <b data-unit="m" hidden /> <span hidden>{t(locale, 'tracker.minutes')}</span>
+                  </p>
+                  <p><a href={countdown.source} rel="noopener">{t(locale, 'home.source')} ↗</a></p>
+                </>
+              )}
+              <h2 class:list={{ sub: countdown }}>{t(locale, 'tracker.nextShow')}</h2>
+              {show ? (
+                <p>
+                  <b>{show.city}</b> · {show.venue} · {formatDate(show.date, locale, { weekday: 'short', day: 'numeric', month: 'short' })}
+                  {show.startsAt && day === show.date && <> · <time datetime={show.startsAt} data-local-time>{show.startsAt.slice(11, 16)} UTC</time></>}
+                  {show.soldOut && <> · <span class="sold">{t(locale, 'tracker.soldOut')}</span></>}
+                  <br /><a href={show.source} rel="noopener">{t(locale, 'home.source')} ↗</a>
+                </p>
+              ) : (
+                <p>{t(locale, 'tracker.noShow')}</p>
+              )}
+            </section>
+            <section class="card note">
+              <h2>{t(locale, 'tracker.trivia')}</h2>
+              <p>{t(locale, 'tracker.fridays', { n: String(fridays) })} · {t(locale, 'tracker.collabs', { n: String(collabs) })}</p>
+            </section>
+          </div>
+        ))
+      }
+    </div>
+  </div>
+</Base>
+
+<script>
+  import '../scripts/local-day';
+
+  // Waveform: one peak in the Tab order (roving tabindex), arrow keys / Home / End move along; hover or focus shows the tip.
+  const wave = document.querySelector<HTMLElement>('[data-wave]');
+  if (wave) {
+    const peaks = [...wave.querySelectorAll<SVGAElement>('.peak')];
+    const tip = wave.querySelector<HTMLElement>('[data-tip]')!;
+    wave.scrollLeft = wave.scrollWidth; // phones: start at today, where the recent releases are
+    const show = (p: SVGAElement | null) => {
+      tip.hidden = !p;
+      if (!p) return;
+      tip.textContent = p.dataset.label!;
+      tip.style.left = `${Number(p.dataset.x) * 100}%`; // CSSOM, allowed by the CSP (inline style attributes are not)
+      tip.classList.toggle('flip', Number(p.dataset.x) > 0.7);
+    };
+    wave.addEventListener('pointerover', (e) => show((e.target as Element).closest<SVGAElement>('.peak')));
+    wave.addEventListener('pointerleave', () => show(wave.querySelector<SVGAElement>('.peak:focus')));
+    wave.addEventListener('focusin', (e) => show((e.target as Element).closest<SVGAElement>('.peak')));
+    wave.addEventListener('focusout', () => show(null));
+    wave.addEventListener('keydown', (e) => {
+      const i = peaks.indexOf(document.activeElement as SVGAElement);
+      if (i < 0) return;
+      const to = { ArrowRight: i + 1, ArrowLeft: i - 1, Home: 0, End: peaks.length - 1 }[e.key];
+      if (to === undefined || !peaks[to]) return;
+      e.preventDefault();
+      e.stopPropagation(); // the remote's own arrow keys walk the site
+      peaks[i]!.setAttribute('tabindex', '-1');
+      peaks[to].setAttribute('tabindex', '0');
+      peaks[to].focus();
+    });
+  }
+
+  // Countdown to local midnight of the release date: days, hours and minutes; updates once a minute while visible.
+  for (const el of document.querySelectorAll<HTMLElement>('[data-countdown]')) {
+    const [y, m, d] = el.dataset.countdown!.split('-').map(Number) as [number, number, number];
+    const at = new Date(y, m - 1, d).getTime();
+    const unit = (u: string) => el.querySelector<HTMLElement>(`[data-unit="${u}"]`)!;
+    const paint = () => {
+      const left = Math.max(0, at - Date.now());
+      unit('d').textContent = String(Math.floor(left / 86_400_000));
+      unit('h').textContent = String(Math.floor(left / 3_600_000) % 24);
+      unit('m').textContent = String(Math.floor(left / 60_000) % 60);
+      for (const hidden of el.querySelectorAll<HTMLElement>('[hidden]')) hidden.hidden = false;
+    };
+    paint();
+    setInterval(() => document.visibilityState === 'visible' && paint(), 60_000);
+  }
+</script>
+
+<style>
+  .tracker { width: var(--column); margin-inline: auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: 2.5rem; padding-block: 0.5rem 1rem; }
+
+  /* ---------- stat tiles ---------- */
+  .tiles-day { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 9.5rem), 1fr)); gap: 1rem; }
+  @media (min-width: 48rem) { .tiles-day { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+  .tile { display: flex; flex-direction: column; gap: 0.5rem; padding: clamp(0.875rem, 0.5rem + 1.5vw, 1.25rem); background: var(--surface); color: var(--ink); border: var(--border) solid var(--line); box-shadow: var(--shadow-sm); }
+  .tile h2 { font: 400 0.875rem var(--font-body); color: inherit; }
+  .tile .n { font: 900 clamp(3.25rem, 2.5rem + 2.5vw, 4.5rem) / 0.85 var(--font-display); font-stretch: 55%; }
+  .tile p:last-child { margin-top: auto; font-size: var(--fs-small); }
+  .tile a { color: inherit; font-weight: 700; }
+  .tile.ink { background: var(--inverse); color: var(--inverse-ink); }
+  .tile.hot { background: var(--hot); color: var(--on-hot); }
+
+  /* ---------- waveform: an ink panel in every theme, like the remote ---------- */
+  .wave { display: grid; gap: 1rem; padding: 1.25rem 1.25rem 1rem; background: var(--c-ink); color: var(--c-flash); border: var(--border) solid var(--line); box-shadow: 8px 8px 0 var(--c-strobe); }
+  .wave-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5rem 1rem; }
+  .wave-head h2 { font-size: 1.125rem; font-weight: 400; }
+  .hint { font-size: var(--fs-small); color: var(--c-remote-label); }
+  .scroller { position: relative; overflow-x: auto; padding-top: 2.75rem; }
+  .scroller svg { display: block; width: 100%; min-width: 40rem; height: auto; overflow: visible; }
+  .hush rect { fill: color-mix(in srgb, var(--c-flash) 26%, transparent); }
+  .peak .hit { fill: transparent; }
+  .peak .bar { fill: color-mix(in srgb, var(--c-strobe) 55%, var(--c-flash)); transition: fill 120ms; }
+  .peak.other .bar { fill: color-mix(in srgb, var(--c-flash) 55%, transparent); }
+  .peak.latest .bar { fill: var(--c-aura); }
+  .peak:is(:hover, :focus-visible) .bar { fill: var(--c-lcd-1); }
+  .peak:focus { outline: none; }
+  .peak:focus-visible .bar { stroke: var(--c-flash); stroke-width: 3; }
+  .axis text { fill: var(--c-remote-label); font: 20px var(--font-lcd); }
+  .tip {
+    position: absolute;
+    top: 0;
+    translate: -50% 0;
+    z-index: 1;
+    padding: 0.375rem 0.625rem;
+    white-space: nowrap;
+    font-size: var(--fs-small);
+    font-weight: 700;
+    background: var(--c-paper);
+    color: var(--c-ink);
+    box-shadow: 4px 4px 0 var(--c-aura);
+    pointer-events: none;
+  }
+  .tip.flip { translate: -100% 0; }
+  .as-table summary { cursor: pointer; font-weight: 700; min-height: 44px; display: flex; align-items: center; }
+  .as-table table { width: 100%; margin-top: 0.5rem; border-collapse: collapse; font-size: var(--fs-small); }
+  .as-table :is(th, td) { padding: 0.5rem 0.75rem 0.5rem 0; text-align: start; border-bottom: 1px solid var(--c-remote-line); }
+  .as-table thead th { color: var(--c-remote-label); font-weight: 400; }
+  .as-table a { color: var(--c-flash); }
+
+  /* ---------- three cards ---------- */
+  .cards-day { display: grid; gap: 1.25rem; }
+  /* 1 column on phones, 2 with the trivia note across on tablets, 3 on desktop: no empty cell */
+  @media (min-width: 40rem) { .cards-day { grid-template-columns: 1fr 1fr; } .card.note { grid-column: 1 / -1; } }
+  @media (min-width: 64rem) { .cards-day { grid-template-columns: repeat(3, minmax(0, 1fr)); } .card.note { grid-column: auto; } }
+  .card { display: grid; align-content: start; gap: 0.625rem; padding: 1.25rem; border: var(--border) solid var(--line); box-shadow: var(--shadow-sm); }
+  .card h2 { font-size: var(--fs-h3); }
+  .card h2.sub { margin-top: 0.5rem; font-size: 1.125rem; }
+  .card.day { background: var(--surface); color: var(--ink); }
+  .card.blue { background: var(--band); color: var(--band-ink); }
+  .card.blue a { color: inherit; }
+  .card.note { background: #fff36b; color: var(--c-ink); rotate: 0.6deg; font-family: var(--font-hand); }
+  .card.note h2 { font-family: var(--font-display); }
+  .count b { font: 900 2.5rem/1 var(--font-display); font-stretch: 55%; }
+  .sold { font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+  :global(html[data-calm]) .card.note { rotate: none; }
+  @media (prefers-reduced-motion: reduce) {
+    .card.note { rotate: none; }
+  }
+</style>
