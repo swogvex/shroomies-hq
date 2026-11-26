@@ -1,0 +1,1234 @@
+[
+  {
+    "mbid": "c14fc683-e8fe-4c91-98cf-c888eda7b18f",
+    "releaseMbid": "935b7445-a5f5-4986-96db-8607e5bef869",
+    "title": "Bubble",
+    "type": "single",
+    "date": "2018-08-16",
+    "label": null,
+    "artistCredit": "Tiffany Day",
+    "tracks": [
+      {
+        "mbid": "dab11271-29af-4ea5-bec0-43981f8b71b4",
+        "n": 1,
+        "title": "Bubble",
+        "durationMs": 178000,
+        "credits": []
+      }
+    ],
+    "credits": [],
+    "slug": "bubble"
+  },
+  {
+    "mbid": "4139cddf-3d20-4198-b884-fd9c5f809482",
+    "releaseMbid": "90073ccc-3818-43ee-8382-816046dd18b7",
+    "title": "Crush",
+    "type": "collab",
+    "date": "2019-01-30",
+    "label": null,
+    "artistCredit": "Lucian & Tiffany Day",
+    "tracks": [
+      {
+        "mbid": "32bac3b5-3e53-43dc-a0a1-c5726dce75dd",
+        "n": 1,
+        "title": "Crush",
+        "durationMs": 129544,
+        "credits": []
+      }
+    ],
+    "credits": [],
+    "slug": "crush"
+  },
+  {
+    "mbid": "21c23120-89fc-4347-b560-13019d765204",
+    "releaseMbid": "ca9774d1-1a52-4f72-bbbe-96072bfb0a56",
+    "title": "I Want My Money Back!",
+    "type": "single",
+    "date": "2019-05-03",
+    "label": null,
+    "artistCredit": "Tiffany Day",
+    "tracks": [
+      {
+        "mbid": "8f33808a-f385-403d-a0a6-598163694988",
+        "n": 1,
+        "title": "I Want My Money Back!",
+        "durationMs": 250000,
+        "credits": []
+      }
+    ],
+    "credits": [],
+    "slug": "i-want-my-money-back"
+  },
+  {
+    "mbid": "d8539e45-6f88-4ca1-a939-89428dd40f47",
+    "releaseMbid": "9c7ff5a7-7870-44df-afa8-3b0b27f59937",
+    "title": "CLOUT CHASER",
+    "type": "single",
+    "date": "2019-09-20",
+    "label": null,
+    "artistCredit": "Tiffany Day",
+    "tracks": [
+      {
+        "mbid": "d8503926-36f2-4c68-8345-d36beb975716",
+        "n": 1,
+        "title": "CLOUT CHASER",
+        "durationMs": 149000,
+        "credits": []
+      }
+    ],
+    "credits": [],
+    "slug": "clout-chaser"
+  },
+  {
+    "mbid": "7c61ee66-ce3c-45c0-b800-8dbf8f0c15a0",
+    "releaseMbid": "ec696bfd-797f-4cdc-9dab-9c2de6832a8e",
+    "title": "FLOWERS",
+    "type": "single",
+    "date": "2019-10-18",
+    "label": null,
+    "artistCredit": "Tiffany Day",
+    "tracks": [
+      {
+        "mbid": "19de7f17-0977-4049-96f5-4ed9a982431b",
+        "n": 1,
+        "title": "FLOWERS",
+        "durationMs": 149712,
+        "credits": []
+      }
+    ],
+    "credits": [],
+    "slug": "flowers"
+  },
+  {
+    "mbid": "5e2ef43e-493a-4e2c-96c6-1c243877a1e5",
+    "releaseMbid": "fe851ae5-d17d-4372-86a5-8531f7725043",
+    "title": "I'M ALIVE",
+    "type": "ep",
+    "date": "2020-01-01",
+    "label": null,
+    "artistCredit": "Tiffany Day",
+    "tracks": [
+      {
+        "mbid": "b9aa0c70-6613-4030-9207-2b91eea56fb0",
+        "n": 1,
+        "title": "I'M ALIVE",
+        "durationMs": 104000,
+        "credits": []
+      },
+      {
+        "mbid": "314a3aea-7a4b-4198-ac3f-e8dc9e1b30de",
+        "n": 2,
+        "title": "FROOTY LOOPS",
+        "durationMs": 88000,
+        "credits": []
+      },
+      {
+        "mbid": "cee935ec-94d3-4110-9018-f87f822bc591",
+        "n": 3,
+        "title": "SATISFIED?",
+        "durationMs": 164000,
+        "credits": []
+      },
+      {
+        "mbid": "8f68e3a8-d5d5-4e29-b328-d97d9e93afbc",
+        "n": 4,
+        "title": "COMMITMENT ISSUES",
+        "durationMs": 167000,
+        "credits": []
+      }
+    ],
+    "credits": [],
+    "slug": "im-alive"
+  },
+  {
+    "mbid": "fd402eee-ef58-43bc-a523-136bb47af0ac",
+    "releaseMbid": "1404f6a2-d56d-495b-9120-8ef1f8fb9adb",
+    "title": "TWFNO",
+    "type": "single",
+    "date": "2020-01-31",
+    "label": null,
+    "artistCredit": "Tiffany Day",
+    "tracks": [
+      {
+        "mbid": "8209e113-a25d-404e-9798-b898ad20d479",
+        "n": 1,
+        "title": "TWFNO",
+        "durationMs": 168176,
+        "credits": []
+      }
+    ],
+    "credits": [],
+    "slug": "twfno"
+  },
+  {
+    "mbid": "bc6385a8-4ff5-4acf-87a8-3500d06baee8",
+    "releaseMbid": "8fee640f-2739-4e7e-aef4-3a1235be95ee",
+    "title": "I'm Sorry",
+    "type": "single",
+    "date": "2020-02-14",
+    "label": null,
+    "artistCredit": "Tiffany Day",
+    "tracks": [
+      {
+        "mbid": "e9b4e2c2-7eba-468e-bc02-38ac56c7ec34",
+        "n": 1,
+        "title": "I'm Sorry",
+        "durationMs": 220263,
+        "credits": []
+      }
+    ],
+    "credits": [],
+    "slug": "im-sorry"
+  },
+  {
+    "mbid": "b0f00ebf-8a2d-4c01-a94a-0ad682debf9d",
+    "releaseMbid": "851dde1e-94f0-4142-bfa8-5093a2cc039e",
+    "title": "Autopilot",
+    "type": "single",
+    "date": "2020-04-03",
+    "label": null,
+    "artistCredit": "Tiffany Day",
+    "tracks": [
+      {
+        "mbid": "0bddd683-f865-4e11-ba46-d1b52e9cc612",
+        "n": 1,
+        "title": "Autopilot",
+        "durationMs": 211000,
+        "credits": []
+      }
+    ],
+    "credits": [],
+    "slug": "autopilot"
+  },
+  {
+    "mbid": "d324c614-ae2d-44ff-9bb2-811e5f9c89a9",
+    "releaseMbid": "df921770-1d5e-40e9-b8b5-216db33e3bed",
+    "title": "LIMELIGHT",
+    "type": "ep",
+    "date": "2020-06-26",
+    "label": null,
+    "artistCredit": "Tiffany Day",
+    "tracks": [
+      {
+        "mbid": "80b42874-7b2a-451d-98f5-921223716179",
+        "n": 1,
+        "title": "GROWNUP",
+        "durationMs": 176118,
+        "credits": []
+      },
+      {
+        "mbid": "cb228977-9f8c-48f0-b8e3-06f3d32478ab",
+        "n": 2,
+        "title": "REVENGE",
+        "durationMs": 184615,
+        "credits": []
+      }
+    ],
+    "credits": [],
+    "slug": "limelight"
+  },
+  {
+    "mbid": "ca11d0b6-dfb1-4a9f-a915-6cb1149fc282",
+    "releaseMbid": "8e82f38f-330d-4ea3-a6d7-eecdd0017b47",
+    "title": "Gonna Be Okay",
+    "type": "single",
+    "date": "2020-08-21",
+    "label": null,
+    "artistCredit": "Tiffany Day",
+    "tracks": [
+      {
+        "mbid": "21abc3a0-d911-461c-951c-246f925ee8b7",
+        "n": 1,
+        "title": "Gonna Be Okay",
+        "durationMs": 171990,
+        "credits": []
+      }
+    ],
+    "credits": [],
+    "slug": "gonna-be-okay"
+  },
+  {
+    "mbid": "06f178ae-150b-4eb8-a992-a1935ced1555",
+    "releaseMbid": "969f57bb-d8a5-48a5-bb32-44ee12370bd7",
+    "title": "Overdramatic",
+    "type": "ep",
+    "date": "2020-10-02",
+    "label": null,
+    "artistCredit": "Tiffany Day",
+    "tracks": [
+      {
+        "mbid": "b740d6c8-6f90-4329-bce9-0f4ae7134a59",
+        "n": 1,
+        "title": "You're So Fucking Mean To Me",
+        "durationMs": 93000,
+        "credits": []
+      },
+      {
+        "mbid": "297ffc26-f6ab-421c-a60e-06ea69b54c01",
+        "n": 2,
+        "title": "We Need To Talk",
+        "durationMs": 109500,
+        "credits": []
+      },
+      {
+        "mbid": "d6f08459-7869-4510-b9e6-7c5f1d633e1d",
+        "n": 3,
+        "title": "I'm Overdramatic and I Miss You",
+        "durationMs": 92500,
+        "credits": []
+      }
+    ],
+    "credits": [],
+    "slug": "overdramatic"
+  },
+  {
+    "mbid": "68448228-7795-46ce-8321-27a75da3d663",
+    "releaseMbid": "fb3650d9-0543-4490-8b23-dcae64eacec4",
+    "title": "FEEL ALRIGHT",
+    "type": "single",
+    "date": "2021-01-01",
+    "label": null,
+    "artistCredit": "Tiffany Day",
+    "tracks": [
+      {
+        "mbid": "7c465612-d128-447c-844b-b49dcc37a92b",
+        "n": 1,
+        "title": "FEEL ALRIGHT",
+        "durationMs": 221000,
+        "credits": []
+      }
+    ],
+    "credits": [],
+    "slug": "feel-alright"
+  },
+  {
+    "mbid": "d7814f48-df34-4ef6-83bc-da49eb48c917",
+    "releaseMbid": "5bddd7de-5cf5-4c56-8b93-98c03cb882aa",
+    "title": "Pretend",
+    "type": "single",
+    "date": "2021-01-25",
+    "label": null,
+    "artistCredit": "Tiffany Day",
+    "tracks": [
+      {
+        "mbid": "691fb0e4-92bf-4697-9ec1-2d687309cc55",
+        "n": 1,
+        "title": "Pretend",
+        "durationMs": 182000,
+        "credits": []
+      }
+    ],
+    "credits": [],
+    "slug": "pretend"
+  },
+  {
+    "mbid": "c3df2851-a333-4460-ad15-bd3c805cfb8a",
+    "releaseMbid": "87153bbb-4c62-44b0-915f-ed0405ea020b",
+    "title": "THE RECOVERY PROJECT",
+    "type": "ep",
+    "date": "2021-01-29",
+    "label": null,
+    "artistCredit": "Tiffany Day",
+    "tracks": [
+      {
+        "mbid": "691fb0e4-92bf-4697-9ec1-2d687309cc55",
+        "n": 1,
+        "title": "PRETEND",
+        "durationMs": 182000,
+        "credits": []
+      },
+      {
+        "mbid": "6789e110-f865-4ab3-a44a-5dfdb7ac67dc",
+        "n": 2,
+        "title": "TAKE ME BACK",
+        "durationMs": 214000,
+        "credits": []
+      },
+      {
+        "mbid": "7c465612-d128-447c-844b-b49dcc37a92b",
+        "n": 3,
+        "title": "FEEL ALRIGHT",
+        "durationMs": 222000,
+        "credits": []
+      },
+      {
+        "mbid": "11638a9b-6d21-4228-a3f8-002853b251d2",
+        "n": 4,
+        "title": "VULNERABLE",
+        "durationMs": 203000,
+        "credits": []
+      },
+      {
+        "mbid": "3b9a948e-b933-4982-a689-4c7ac4a2ad85",
+        "n": 5,
+        "title": "HOMESICK",
+        "durationMs": 218000,
+        "credits": []
+      }
+    ],
+    "credits": [],
+    "slug": "the-recovery-project"
+  },
+  {
+    "mbid": "7b2a26d1-5006-48d8-9658-a1107882229a",
+    "releaseMbid": "deecd72f-68bf-4722-aab2-12c6b3784c3d",
+    "title": "Calone",
+    "type": "single",
+    "date": "2021-06-04",
+    "label": null,
+    "artistCredit": "Tiffany Day",
+    "tracks": [
+      {
+        "mbid": "af61f391-4858-4d47-a4d2-5f1cab299f51",
+        "n": 1,
+        "title": "Calone",
+        "durationMs": 176517,
+        "credits": []
+      }
+    ],
+    "credits": [],
+    "slug": "calone"
+  },
+  {
+    "mbid": "75730c24-9d23-460d-a297-b72740ad2aae",
+    "releaseMbid": "c01dde49-f7da-4126-9d00-ad2f37cb8611",
+    "title": "If I Don't Text You First",
+    "type": "single",
+    "date": "2021-06-21",
+    "label": null,
+    "artistCredit": "Tiffany Day",
+    "tracks": [
+      {
+        "mbid": "03aa51e9-4534-4624-bdcd-fa63e9acbda7",
+        "n": 1,
+        "title": "If I Don't Text You First",
+        "durationMs": 133547,
+        "credits": []
+      }
+    ],
+    "credits": [],
+    "slug": "if-i-dont-text-you-first"
+  },
+  {
+    "mbid": "fbbb7dd0-d5d9-44c9-b9c3-9f9c9c307f03",
+    "releaseMbid": "362ab9ff-8daf-4afe-bbec-5130b816b0d6",
+    "title": "THE DEPENDENCY PROJECT",
+    "type": "ep",
+    "date": "2021-06-25",
+    "label": null,
+    "artistCredit": "Tiffany Day",
+    "tracks": [
+      {
+        "mbid": "66521ffc-c69c-432b-a5f3-6c1c7aa3e395",
+        "n": 1,
+        "title": "NIGHTS W U",
+        "durationMs": 178928,
+        "credits": []
+      },
+      {
+        "mbid": "03aa51e9-4534-4624-bdcd-fa63e9acbda7",
+        "n": 2,
+        "title": "IF I DON'T TEXT YOU FIRST",
+        "durationMs": 133547,
+        "credits": []
+      },
+      {
+        "mbid": "98139f5b-299d-4fc0-bb4d-da5ee331d027",
+        "n": 3,
+        "title": "HANNA",
+        "durationMs": 165924,
+        "credits": []
+      },
+      {
+        "mbid": "a95db97e-f501-41ba-83b8-f355d5b087ff",
+        "n": 4,
+        "title": "CALONE",
+        "durationMs": 176504,
+        "credits": []
+      },
+      {
+        "mbid": "fa23e683-d42f-4877-826b-851521f2795a",
+        "n": 5,
+        "title": "BAD HABITS",
+        "durationMs": 200154,
+        "credits": []
+      }
+    ],
+    "credits": [],
+    "slug": "the-dependency-project"
+  },
+  {
+    "mbid": "9035e95d-f44f-45d3-9219-d8fa8f1622f2",
+    "releaseMbid": "cb422567-cc9d-48b9-983e-0684430d92e7",
+    "title": "Someday",
+    "type": "collab",
+    "date": "2021-08-05",
+    "label": null,
+    "artistCredit": "YOG$, MASN & Tiffany Day",
+    "tracks": [
+      {
+        "mbid": "bcb36763-2f91-4328-b29c-58174aa1dd27",
+        "n": 1,
+        "title": "Someday",
+        "durationMs": 156648,
+        "credits": []
+      }
+    ],
+    "credits": [],
+    "slug": "someday"
+  },
+  {
+    "mbid": "3d090f66-69d6-4fcb-ad84-08eeac7d4dfa",
+    "releaseMbid": "ad2dcd1f-10be-4762-897c-8f800b41b4c2",
+    "title": "SPOILED BITCH",
+    "type": "single",
+    "date": "2021-10-27",
+    "label": null,
+    "artistCredit": "Tiffany Day",
+    "tracks": [
+      {
+        "mbid": "c041a52e-5dfb-4022-a628-2778ea2b4084",
+        "n": 1,
+        "title": "SPOILED BITCH",
+        "durationMs": 140500,
+        "credits": []
+      }
+    ],
+    "credits": [],
+    "slug": "spoiled-bitch"
+  },
+  {
+    "mbid": "aab78d17-e622-42de-aa3a-89e39963eb79",
+    "releaseMbid": "40e84df1-b29a-4667-af49-b015678e1fad",
+    "title": "CLOUDS",
+    "type": "single",
+    "date": "2021-12-03",
+    "label": null,
+    "artistCredit": "Tiffany Day",
+    "tracks": [
+      {
+        "mbid": "15db4b6a-7205-4960-9f0c-d1a34d147afe",
+        "n": 1,
+        "title": "CLOUDS",
+        "durationMs": 178727,
+        "credits": []
+      }
+    ],
+    "credits": [],
+    "slug": "clouds"
+  },
+  {
+    "mbid": "a5067196-d3de-4820-8c03-0083229df9d6",
+    "releaseMbid": "d86a653c-e8d8-48ec-ba5a-7f95a1f8b00a",
+    "title": "THE RENEWAL PROJECT",
+    "type": "ep",
+    "date": "2022-02-16",
+    "label": null,
+    "artistCredit": "Tiffany Day",
+    "tracks": [
+      {
+        "mbid": "c041a52e-5dfb-4022-a628-2778ea2b4084",
+        "n": 1,
+        "title": "SPOILED BITCH",
+        "durationMs": 140500,
+        "credits": []
+      },
+      {
+        "mbid": "9d3250a2-f4e4-48ce-be98-26a4c621900f",
+        "n": 2,
+        "title": "BROKEN PLATES",
+        "durationMs": 177900,
+        "credits": []
+      },
+      {
+        "mbid": "03a542cc-7cb3-45b6-8ef2-47b5c4d96b3c",
+        "n": 3,
+        "title": "BITE BACK",
+        "durationMs": 155500,
+        "credits": []
+      },
+      {
+        "mbid": "b8eb806c-ea2a-417f-a515-bb6dd4895840",
+        "n": 4,
+        "title": "ZILLOW HOUSES FOR SALE",
+        "durationMs": 135680,
+        "credits": []
+      },
+      {
+        "mbid": "15db4b6a-7205-4960-9f0c-d1a34d147afe",
+        "n": 5,
+        "title": "CLOUDS",
+        "durationMs": 178727,
+        "credits": []
+      }
+    ],
+    "credits": [],
+    "slug": "the-renewal-project"
+  },
+  {
+    "mbid": "9949b446-883f-430a-8117-56e8e6c439ed",
+    "releaseMbid": "1f1c4740-0a5a-47fc-9587-ad575f76e87c",
+    "title": "Party W Out Me",
+    "type": "single",
+    "date": "2022-06-29",
+    "label": null,
+    "artistCredit": "Tiffany Day",
+    "tracks": [
+      {
+        "mbid": "7fff9836-da47-4413-95ed-2b345a8af35d",
+        "n": 1,
+        "title": "Party W Out Me",
+        "durationMs": 149627,
+        "credits": []
+      }
+    ],
+    "credits": [],
+    "slug": "party-w-out-me"
+  },
+  {
+    "mbid": "0341329b-5a2d-4004-b5c8-255311745f58",
+    "releaseMbid": "1d4f4efd-526c-4e03-b22b-3f7634d5d59e",
+    "title": "SAN FRANCISCO SIDEWALK",
+    "type": "single",
+    "date": "2022-08-10",
+    "label": null,
+    "artistCredit": "Tiffany Day",
+    "tracks": [
+      {
+        "mbid": "daf4d723-2ff7-4e5f-b132-237c987c3a03",
+        "n": 1,
+        "title": "SAN FRANCISCO SIDEWALK",
+        "durationMs": 145520,
+        "credits": []
+      }
+    ],
+    "credits": [],
+    "slug": "san-francisco-sidewalk"
+  },
+  {
+    "mbid": "f512dfb5-6bab-4023-84d2-ba9f36fe6976",
+    "releaseMbid": "85e24b63-ac8f-44bd-b69f-54dd8fa0098a",
+    "title": "Dreams Abt Optimism",
+    "type": "single",
+    "date": "2022-11-01",
+    "label": null,
+    "artistCredit": "Tiffany Day",
+    "tracks": [
+      {
+        "mbid": "db8548fd-9935-4b5f-8401-3d6101c22f47",
+        "n": 1,
+        "title": "Dreams Abt Optimism",
+        "durationMs": 167200,
+        "credits": []
+      }
+    ],
+    "credits": [],
+    "slug": "dreams-abt-optimism"
+  },
+  {
+    "mbid": "c1184dbc-a870-4d96-8489-f406f49244eb",
+    "releaseMbid": "861b2d85-cc18-4b57-a40a-60851feb7962",
+    "title": "THE GRATITUDE PROJECT",
+    "type": "ep",
+    "date": "2023-02-17",
+    "label": null,
+    "artistCredit": "Tiffany Day",
+    "tracks": [
+      {
+        "mbid": "daf4d723-2ff7-4e5f-b132-237c987c3a03",
+        "n": 1,
+        "title": "SAN FRANCISCO SIDEWALK",
+        "durationMs": 145520,
+        "credits": []
+      },
+      {
+        "mbid": "62e3cb3b-26b5-460a-83b4-f6a07c24d5ae",
+        "n": 2,
+        "title": "SHOULD I BE OK?",
+        "durationMs": 217258,
+        "credits": []
+      },
+      {
+        "mbid": "7fff9836-da47-4413-95ed-2b345a8af35d",
+        "n": 3,
+        "title": "PARTY W OUT ME",
+        "durationMs": 149627,
+        "credits": []
+      },
+      {
+        "mbid": "db8548fd-9935-4b5f-8401-3d6101c22f47",
+        "n": 4,
+        "title": "DREAMS ABT OPTIMISM",
+        "durationMs": 167200,
+        "credits": []
+      },
+      {
+        "mbid": "90f5d6ab-d8dc-4d28-a9bc-2e0d9f0f886d",
+        "n": 5,
+        "title": "HEART TO HEART IN THE TATTOO PARLOR",
+        "durationMs": 152308,
+        "credits": []
+      }
+    ],
+    "credits": [],
+    "slug": "the-gratitude-project"
+  },
+  {
+    "mbid": "06e99d25-b44b-46f8-9d3c-e9b241b2b145",
+    "releaseMbid": "7abecb1c-3ec6-4fa4-a4cb-81b1e1b24e6f",
+    "title": "APESHIT",
+    "type": "single",
+    "date": "2023-10-27",
+    "label": null,
+    "artistCredit": "Tiffany Day",
+    "tracks": [
+      {
+        "mbid": "f381aa5d-0ec3-42d2-a088-3250613d28a0",
+        "n": 1,
+        "title": "APESHIT",
+        "durationMs": 151000,
+        "credits": []
+      }
+    ],
+    "credits": [],
+    "slug": "apeshit"
+  },
+  {
+    "mbid": "ef08c72f-2881-4176-b812-7a746e61fed9",
+    "releaseMbid": "64323138-cb6f-4667-a0c0-2930b81e8ddb",
+    "title": "HELLA BOY CRAZY",
+    "type": "single",
+    "date": "2024-05-23",
+    "label": null,
+    "artistCredit": "Tiffany Day",
+    "tracks": [
+      {
+        "mbid": "a824626f-d5e1-43b3-a2e9-49b138b0eaee",
+        "n": 1,
+        "title": "HELLA BOY CRAZY",
+        "durationMs": 134787,
+        "credits": []
+      }
+    ],
+    "credits": [],
+    "slug": "hella-boy-crazy"
+  },
+  {
+    "mbid": "8103b5ae-ec65-4ffe-839f-64efb1f5c57e",
+    "releaseMbid": "afeae643-67b1-4de9-9ee2-5198433f1304",
+    "title": "KANSAS",
+    "type": "single",
+    "date": "2024-07-12",
+    "label": null,
+    "artistCredit": "Tiffany Day",
+    "tracks": [
+      {
+        "mbid": "99e50018-d45e-44e2-b085-8052e87c71ae",
+        "n": 1,
+        "title": "KANSAS",
+        "durationMs": 181267,
+        "credits": []
+      },
+      {
+        "mbid": "a824626f-d5e1-43b3-a2e9-49b138b0eaee",
+        "n": 2,
+        "title": "HELLA BOY CRAZY",
+        "durationMs": 134787,
+        "credits": []
+      }
+    ],
+    "credits": [],
+    "slug": "kansas"
+  },
+  {
+    "mbid": "777415d4-4581-4307-9fef-b056321c64a8",
+    "releaseMbid": "c95fadf6-70c7-438d-998b-04ee3167160b",
+    "title": "Far Away",
+    "type": "single",
+    "date": "2024-08-16",
+    "label": null,
+    "artistCredit": "Tiffany Day",
+    "tracks": [
+      {
+        "mbid": "57e316d3-b6ba-4f49-974a-cf33f51912e4",
+        "n": 1,
+        "title": "FAR AWAY",
+        "durationMs": 192227,
+        "credits": []
+      },
+      {
+        "mbid": "99e50018-d45e-44e2-b085-8052e87c71ae",
+        "n": 2,
+        "title": "KANSAS",
+        "durationMs": 181267,
+        "credits": []
+      },
+      {
+        "mbid": "a824626f-d5e1-43b3-a2e9-49b138b0eaee",
+        "n": 3,
+        "title": "HELLA BOY CRAZY",
+        "durationMs": 134787,
+        "credits": []
+      }
+    ],
+    "credits": [],
+    "slug": "far-away"
+  },
+  {
+    "mbid": "00b1d114-ab48-4a5f-96dc-445426446eab",
+    "releaseMbid": "90c91ed5-7f11-4b76-b8eb-1a5e9acee37b",
+    "title": "LOVER TOFU FRUIT",
+    "type": "album",
+    "date": "2024-09-13",
+    "label": null,
+    "artistCredit": "Tiffany Day",
+    "tracks": [
+      {
+        "mbid": "3d2738ec-ad22-45a9-aa2f-e7a316c13651",
+        "n": 1,
+        "title": "ALWAYS FUN",
+        "durationMs": 259000,
+        "credits": []
+      },
+      {
+        "mbid": "eb9a14e2-15bd-471f-bcfe-91a12224d64e",
+        "n": 2,
+        "title": "SIMON SAID",
+        "durationMs": 136000,
+        "credits": []
+      },
+      {
+        "mbid": "57e316d3-b6ba-4f49-974a-cf33f51912e4",
+        "n": 3,
+        "title": "FAR AWAY",
+        "durationMs": 192000,
+        "credits": []
+      },
+      {
+        "mbid": "df459203-838c-49a4-aa4c-e7de5875d54a",
+        "n": 4,
+        "title": "WHAT AM I RUNNING FROM",
+        "durationMs": 110000,
+        "credits": []
+      },
+      {
+        "mbid": "23db8612-7c53-42f0-a5e6-6309b7990912",
+        "n": 5,
+        "title": "WHAT A JOKE",
+        "durationMs": 141000,
+        "credits": []
+      },
+      {
+        "mbid": "b25eb3da-a1b4-4c7d-841d-b9d7367509ab",
+        "n": 6,
+        "title": "LOYOLA",
+        "durationMs": 141000,
+        "credits": []
+      },
+      {
+        "mbid": "a824626f-d5e1-43b3-a2e9-49b138b0eaee",
+        "n": 7,
+        "title": "HELLA BOY CRAZY",
+        "durationMs": 134000,
+        "credits": []
+      },
+      {
+        "mbid": "99e50018-d45e-44e2-b085-8052e87c71ae",
+        "n": 8,
+        "title": "KANSAS",
+        "durationMs": 181000,
+        "credits": []
+      },
+      {
+        "mbid": "a2059057-f817-48e8-819c-b3843dfe4213",
+        "n": 9,
+        "title": "TOGETHER",
+        "durationMs": 154000,
+        "credits": []
+      },
+      {
+        "mbid": "759325aa-eb4a-4d24-97b0-226c8e361459",
+        "n": 10,
+        "title": "LOVER TOFU FRUIT",
+        "durationMs": 178000,
+        "credits": []
+      }
+    ],
+    "credits": [],
+    "slug": "lover-tofu-fruit"
+  },
+  {
+    "mbid": "d729530e-89d3-41aa-8fca-253cda1ede38",
+    "releaseMbid": "6deb0834-1a3c-46ff-8412-d781b88d677d",
+    "title": "LOVER TOFU FRUIT (MONOLID Flips)",
+    "type": "remix",
+    "date": "2024-10-25",
+    "label": null,
+    "artistCredit": "Tiffany Day & MONOLID",
+    "tracks": [
+      {
+        "mbid": "8a511a1e-3ffc-41ce-8fa4-debe53bded6f",
+        "n": 1,
+        "title": "KANSAS (MONOLID Flip)",
+        "durationMs": 200265,
+        "credits": [
+          {
+            "role": "remixer",
+            "name": "MONOLID"
+          }
+        ]
+      },
+      {
+        "mbid": "bc5e8982-1cdd-44bd-86a3-d75ccea8e768",
+        "n": 2,
+        "title": "WHAT A JOKE (MONOLID Flip)",
+        "durationMs": 153846,
+        "credits": [
+          {
+            "role": "remixer",
+            "name": "MONOLID"
+          }
+        ]
+      },
+      {
+        "mbid": "d942db44-9035-4ee2-8440-300be214dde1",
+        "n": 3,
+        "title": "TOGETHER (MONOLID Flip)",
+        "durationMs": 233710,
+        "credits": [
+          {
+            "role": "remixer",
+            "name": "MONOLID"
+          }
+        ]
+      }
+    ],
+    "credits": [],
+    "slug": "lover-tofu-fruit-monolid-flips"
+  },
+  {
+    "mbid": "d513a2cd-7286-46f0-8e15-1faa6a5079c9",
+    "releaseMbid": "687cf3f8-4d30-4180-9295-47f091ece27d",
+    "title": "PRETTY4U",
+    "type": "single",
+    "date": "2025-07-18",
+    "label": null,
+    "artistCredit": "Tiffany Day",
+    "tracks": [
+      {
+        "mbid": "2e92e82c-c95c-4b23-82e6-06dc106c50cf",
+        "n": 1,
+        "title": "PRETTY4U",
+        "durationMs": 145352,
+        "credits": []
+      }
+    ],
+    "credits": [],
+    "slug": "pretty4u"
+  },
+  {
+    "mbid": "2c2cad8c-a05c-45d4-8bdb-2da2985a0f27",
+    "releaseMbid": "219b495b-d65c-4a06-90d9-f2d69590c3bd",
+    "title": "Summer’s Gone (Skybreak HALF BLOOD remix)",
+    "type": "remix",
+    "date": "2025-08-29",
+    "label": "Kannibalen Records",
+    "artistCredit": "Dabin & FrostTop feat. Tiffany Day",
+    "tracks": [
+      {
+        "mbid": "1eb27d88-46f2-43c2-b359-279431033489",
+        "n": 1,
+        "title": "Summer’s Gone (Skybreak HALF BLOOD remix)",
+        "durationMs": 256000,
+        "credits": [
+          {
+            "role": "remixer",
+            "name": "Skybreak"
+          },
+          {
+            "role": "additional",
+            "name": "Bernie Wagenblast"
+          }
+        ]
+      }
+    ],
+    "credits": [],
+    "slug": "summers-gone-skybreak-half-blood-remix"
+  },
+  {
+    "mbid": "5df5a8af-3a58-43fe-a422-1880dfb0aa58",
+    "releaseMbid": "f8add30c-6a40-4dc0-b4b1-db0f3eb36249",
+    "title": "AMERICAN GIRL",
+    "type": "single",
+    "date": "2025-09-12",
+    "label": null,
+    "artistCredit": "Tiffany Day",
+    "tracks": [
+      {
+        "mbid": "abbc5779-eeb0-4b18-a00a-76d49c143eef",
+        "n": 1,
+        "title": "AMERICAN GIRL",
+        "durationMs": 176364,
+        "credits": []
+      },
+      {
+        "mbid": "2e92e82c-c95c-4b23-82e6-06dc106c50cf",
+        "n": 2,
+        "title": "PRETTY4U",
+        "durationMs": 145352,
+        "credits": []
+      }
+    ],
+    "credits": [],
+    "slug": "american-girl"
+  },
+  {
+    "mbid": "eeed434c-869f-446e-bc1d-c1d2893c60fd",
+    "releaseMbid": "73d7c581-da84-4705-aafe-51f7ef65e86b",
+    "title": "BREAKUP",
+    "type": "single",
+    "date": "2025-11-07",
+    "label": null,
+    "artistCredit": "Tiffany Day",
+    "tracks": [
+      {
+        "mbid": "aa941932-e1ce-4dfd-8d98-7fff6b3a857a",
+        "n": 1,
+        "title": "BREAKUP",
+        "durationMs": 160645,
+        "credits": []
+      }
+    ],
+    "credits": [],
+    "slug": "breakup"
+  },
+  {
+    "mbid": "5da0b759-25fe-4ece-b240-8d9a62c21023",
+    "releaseMbid": "8ac910be-6307-4274-ae12-742eae01ea61",
+    "title": "TELL ME WHAT I DID",
+    "type": "single",
+    "date": "2026-01-30",
+    "label": "broke",
+    "artistCredit": "Tiffany Day",
+    "tracks": [
+      {
+        "mbid": "9e26636d-92c4-43c1-bec1-3226aab90d0e",
+        "n": 1,
+        "title": "TELL ME WHAT I DID",
+        "durationMs": 153800,
+        "credits": []
+      }
+    ],
+    "credits": [],
+    "slug": "tell-me-what-i-did"
+  },
+  {
+    "mbid": "9ced5dfe-5c0b-4a97-aa76-811a9322dd48",
+    "releaseMbid": "3982e757-9767-48b0-a1d0-a73cda3be958",
+    "title": "Start Over",
+    "type": "single",
+    "date": "2026-02-20",
+    "label": null,
+    "artistCredit": "Tiffany Day",
+    "tracks": [
+      {
+        "mbid": "25247877-fe62-4a97-bc5e-75cbe29540c6",
+        "n": 1,
+        "title": "START OVER",
+        "durationMs": 170000,
+        "credits": []
+      }
+    ],
+    "credits": [],
+    "slug": "start-over"
+  },
+  {
+    "mbid": "a86141e7-6420-4977-8763-aeffca4d9d5e",
+    "releaseMbid": "52f50dec-b69b-4af0-95a6-e9d461dc7630",
+    "title": "SAME LA",
+    "type": "single",
+    "date": "2026-03-25",
+    "label": "broke",
+    "artistCredit": "Tiffany Day",
+    "tracks": [
+      {
+        "mbid": "daadd365-8d74-41d3-b290-05f3f4ecdfed",
+        "n": 1,
+        "title": "SAME LA",
+        "durationMs": 224662,
+        "credits": []
+      }
+    ],
+    "credits": [],
+    "slug": "same-la"
+  },
+  {
+    "mbid": "811ce8bf-30b5-478d-abbc-185acd6d3e0c",
+    "releaseMbid": "9eea63f3-7338-464f-8ce8-302b7154dd69",
+    "title": "HALO",
+    "type": "album",
+    "date": "2026-04-03",
+    "label": "broke",
+    "artistCredit": "Tiffany Day",
+    "tracks": [
+      {
+        "mbid": "98619a1a-7c40-4e4c-9d0d-58a7c8264091",
+        "n": 1,
+        "title": "EVERYTHING I’VE EVER WANTED",
+        "durationMs": 135000,
+        "credits": []
+      },
+      {
+        "mbid": "e8119869-fdfe-435b-9f14-c908e9dfdece",
+        "n": 2,
+        "title": "DOIT4ME",
+        "durationMs": 181000,
+        "credits": []
+      },
+      {
+        "mbid": "daadd365-8d74-41d3-b290-05f3f4ecdfed",
+        "n": 3,
+        "title": "SAME LA",
+        "durationMs": 224000,
+        "credits": []
+      },
+      {
+        "mbid": "2e92e82c-c95c-4b23-82e6-06dc106c50cf",
+        "n": 4,
+        "title": "PRETTY4U",
+        "durationMs": 145000,
+        "credits": []
+      },
+      {
+        "mbid": "f20c29b3-e781-4841-b350-113ccb779858",
+        "n": 5,
+        "title": "COPYCAT",
+        "durationMs": 135000,
+        "credits": []
+      },
+      {
+        "mbid": "3691d969-1da1-49f8-a0e3-532ec025a17b",
+        "n": 6,
+        "title": "NO LUCK",
+        "durationMs": 188000,
+        "credits": []
+      },
+      {
+        "mbid": "aa941932-e1ce-4dfd-8d98-7fff6b3a857a",
+        "n": 7,
+        "title": "BREAKUP",
+        "durationMs": 160000,
+        "credits": []
+      },
+      {
+        "mbid": "9e26636d-92c4-43c1-bec1-3226aab90d0e",
+        "n": 8,
+        "title": "TELL ME WHAT I DID",
+        "durationMs": 153000,
+        "credits": []
+      },
+      {
+        "mbid": "25247877-fe62-4a97-bc5e-75cbe29540c6",
+        "n": 9,
+        "title": "START OVER",
+        "durationMs": 170000,
+        "credits": []
+      },
+      {
+        "mbid": "41452ff0-c249-4675-bec1-dd422787b59d",
+        "n": 10,
+        "title": "LOOK UP",
+        "durationMs": 137000,
+        "credits": []
+      },
+      {
+        "mbid": "abbc5779-eeb0-4b18-a00a-76d49c143eef",
+        "n": 11,
+        "title": "AMERICAN GIRL",
+        "durationMs": 176000,
+        "credits": []
+      },
+      {
+        "mbid": "de6d0d66-11bf-4bc5-8f2d-28a1b9d5f06c",
+        "n": 12,
+        "title": "FAREWELL TOLEDO",
+        "durationMs": 150000,
+        "credits": []
+      },
+      {
+        "mbid": "1f7ab9c9-9f37-43d4-87a9-b709fe01fdef",
+        "n": 13,
+        "title": "IT’S NOT LIKE THAT ANYMORE",
+        "durationMs": 227000,
+        "credits": []
+      }
+    ],
+    "credits": [],
+    "slug": "halo"
+  },
+  {
+    "mbid": "65714c7e-7b09-4d49-a8d0-e085d447cf3e",
+    "releaseMbid": "54b8ec17-6737-4281-ad26-dd043d471e06",
+    "title": "CONSTANTLY",
+    "type": "collab",
+    "date": "2026-06-17",
+    "label": "Run Things",
+    "artistCredit": "Tiffany Day & slayr",
+    "tracks": [
+      {
+        "mbid": "edbac3f4-db2b-45e3-93bf-226352c3be03",
+        "n": 1,
+        "title": "CONSTANTLY",
+        "durationMs": 182000,
+        "credits": [
+          {
+            "role": "mix",
+            "name": "MELVV"
+          },
+          {
+            "role": "performer",
+            "name": "Tiffany Day"
+          },
+          {
+            "role": "performer",
+            "name": "slayr"
+          },
+          {
+            "role": "producer",
+            "name": "Hidde Ament"
+          },
+          {
+            "role": "producer",
+            "name": "Tiffany Day"
+          },
+          {
+            "role": "producer",
+            "name": "Aaron Shadrow"
+          }
+        ]
+      }
+    ],
+    "credits": [],
+    "slug": "constantly"
+  },
+  {
+    "mbid": "642da4fa-a8e8-4ea0-8707-b60721e3cc5c",
+    "releaseMbid": "ea418290-1e09-46a1-88dc-e71bfc136a51",
+    "title": "MEANT TO BE",
+    "type": "collab",
+    "date": "2026-10-13",
+    "label": "Run Things",
+    "artistCredit": "Tiffany Day & glaive",
+    "tracks": [
+      {
+        "mbid": "05af4bed-312f-4738-9ec0-6640fc2f64fa",
+        "n": 1,
+        "title": "MEANT TO BE",
+        "durationMs": 178185,
+        "credits": []
+      }
+    ],
+    "credits": [],
+    "slug": "meant-to-be"
+  }
+]
