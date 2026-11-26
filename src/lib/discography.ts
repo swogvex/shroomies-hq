@@ -32,8 +32,8 @@ export function applyCorrections(raw: readonly RawRelease[], { overrides, additi
 
 export type CatalogueTrack = Track & { release: string; releaseTitle: string; date: string };
 
-/** What resets "days since" and counts in the tracker stats: her releases incl. collabs, not remixes or guest features (home and tracker share it). */
-export const countsAsRelease = (r: { type: ReleaseType }) => r.type !== 'remix' && r.type !== 'guest';
+/** What resets "days since" and counts in the tracker stats: her own albums, EPs and singles; collabs, remixes and guest features don't (owner, 2026-11-26; spec 09). Home and tracker share it. */
+export const countsAsRelease = (r: { type: ReleaseType }) => r.type === 'album' || r.type === 'ep' || r.type === 'single';
 
 /** Same title = same song (MusicBrainz sometimes keeps the single and EP versions as two recordings). */
 export const songKey = (title: string) => title.trim().toLowerCase();

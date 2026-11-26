@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { applyCorrections, eraFor, ownTracks, type EraStart } from '../../src/lib/discography';
+import { applyCorrections, countsAsRelease, eraFor, ownTracks, type EraStart } from '../../src/lib/discography';
 import { assignSlugs, isGuest, normalizeRelease, pickRelease, releaseType, slugify, type MbRelease, type RawRelease } from '../../src/lib/musicbrainz';
 
 const eras: EraStart[] = [
@@ -141,5 +141,11 @@ describe('corrections and catalogue', () => {
       eras,
     );
     expect(ownTracks(rels).map((x) => [x.release, x.n, x.mbid])).toEqual([['halo', 1, 'intro'], ['halo', 2, 'start-over']]);
+  });
+});
+
+describe('countsAsRelease', () => {
+  it('only her own albums, EPs and singles reset "days since" (owner, 2026-11-26)', () => {
+    expect(['album', 'ep', 'single', 'collab', 'remix', 'guest'].filter((type) => countsAsRelease({ type: type as never }))).toEqual(['album', 'ep', 'single']);
   });
 });
