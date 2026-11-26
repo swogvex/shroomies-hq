@@ -65,6 +65,10 @@ describe('musicbrainz normalisation', () => {
         { 'target-type': 'artist', type: 'producer', artist: { name: 'A' } },
         { 'target-type': 'artist', type: 'producer', artist: { name: 'A' } },
         { 'target-type': 'url', type: 'purchase' },
+        { 'target-type': 'url', type: 'free streaming', url: { resource: 'https://open.spotify.com/album/4T7qu6MdxoGjzZPErRWgsO' } },
+        { 'target-type': 'url', type: 'streaming', url: { resource: 'https://music.apple.com/us/album/1872819106' } },
+        { 'target-type': 'url', type: 'streaming', url: { resource: 'http://music.apple.com/us/album/2' } },
+        { 'target-type': 'url', type: 'free streaming', url: { resource: 'https://www.deezer.com/album/907282002' } },
       ],
       media: [
         { tracks: [{ position: 1, title: 'One', length: 1000, recording: { id: 'r1', relations: [{ 'target-type': 'artist', type: 'instrument', attributes: ['guitar'], artist: { name: 'B' } }] } }] },
@@ -74,6 +78,7 @@ describe('musicbrainz normalisation', () => {
     expect(normalizeRelease(lookup, 'TD')).toEqual({
       mbid: 'rg-1', releaseMbid: 'rel-1', title: 'HALO', type: 'album', date: '2026-04-03', label: 'Some Label', artistCredit: 'Tiffany Day',
       credits: [{ role: 'producer', name: 'A' }],
+      links: { spotify: 'https://open.spotify.com/album/4T7qu6MdxoGjzZPErRWgsO', apple: 'https://music.apple.com/us/album/1872819106' },
       tracks: [
         { mbid: 'r1', n: 1, title: 'One', durationMs: 1000, credits: [{ role: 'guitar', name: 'B' }] },
         { mbid: 'r2', n: 2, title: 'Two', durationMs: 2000, credits: [] },
