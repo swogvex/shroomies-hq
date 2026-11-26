@@ -25,6 +25,9 @@ test('the missing address is shown as text, never as HTML', async ({ page }) => 
   await expect(page.locator('[data-path]')).toHaveText('/<img src=x onerror=alert(1)>/');
   await expect(page.locator('[data-path] img')).toHaveCount(0);
   expect(dialogs).toBe(0);
+  // a right-to-left override cannot flip how the path reads
+  await page.goto("/%E2%80%AEgnp.exe/");
+  await expect(page.locator("[data-path]")).toHaveText("/gnp.exe/");
 });
 
 test('the Spanish 404 is in Spanish', async ({ page }) => {
