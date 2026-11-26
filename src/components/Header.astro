@@ -27,6 +27,8 @@ const themes = {
 </header>
 
 <script>
+  import { write } from '../lib/storage';
+
   const order = ['original', 'light', 'dark'] as const;
   type Theme = (typeof order)[number];
   const root = document.documentElement;
@@ -40,11 +42,7 @@ const themes = {
     pill.addEventListener('click', () => {
       const next = order[(order.indexOf(root.dataset.theme as Theme) + 1) % order.length]!;
       root.dataset.theme = next;
-      try {
-        localStorage.setItem('shq:theme', next);
-      } catch {
-        // storage blocked (private mode): the theme still changes, it just isn't remembered
-      }
+      write('theme', next); // storage blocked: the theme still changes, it just isn't remembered
       paint();
     });
     paint();

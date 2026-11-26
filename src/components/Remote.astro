@@ -74,6 +74,8 @@ const href = (i: number) => localePath(sections[i]!.path, locale);
 </section>
 
 <script>
+  import { write } from '../lib/storage';
+
   const root = document.documentElement;
   const remote = document.querySelector<HTMLElement>('[data-remote]');
 
@@ -109,8 +111,7 @@ const href = (i: number) => localePath(sections[i]!.path, locale);
         );
       }
     };
-    glide();
-    document.fonts?.ready.then(glide);
+    document.fonts?.ready.then(glide); // first run: paintCalm below
     addEventListener('resize', glide);
     still.addEventListener('change', glide);
 
@@ -126,11 +127,7 @@ const href = (i: number) => localePath(sections[i]!.path, locale);
     calm.addEventListener('click', () => {
       const on = !root.hasAttribute('data-calm');
       root.toggleAttribute('data-calm', on);
-      try {
-        localStorage.setItem('shq:calm', on ? 'on' : 'off');
-      } catch {
-        // storage blocked: calm still applies to this page
-      }
+      write('calm', on ? 'on' : 'off'); // storage blocked: calm still applies to this page
       paintCalm();
       say.textContent = on ? calmOn! : calmOff!;
     });
@@ -405,8 +402,5 @@ const href = (i: number) => localePath(sections[i]!.path, locale);
     }
   }
 
-  @media (prefers-reduced-motion: reduce) {
-    .remote .rk, .knob { transition: none; }
-  }
   :global(html[data-calm]) .remote .rk:hover { transform: none; }
 </style>
