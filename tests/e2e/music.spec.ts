@@ -113,3 +113,17 @@ test.describe('without JavaScript', () => {
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('HALO');
   });
 });
+
+test.describe('phone', () => {
+  test.use({ viewport: { width: 390, height: 844 }, hasTouch: true });
+  test('the era bar sticks to the top and a tap starts the new era from its first CD', async ({ page }) => {
+    await page.goto('/music/');
+    await page.evaluate(() => scrollBy(0, 600));
+    await expect.poll(() => page.locator('.tabs').evaluate((e) => Math.abs(Math.round(e.getBoundingClientRect().top)))).toBe(0);
+    await page.getByRole('tab', { name: /Projects/ }).tap();
+    await expect(page.locator('#era-projects')).toBeVisible();
+    await expect.poll(() => page.locator('.cabinet-wrap').evaluate((e) => Math.abs(Math.round(e.getBoundingClientRect().top)))).toBe(0);
+    const { violations } = await new AxeBuilder({ page }).analyze();
+    expect(violations).toEqual([]);
+  });
+});
