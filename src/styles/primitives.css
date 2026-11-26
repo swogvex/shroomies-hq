@@ -1,0 +1,79 @@
+/* Surface primitives from the approved boards: buttons, LCD chip, flyer card, tape, pin. */
+@layer components {
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 48px;
+    padding: 0 1.25rem;
+    font: 700 1rem/1.1 var(--font-body);
+    text-decoration: none;
+    border: var(--border) solid var(--line);
+    box-shadow: 4px 4px 0 var(--shadow);
+    cursor: pointer;
+    transition: transform 80ms, box-shadow 80ms;
+  }
+  .btn:hover { transform: translate(-1px, -2px); box-shadow: 5px 6px 0 var(--shadow); }
+  .btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--shadow); }
+  .btn-primary { background: var(--accent); color: var(--on-accent); }
+  .btn-secondary { background: var(--surface); color: var(--ink); }
+  .btn-hot { background: var(--hot); color: var(--on-hot); }
+  .btn-sm { min-height: 44px; padding: 0 0.75rem; font-size: 0.875rem; box-shadow: var(--shadow-sm); }
+
+  /* LCD green is an object on the board: identical in every theme */
+  .lcd {
+    display: inline-block;
+    padding: 0.125rem 0.5rem;
+    font-family: var(--font-lcd);
+    font-size: 1.25rem;
+    line-height: 1.2;
+    letter-spacing: 0.02em;
+    color: var(--c-lcd-ink);
+    background: linear-gradient(180deg, var(--c-lcd-1), var(--c-lcd-2));
+    box-shadow: inset 0 2px 6px color-mix(in srgb, var(--c-ink) 45%, transparent);
+    border-radius: 4px;
+  }
+
+  .flyer {
+    position: relative;
+    padding: 1.25rem;
+    background: var(--surface);
+    color: var(--ink);
+    border: var(--border) solid var(--line);
+    box-shadow: var(--shadow-md);
+    rotate: var(--tilt, -1.5deg);
+  }
+
+  .tape {
+    position: absolute;
+    top: -0.75rem;
+    left: 50%;
+    width: 6rem;
+    height: 1.5rem;
+    translate: -50% 0;
+    rotate: var(--tape-tilt, -4deg);
+    background: repeating-linear-gradient(90deg, color-mix(in srgb, var(--c-flash) 62%, transparent) 0 6px, color-mix(in srgb, var(--c-flash) 40%, transparent) 6px 12px);
+    box-shadow: 0 1px 2px color-mix(in srgb, var(--c-ink) 12%, transparent);
+    pointer-events: none;
+  }
+
+  .pin {
+    position: absolute;
+    top: -0.5rem;
+    left: 50%;
+    width: 1.125rem;
+    height: 1.125rem;
+    translate: -50% 0;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--c-flash) 55%, transparent) 0 18%, transparent 20%), var(--c-aura);
+    border: var(--border) solid var(--c-ink);
+    box-shadow: 2px 3px 0 color-mix(in srgb, var(--c-ink) 35%, transparent);
+    pointer-events: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .btn:hover, .btn:active { transform: none; }
+  }
+  html[data-calm] .btn:hover, html[data-calm] .btn:active { transform: none; }
+}

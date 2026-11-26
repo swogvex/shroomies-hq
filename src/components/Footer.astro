@@ -1,0 +1,40 @@
+---
+import { localePath, t, type Locale } from '../i18n';
+
+const { locale } = Astro.props as { locale: Locale };
+// External links (official site, Spotify, our X) join once src/content/site.md exists; the pages arrive with the legal pages.
+const links = [
+  ['/legal/', 'footer.legal'],
+  ['/privacy/', 'footer.privacy'],
+  ['/wall-rules/', 'footer.rules'],
+  ['/credits/', 'footer.credits'],
+] as const;
+---
+
+<footer class="site-footer">
+  <div class="about">
+    <img src="/brand/badge.svg" width="64" height="64" alt="" />
+    <p><b>{t(locale, 'footer.made')}</b> {t(locale, 'footer.disclaimer')}</p>
+  </div>
+  <nav aria-label={t(locale, 'footer.nav')}>
+    {links.map(([href, key]) => <a href={localePath(href, locale)}>{t(locale, key)}</a>)}
+  </nav>
+</footer>
+
+<style>
+  .site-footer {
+    width: var(--column);
+    margin: 4rem auto 0;
+    padding-block: 1.125rem 2rem;
+    border-top: var(--border-strong) solid var(--line);
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+    gap: 1.25rem;
+    font-size: var(--fs-small);
+  }
+  .about { display: flex; gap: 0.875rem; align-items: flex-start; }
+  .about img { flex: none; }
+  .about p { max-width: 60ch; }
+  nav { display: flex; flex-wrap: wrap; gap: 0.25rem 1.125rem; justify-content: flex-end; align-content: flex-start; }
+  nav a { display: inline-flex; align-items: center; min-height: 44px; }
+</style>

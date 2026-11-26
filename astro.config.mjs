@@ -5,6 +5,12 @@ import vercel from '@astrojs/vercel';
 export default defineConfig({
   site: 'https://shroomieshq.fan',
   trailingSlash: 'always',
+  i18n: {
+    // locale list lives here and in src/i18n/index.ts; PT and JA can join later
+    locales: ['en', 'es'],
+    defaultLocale: 'en',
+    routing: { prefixDefaultLocale: false },
+  },
   adapter: vercel(),
   security: {
     // Astro adds hashes for its own scripts and styles; frame-ancestors only works as a header (vercel.json).
