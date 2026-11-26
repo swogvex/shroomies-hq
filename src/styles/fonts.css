@@ -16,11 +16,11 @@
 @font-face {
   font-family: "VT323";
   src: url("/fonts/vt323-ascii.woff2") format("woff2");
-  font-display: optional;
+  font-display: swap; /* the LCD is the site's voice: show it as soon as it arrives (was optional, often missing on a first visit) */
   unicode-range: U+0020-007E, U+00B7;
 }
 @font-face {
   font-family: "Permanent Marker";
   src: url("/fonts/permanent-marker-latin.woff2") format("woff2");
-  font-display: optional;
+  font-display: swap; /* handwriting on notes and tapes; the fallback cursive (Comic Sans on Windows) is off-theme */
 }
