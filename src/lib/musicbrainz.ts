@@ -5,6 +5,8 @@
 export type ReleaseType = 'album' | 'ep' | 'single' | 'collab' | 'remix' | 'guest';
 export type Credit = { role: string; name: string };
 export type Track = { mbid: string; n: number; title: string; durationMs: number | null; credits: Credit[] };
+/** Official streaming pages, from the release's URL relations on MusicBrainz. */
+export type Links = Partial<Record<'spotify' | 'apple' | 'youtube' | 'bandcamp', string>>;
 export type RawRelease = {
   mbid: string; // release group: stable across reissues
   releaseMbid: string; // the edition the tracklist comes from
@@ -16,11 +18,12 @@ export type RawRelease = {
   artistCredit: string;
   tracks: Track[];
   credits: Credit[];
+  links?: Links;
   cover: string | null; // file in src/assets/covers/, shared by releases with the same artwork; null = typographic cover
 };
 
 type MbArtistCredit = { name: string; joinphrase?: string; artist?: { id: string } }[];
-type MbRelation = { 'target-type'?: string; type: string; attributes?: string[]; artist?: { name: string } };
+type MbRelation = { 'target-type'?: string; type: string; attributes?: string[]; artist?: { name: string }; url?: { resource: string } };
 export type MbReleaseGroup = { id: string; title: string; 'primary-type'?: string | null; 'secondary-types'?: string[] };
 export type MbRelease = {
   id: string;
@@ -79,10 +82,27 @@ function credits(relations: MbRelation[] = []): Credit[] {
     .filter((c) => !seen.has(c.role + '|' + c.name) && seen.add(c.role + '|' + c.name));
 }
 
+const hosts: [keyof Links, RegExp][] = [
+  ['spotify', /^https:\/\/open\.spotify\.com\/(album|track)\/\w+$/],
+  ['apple', /^https:\/\/music\.apple\.com\//],
+  ['youtube', /^https:\/\/(music\.|www\.)?youtube\.com\//],
+  ['bandcamp', /^https:\/\/[\w-]+\.bandcamp\.com\//],
+];
+
+/** First https link per platform among the URL relations (inc=url-rels). */
+export function links(relations: MbRelation[] = []): Links {
+  const out: Links = {};
+  for (const url of relations.map((r) => r.url?.resource ?? '')) {
+    const hit = hosts.find(([key, re]) => !out[key] && re.test(url));
+    if (hit) out[hit[0]] = url;
+  }
+  return out;
+}
+
 const creditString = (ac: MbArtistCredit = []) => ac.map((a) => a.name + (a.joinphrase ?? '')).join('');
 
 /**
- * One release lookup (inc=recordings+artist-credits+labels+release-groups+artist-rels+recording-level-rels) → snapshot entry, or null.
+ * One release lookup (inc=recordings+artist-credits+labels+release-groups+artist-rels+recording-level-rels+url-rels) → snapshot entry, or null.
  * On a guest release only her tracks are kept; track numbers stay those of the release.
  */
 export function normalizeRelease(r: MbRelease, artist: string): Omit<RawRelease, 'slug' | 'cover'> | null {
@@ -106,6 +126,7 @@ export function normalizeRelease(r: MbRelease, artist: string): Omit<RawRelease,
       }),
     ),
     credits: credits(r.relations),
+    links: links(r.relations),
   };
 }
 

@@ -48,7 +48,7 @@ async function sync() {
   for (const releases of groups.values()) {
     const pick = pickRelease(releases);
     if (!pick) continue;
-    const full = await get<MbRelease>(`release/${pick.id}?inc=recordings+artist-credits+labels+release-groups+artist-rels+recording-level-rels`);
+    const full = await get<MbRelease>(`release/${pick.id}?inc=recordings+artist-credits+labels+release-groups+artist-rels+recording-level-rels+url-rels`);
     const release = normalizeRelease(full, ARTIST);
     if (release) found.push(release);
     else skipped.push(`${full.date ?? '?'} ${full['release-group'].title} (${[full['release-group']['primary-type'], ...(full['release-group']['secondary-types'] ?? [])].join(' + ')})`);
