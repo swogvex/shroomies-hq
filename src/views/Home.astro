@@ -1,28 +1,347 @@
 ---
+// 01 · Portal (07-spec-home, B2-Home board). Built for the UTC date with the day either side; a small script shows the
+// visitor's local day (song of the day, days since, on this day, tonight's show). No third-party request before a click.
+import { getCollection, getEntry } from 'astro:content';
 import Base from '../layouts/Base.astro';
-import { t, type Locale } from '../i18n';
+import PlayerGate from '../components/PlayerGate.astro';
+import Cassette from '../components/Cassette.astro';
+import { localePath, t, type Locale } from '../i18n';
+import { anniversaries, formatDate } from '../lib/dates';
+import { discography, listenFor, mixtapes, published, songsOfDays, surprisePool, titleFit } from '../lib/music';
+import { lastRelease, monthlyCounts, nextShow, zonedTime } from '../lib/portal';
+import { seededShuffle } from '../lib/song-of-day';
 
 const locale = (Astro.currentLocale ?? 'en') as Locale;
+const releases = await discography();
+const songs = await songsOfDays();
+const days = Object.keys(songs); // [yesterday, today, tomorrow] in UTC
+const buildDay = days[1]!;
+const site = (await getEntry('site', 'site'))!.data;
+const { shows } = (await getEntry('tours', 'tours'))!.data;
+const pool = await surprisePool();
+const journal = (await getCollection('journal', (e) => e.id.startsWith(`${locale}/`) && published(e))).sort((a, b) => b.data.date.localeCompare(a.data.date));
+const tapes = await mixtapes();
+const featured = seededShuffle(tapes, buildDay)[0];
+// "days since" and the sparkline count her own releases, not remixes or guest features
+const own = releases.filter((r) => r.type !== 'remix' && r.type !== 'guest');
+const counts = monthlyCounts(own, buildDay);
+const peak = Math.max(2, ...counts.map((c) => c.count)); // one release a month is a half bar
+
+const lcd = (text: string) => text.toUpperCase().normalize('NFKD').replace(/[^\x20-\x7e]/g, '');
+const dayLabel = (d: string) => lcd(formatDate(d, locale, { weekday: 'short', day: 'numeric', month: 'short' }).replace(/[.,]/g, ''));
+const fits = ['fit-s', 'fit-m', 'fit-l', 'fit-xl'] as const;
+const perDay = days.map((day) => {
+  const song = songs[day]!;
+  const release = releases.find((r) => r.slug === song.release)!;
+  const last = lastRelease(own, day);
+  const anniversary = anniversaries(releases, day, 0)[0];
+  const show = nextShow(shows, day);
+  const tonight = shows.find((s) => s.date === day);
+  return { day, song, release, listen: listenFor(releases, song), last, anniversary, show, tonight };
+});
+const hidden = (day: string) => day !== buildDay;
 ---
 
 <Base title={t(locale, 'home.title')} description={t(locale, 'home.description')}>
-  <div class="hello">
-    <img src="/brand/badge.svg" width="200" height="200" alt="" />
-    <h1 class="flyer">Shroomies HQ</h1>
-    <p>{t(locale, 'home.soon')}</p>
+  <h1 class="visually-hidden">Shroomies HQ</h1>
+  <div class="portal">
+    {
+      shows.length > 0 && (
+        <div data-days>
+          {perDay.map(({ day, tonight }) =>
+            tonight ? (
+              <p class="tonight" data-day={day} hidden={hidden(day)}>
+                <span class="lcd">{lcd(t(locale, 'home.tonightChip'))}</span>
+                <span>
+                  <b>{t(locale, 'home.tonight', { city: tonight.city })}</b> · {tonight.venue} ·{' '}
+                  {t(locale, 'home.startsAt')} <time datetime={zonedTime(tonight.date, tonight.timeLocal, tonight.timezone).toISOString()} data-local-time>{tonight.timeLocal}</time>
+                </span>
+                <a href={tonight.source} rel="noopener">{t(locale, 'home.source')} ↗</a>
+              </p>
+            ) : (
+              <span data-day={day} hidden />
+            ),
+          )}
+        </div>
+      )
+    }
+
+    <section class="top">
+      <article class="song" id="today" tabindex="-1" aria-labelledby="song-title" data-days>
+        <span class="tape" aria-hidden="true"></span>
+        {
+          perDay.map(({ day, song, release, listen }) => (
+            <div class="song-day" data-day={day} hidden={hidden(day)}>
+              <p class="song-head">
+                <span class="lcd">▶ {lcd(t(locale, 'home.songChip'))} · {dayLabel(day)}</span>
+                <span class="same">{t(locale, 'home.same')}</span>
+              </p>
+              <h2 id={day === buildDay ? 'song-title' : undefined} class:list={['song-title', fits[titleFit(song.title)]]} lang="en">{song.title}</h2>
+              <p class="song-from">
+                <a href={localePath(`/music/${release.slug}/#t${song.n}`, locale)}>
+                  {t(locale, 'mixtape.from', { release: release.title, year: release.date.slice(0, 4) })}
+                </a>
+              </p>
+              <PlayerGate locale={locale} title={song.title} links={listen} artistSpotify={site.official.spotify.url} inline>
+                <button slot="beside" type="button" class="btn btn-secondary" hidden data-surprise data-pool={JSON.stringify(pool)} data-base={localePath('/music/', locale)}>
+                  <span aria-hidden="true">⚄</span> {t(locale, 'music.surprise')}
+                </button>
+              </PlayerGate>
+            </div>
+          ))
+        }
+      </article>
+
+      <aside class="since" aria-labelledby="since-title" data-days>
+        <h2 id="since-title" class="since-label">{t(locale, 'home.since')}</h2>
+        {
+          perDay.map(({ day, last }) =>
+            last ? (
+              <div class="since-day" data-day={day} hidden={hidden(day)}>
+                <p class="since-n">{last.days}</p>
+                <p>
+                  <a href={localePath(`/music/${last.release.slug}/`, locale)}><b>{last.release.title}</b></a>
+                  {last.release.artistCredit !== 'Tiffany Day' && <> ({last.release.artistCredit})</>} · {formatDate(last.release.date, locale)}
+                </p>
+              </div>
+            ) : (
+              <span data-day={day} hidden />
+            ),
+          )
+        }
+        <div class="spark" role="img" aria-label={t(locale, 'home.spark', { n: String(counts.reduce((s, c) => s + c.count, 0)) })}>
+          {counts.map((c, i) => <span class:list={{ on: c.count > 0, last: i === counts.length - 1 || (c.count > 0 && counts.slice(i + 1).every((x) => x.count === 0)) }} data-h={Math.round((c.count / peak) * 4)} />)}
+        </div>
+        <a class="since-link" href={localePath('/tracker/', locale)}>{t(locale, 'home.tracker')} →</a>
+      </aside>
+    </section>
+
+    <section class="band" data-days aria-label={t(locale, 'home.band')}>
+      {
+        perDay.map(({ day, anniversary, show }) => (
+          <div class="band-day" data-day={day} hidden={hidden(day)}>
+            {anniversary && (
+              <p>
+                <span class="lcd">{lcd(t(locale, 'home.onThisDay'))}</span>{' '}
+                {t(locale, anniversary.years === 1 ? 'home.yearAgo' : 'home.yearsAgo', { n: String(anniversary.years) })}{' '}
+                <a href={localePath(`/music/${anniversary.item.slug}/`, locale)}>{anniversary.item.title}</a>
+              </p>
+            )}
+            {show ? (
+              <p>
+                <b>{t(locale, 'home.nextShow')}</b> · {show.city} · {formatDate(show.date, locale, { weekday: 'short', day: 'numeric', month: 'short' })}
+              </p>
+            ) : (
+              !anniversary && <p>{t(locale, 'home.quiet')}</p>
+            )}
+          </div>
+        ))
+      }
+    </section>
+
+    <section class="mid">
+      {
+        journal.length > 0 && (
+          <div class="journal">
+            <h2>{t(locale, 'home.journal')}</h2>
+            {journal.slice(0, 2).map((e) => (
+              <a class="entry" href={localePath(`/journal/${e.id.slice(3)}/`, locale)}>
+                <span class="entry-meta">
+                  {formatDate(e.data.date, locale)} · {t(locale, `journal.${e.data.type}`)}
+                </span>
+                <span class="entry-title">{e.data.title}</span>
+              </a>
+            ))}
+            <a class="all" href={localePath('/journal/', locale)}>{t(locale, 'home.allEntries')} →</a>
+          </div>
+        )
+      }
+      <a class:list={['room', { wide: journal.length === 0 }]} href={localePath('/room/', locale)}>
+        <span class="room-pic" aria-hidden="true">
+          {['morning', 'afternoon', 'sunset', 'night'].map((slot) => <img class={`slot-${slot}`} src={`/rooms/la-2026-${slot}.svg`} alt="" width="1440" height="860" loading="lazy" decoding="async" />)}
+        </span>
+        <span class="room-bar">{t(locale, 'home.room')} →</span>
+      </a>
+    </section>
+
+    <div class:list={['lower', { solo: !featured }]}>
+    <section class="wall" aria-labelledby="wall-title">
+      <h2 id="wall-title">{t(locale, 'home.wall')}</h2>
+      <div class="wall-soon">
+        <span class="pin" aria-hidden="true"></span>
+        <p>{t(locale, 'home.wallSoon')}</p>
+      </div>
+    </section>
+
+    {
+      featured && (
+        <section class="pick" aria-labelledby="pick-title">
+          <h2 id="pick-title">{t(locale, 'home.pick')}</h2>
+          <p>{t(locale, 'home.pickNote')}</p>
+          <div class="pick-tape">
+            <Cassette tape={featured} variant={(tapes.indexOf(featured) % 4) + 1} />
+          </div>
+        </section>
+      )
+    }
+    </div>
   </div>
 </Base>
 
-<style>
-  .hello {
-    display: grid;
-    justify-items: center;
-    gap: 1.5rem;
-    width: var(--column);
-    margin-inline: auto;
-    padding-block: 3rem;
-    text-align: center;
+<script>
+  import '../scripts/surprise';
+  import { localDateKey } from '../lib/dates';
+
+  // The page was built for the UTC date: show the visitor's own day wherever it differs.
+  const today = localDateKey();
+  for (const group of document.querySelectorAll<HTMLElement>('[data-days]')) {
+    const days = [...group.querySelectorAll<HTMLElement>(':scope > [data-day]')];
+    if (!days.some((d) => d.dataset.day === today)) continue; // a stale build keeps what it has
+    for (const d of days) d.hidden = d.dataset.day !== today;
+    // the visible song title names the card
+    const title = group.querySelector<HTMLElement>(':scope > [data-day]:not([hidden]) .song-title');
+    if (title) {
+      group.querySelector('#song-title')?.removeAttribute('id');
+      title.id = 'song-title';
+    }
   }
-  h1 { padding: 0.25em 0.5em; }
-  p { max-width: 45ch; color: var(--muted); }
+  // tonight's start time in the visitor's own clock
+  for (const time of document.querySelectorAll<HTMLTimeElement>('[data-local-time]')) {
+    time.textContent = new Date(time.dateTime).toLocaleTimeString(document.documentElement.lang, { hour: '2-digit', minute: '2-digit' });
+  }
+</script>
+
+<style>
+  .portal { width: var(--column); margin-inline: auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: 2.5rem; padding-block: 0.625rem 1rem; }
+  h2 { font-size: var(--fs-h2); font-stretch: 130%; }
+
+  .tonight {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 1rem;
+    padding: 0.75rem 1rem;
+    background: var(--hot);
+    color: var(--on-hot);
+    border: var(--border) solid var(--c-ink);
+    box-shadow: var(--shadow-sm);
+  }
+  .tonight a { color: inherit; margin-inline-start: auto; }
+
+  .top { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 1.625rem; align-items: stretch; }
+
+  /* song of the day: the flyer taped to the board */
+  .song {
+    position: relative;
+    padding: 1.75rem 1.75rem 1.5rem;
+    background: var(--surface);
+    border: var(--border) solid var(--line);
+    box-shadow: 10px 10px 0 var(--shadow);
+    rotate: -0.6deg;
+    container-type: inline-size;
+  }
+  .song:focus { outline: none; }
+  .song:focus-visible { outline: var(--focus); outline-offset: 4px; }
+  .song .tape { left: 44%; }
+  .song-day { display: grid; gap: 0.5rem; }
+  .song-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 0.5rem; }
+  .song-head .lcd { font-size: 1.1875rem; padding: 0.1875rem 0.625rem; border-radius: 6px; }
+  .same { font-size: var(--fs-small); color: var(--muted); }
+  .song-title { margin-top: 0.75rem; font-stretch: 150%; letter-spacing: -0.02em; line-height: 0.92; overflow-wrap: anywhere; }
+  .fit-s { font-size: min(6rem, 17cqi); }
+  .fit-m { font-size: min(6rem, 11cqi); }
+  .fit-l { font-size: min(6rem, 8.2cqi); }
+  .fit-xl { font-size: min(6rem, 6.4cqi); }
+  .song-from { margin-bottom: 0.75rem; font-size: 1.125rem; }
+  html[data-calm] .song { rotate: none; }
+
+  /* days since: the inverse panel */
+  .since {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1.5rem 1.5rem 1.25rem;
+    background: var(--inverse);
+    color: var(--inverse-ink);
+    border: var(--border) solid var(--line);
+  }
+  .since a { color: inherit; }
+  .since-label { font: 400 0.875rem var(--font-body); color: var(--inverse-muted); }
+  .since-day { display: grid; gap: 0.5rem; }
+  .since-n { font: 900 clamp(6rem, 4rem + 8vw, 11.875rem) / 0.78 var(--font-display); font-stretch: 55%; }
+  .spark { display: flex; align-items: flex-end; gap: 3px; height: 3.75rem; margin-top: auto; }
+  .spark span { flex: 1; height: 6%; background: color-mix(in srgb, var(--inverse-ink) 22%, transparent); border-radius: 2px; }
+  .spark .on { background: var(--c-strobe); }
+  .spark .on.last { background: var(--c-aura); }
+  .spark [data-h='1'] { height: 25%; }
+  .spark [data-h='2'] { height: 50%; }
+  .spark [data-h='3'] { height: 75%; }
+  .spark [data-h='4'] { height: 100%; }
+  :global([data-theme='light']) .spark .on { background: var(--c-strobe); }
+  .since-link { font-weight: 700; }
+
+  /* the blue band */
+  .band { padding: 1.125rem 1.5rem; background: var(--band); color: var(--band-ink); box-shadow: 6px 6px 0 var(--shadow); }
+  .band-day { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 0.75rem 2.5rem; font-size: 1.0625rem; }
+  .band a { color: inherit; font-weight: 700; }
+  .band .lcd { font-size: 1.0625rem; padding-block: 0; margin-inline-end: 0.375rem; }
+
+  .mid { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 1.625rem; align-items: start; }
+  .journal { display: grid; gap: 1rem; }
+  .entry {
+    display: grid;
+    gap: 0.25rem;
+    padding: 1rem 1.125rem;
+    color: var(--ink);
+    text-decoration: none;
+    background: repeating-linear-gradient(var(--surface) 0 27px, color-mix(in srgb, var(--c-strobe) 15%, var(--surface)) 27px 28px);
+    border: var(--border) solid var(--line);
+  }
+  .entry-meta { font-size: var(--fs-small); color: var(--muted); }
+  .entry-title { font: 900 1.4375rem / 1.1 var(--font-display); font-stretch: 110%; }
+  .all { font-weight: 700; }
+
+  .room {
+    position: relative;
+    display: grid;
+    overflow: hidden;
+    color: var(--c-flash);
+    text-decoration: none;
+    border: var(--border-strong) solid var(--c-ink);
+    box-shadow: 8px 8px 0 var(--era-accent);
+  }
+  .room.wide { grid-column: 1 / -1; }
+  .room-pic { display: block; aspect-ratio: 1440 / 760; overflow: hidden; background: var(--c-remote-lo); }
+  .room-pic img { display: none; width: 100%; height: auto; transition: scale 400ms ease; }
+  /* the room at the visitor's time of day (init.js sets data-slot); sunset without JS */
+  .room-pic .slot-sunset { display: block; }
+  :global(html[data-slot]) .room-pic .slot-sunset { display: none; }
+  :global(html[data-slot='morning']) .room-pic .slot-morning,
+  :global(html[data-slot='afternoon']) .room-pic .slot-afternoon,
+  :global(html[data-slot='sunset']) .room-pic .slot-sunset,
+  :global(html[data-slot='night']) .room-pic .slot-night { display: block; }
+  .room:hover img { scale: 1.03; }
+  .room-bar { display: flex; align-items: center; min-height: 3.25rem; padding: 0 1.125rem; background: var(--c-ink); font: 900 1.625rem var(--font-display); font-stretch: 140%; }
+  html[data-calm] .room:hover img { scale: none; }
+
+  /* fan wall preview: the corkboard, waiting for M6 */
+  .wall { display: grid; gap: 1rem; padding: 1.5rem 1.625rem; background: var(--cork); color: var(--cork-ink); border: var(--border) solid var(--line); }
+  .wall-soon { position: relative; justify-self: start; max-width: 28rem; padding: 1.25rem 1.125rem 1rem; background: #fff36b; color: var(--c-ink); rotate: -1.5deg; box-shadow: 3px 6px 0 color-mix(in srgb, var(--c-ink) 25%, transparent); }
+  .wall-soon p { font: 400 1.25rem / 1.3 var(--font-hand); }
+  html[data-calm] .wall-soon { rotate: none; }
+
+  .lower { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 1.625rem; align-items: start; }
+  .lower.solo { grid-template-columns: minmax(0, 1fr); }
+  .pick { display: grid; gap: 0.5rem; }
+  .pick p { color: var(--muted); }
+  .pick-tape { margin-top: 0.75rem; }
+
+  @media (max-width: 52rem) {
+    .top, .mid, .lower { grid-template-columns: minmax(0, 1fr); }
+    .song { padding: 1.5rem 1.125rem 1.25rem; }
+    .since-n { font-size: 7.5rem; }
+    .band-day { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+    .pick-tape { max-width: 20rem; }
+    .room-bar { font-size: 1.25rem; font-stretch: 120%; }
+  }
 </style>

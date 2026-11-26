@@ -10,9 +10,11 @@ interface Props {
   links: Links;
   /** Artist page, shown when this release has no Spotify link yet. */
   artistSpotify?: string | null;
+  /** Inside a card (home song of the day): no frame or title, "Listen on Spotify", the privacy note under the button. */
+  inline?: boolean;
 }
 
-const { locale, title, links, artistSpotify } = Astro.props;
+const { locale, title, links, artistSpotify, inline = false } = Astro.props;
 const spotify = links.spotify;
 const embed = spotify?.replace('open.spotify.com/', 'open.spotify.com/embed/');
 const others = (
@@ -24,23 +26,28 @@ const others = (
 ).filter(([key]) => links[key]);
 ---
 
-<div class="gate" data-gate={embed} data-frame-title={t(locale, 'player.frame', { title })} data-tall={spotify?.includes('/album/') ? '' : undefined}>
-  <span class="tape" aria-hidden="true"></span>
-  <p class="gate-title">{t(locale, 'player.listen')}</p>
+<div class:list={['gate', { inline }]} data-gate={embed} data-frame-title={t(locale, 'player.frame', { title })} data-tall={spotify?.includes('/album/') ? '' : undefined}>
+  {!inline && <span class="tape" aria-hidden="true"></span>}
+  {!inline && <p class="gate-title">{t(locale, 'player.listen')}</p>}
   {
     spotify ? (
       <>
-        <p class="gate-note">{t(locale, 'player.note')}</p>
-        <button type="button" class="btn btn-primary" hidden data-gate-load>
-          <span aria-hidden="true">▶</span> {t(locale, 'player.load')}
-        </button>
+        {!inline && <p class="gate-note">{t(locale, 'player.note')}</p>}
+        <div class="gate-row">
+          <button type="button" class="btn btn-primary" hidden data-gate-load>
+            <span aria-hidden="true">▶</span> {t(locale, inline ? 'player.listenOn' : 'player.load')}
+          </button>
+          <slot name="beside" />
+        </div>
         <div class="gate-frame" data-gate-frame></div>
         <p class="gate-fallback" data-gate-fallback>
           <span class="gate-failed" hidden data-gate-failed>{t(locale, 'player.failed')} </span>
           <a href={spotify} rel="noopener">{t(locale, 'player.open')} ↗</a>
         </p>
+        {inline && <p class="gate-note gate-small">{t(locale, 'player.inlineNote')}</p>}
       </>
     ) : (
+      <slot name="beside" />
       <p class="gate-note">
         {t(locale, 'player.none')}
         {artistSpotify && <a href={artistSpotify} rel="noopener">{t(locale, 'player.artist')} ↗</a>}
@@ -48,7 +55,7 @@ const others = (
     )
   }
   {
-    others.length > 0 && (
+    !inline && others.length > 0 && (
       <p class="gate-also">
         {t(locale, 'player.alsoOn')}{' '}
         {others.map(([key, name], i) => (
@@ -98,6 +105,12 @@ const others = (
     background: var(--surface);
     border: var(--border) solid var(--line);
   }
+  .gate.inline { padding: 0; background: none; border: 0; justify-items: start; }
+  .gate.inline .gate-frame:not(:empty) { justify-self: stretch; }
+  .gate-row { display: flex; flex-wrap: wrap; gap: 0.875rem; align-items: center; }
+  .gate-row:not(:has(> :not([hidden]))) { display: none; }
+  .gate:not(.inline) .gate-row > .btn { flex: 1; }
+  .gate-small { font-size: var(--fs-small); color: var(--muted); }
   .gate-title { font-weight: 700; }
   .gate-note, .gate-fallback, .gate-also { font-size: 0.875rem; }
   .gate-note a { display: block; margin-top: 0.25rem; }

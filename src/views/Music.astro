@@ -5,6 +5,7 @@
 import { getCollection, render } from 'astro:content';
 import Base from '../layouts/Base.astro';
 import Cover from '../components/Cover.astro';
+import Cassette from '../components/Cassette.astro';
 import { localePath, t, type Locale } from '../i18n';
 import { formatDate } from '../lib/dates';
 import { discography, mixtapes, showGroup, surprisePool, type ShelfRelease } from '../lib/music';
@@ -37,10 +38,8 @@ const meta = (r: ShelfRelease) =>
     formatDate(r.date, locale),
     r.type === 'guest' ? r.artistCredit : r.tracks.length === 1 ? t(locale, 'release.track') : t(locale, 'release.tracks', { n: String(r.tracks.length) }),
   ].join(' · ');
-/** Cassette length printed on the label: the smallest standard tape the songs fit on. */
 /** The shelf LCD has only ASCII glyphs (VT323 subset). */
 const lcd = (text: string) => text.toUpperCase().replace(/[’‘]/g, "'").normalize('NFKD').replace(/[^\x20-\x7e]/g, '');
-const cassette = (ms: number) => `C-${[30, 46, 60, 90, 120].find((c) => c * 60_000 >= ms) ?? 120}`;
 ---
 
 <Base title={t(locale, 'music.title')} description={t(locale, 'music.description')}>
@@ -139,24 +138,7 @@ const cassette = (ms: number) => `C-${[30, 46, 60, 90, 120].find((c) => c * 60_0
           <ul>
             {tapes.map((m, i) => (
               <li>
-                <a class:list={['cassette', `cassette-${(i % 4) + 1}`]} href={localePath(`/music/mixtapes/${m.id}/`, locale)}>
-                  <span class="label">
-                    <span class="label-top" aria-hidden="true">
-                      <span class="side">A</span>
-                      <span class="len">{cassette(m.tracks.reduce((s, tr) => s + (tr.durationMs ?? 0), 0))}</span>
-                    </span>
-                    <b class="tape-title">{m.data.title}</b>
-                    <span class="window" aria-hidden="true">
-                      <span class="reel reel-full" />
-                      <span class="ribbon" />
-                      <span class="reel" />
-                    </span>
-                    <span class="tape-sub">
-                      {m.data.subtitle} · {t(locale, 'music.songs', { n: String(m.tracks.length) })}
-                    </span>
-                  </span>
-                  <span class="foot" aria-hidden="true" />
-                </a>
+                <Cassette tape={m} variant={(i % 4) + 1} />
               </li>
             ))}
           </ul>
@@ -169,7 +151,7 @@ const cassette = (ms: number) => `C-${[30, 46, 60, 90, 120].find((c) => c * 60_0
 </Base>
 
 <script>
-  import { readJSON, writeJSON } from '../lib/storage';
+  import '../scripts/surprise';
 
   const root = document.documentElement;
   const cabinet = document.querySelector<HTMLElement>('[data-cabinet]')!;
@@ -269,18 +251,6 @@ const cassette = (ms: number) => `C-${[30, 46, 60, 90, 120].find((c) => c * 60_0
     for (const type of ['pointerover', 'pointerout', 'focusin', 'focusout']) shelf.addEventListener(type, say);
   }
 
-  // Surprise me: a song this visitor hasn't been sent to yet; when all have been, start over.
-  const surprise = document.querySelector<HTMLButtonElement>('[data-surprise]')!;
-  surprise.addEventListener('click', () => {
-    const pool: string[] = JSON.parse(surprise.dataset.pool!);
-    const opened = new Set(readJSON<string[]>('opened-songs', []));
-    const fresh = pool.filter((s) => !opened.has(s));
-    const choices = fresh.length ? fresh : pool;
-    const pick = choices[Math.floor(Math.random() * choices.length)]!;
-    writeJSON('opened-songs', fresh.length ? [...opened, pick] : [pick]);
-    const [slug, n] = pick.split('#');
-    location.assign(`${surprise.dataset.base}${slug}/#t${n}`);
-  });
   document.querySelector<HTMLElement>('[data-tools]')!.hidden = false;
 </script>
 
@@ -523,100 +493,6 @@ const cassette = (ms: number) => `C-${[30, 46, 60, 90, 120].find((c) => c * 60_0
   .tapes-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 0.25rem 1rem; }
   .tapes-head p, .data-note { font-size: var(--fs-small); color: var(--muted); }
   .tapes ul { display: grid; grid-template-columns: repeat(auto-fill, minmax(14.5rem, 1fr)); gap: 1.75rem 1.5rem; padding: 0.5rem 0 0; list-style: none; }
-  .cassette {
-    --paper: #ffffff;
-    --stripe: var(--c-strobe);
-    --tilt: -1.5deg;
-    position: relative;
-    display: grid;
-    padding: 0.625rem 0.625rem 0;
-    color: var(--c-ink);
-    text-decoration: none;
-    /* the shell: smoky plastic with four screws */
-    background:
-      radial-gradient(circle at 0.625rem 0.625rem, #9a9cab 0 2px, var(--c-ink) 2.5px 3px, transparent 3.5px),
-      radial-gradient(circle at calc(100% - 0.625rem) 0.625rem, #9a9cab 0 2px, var(--c-ink) 2.5px 3px, transparent 3.5px),
-      radial-gradient(circle at 0.625rem calc(100% - 0.625rem), #9a9cab 0 2px, var(--c-ink) 2.5px 3px, transparent 3.5px),
-      radial-gradient(circle at calc(100% - 0.625rem) calc(100% - 0.625rem), #9a9cab 0 2px, var(--c-ink) 2.5px 3px, transparent 3.5px),
-      linear-gradient(160deg, rgb(255 255 255 / 0.14), transparent 35%),
-      var(--c-remote-hi);
-    border: var(--border) solid var(--c-ink);
-    border-radius: 12px;
-    box-shadow: 5px 6px 0 var(--shadow);
-    rotate: var(--tilt);
-    transition: rotate 200ms ease, translate 200ms ease, box-shadow 200ms ease;
-  }
-  .cassette-2 { --paper: #fff36b; --stripe: var(--c-aura); --tilt: 1deg; }
-  .cassette-3 { --paper: #ffd1ea; --stripe: var(--c-ink); --tilt: -1deg; }
-  .cassette-4 { --paper: #dfe3ff; --stripe: #3f9a3a; --tilt: 1.5deg; }
-  .label {
-    display: grid;
-    gap: 0.375rem;
-    padding: 0.5rem 0.75rem 0.625rem;
-    background:
-      linear-gradient(var(--stripe), var(--stripe)) 0 calc(100% - 1.75rem) / 100% 0.3125rem no-repeat,
-      repeating-linear-gradient(transparent 0 1.3rem, rgb(18 18 22 / 0.12) 1.3rem calc(1.3rem + 1px)),
-      var(--paper);
-    border: var(--border) solid var(--c-ink);
-    border-radius: 6px;
-  }
-  .label-top { display: flex; justify-content: space-between; align-items: center; font: 400 1.125rem / 1 var(--font-lcd); }
-  .side { display: grid; place-items: center; width: 1.375rem; aspect-ratio: 1; color: var(--paper); background: var(--c-ink); border-radius: 3px; }
-  .tape-title { font: 400 1.25rem / 1.1 var(--font-hand); min-height: 2.2em; }
-  /* the window: two reels, the left one full of tape, joined by the ribbon */
-  .window {
-    position: relative;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    height: 3.5rem;
-    padding-inline: 0.875rem;
-    background: linear-gradient(180deg, #2a2b35, #121216);
-    border: var(--border) solid var(--c-ink);
-    border-radius: 2rem;
-  }
-  .ribbon { position: absolute; inset: auto 2.75rem 0.625rem; height: 0.3125rem; background: #5a3a24; border-radius: 2px; }
-  .reel {
-    position: relative;
-    z-index: 1;
-    width: 2.25rem;
-    aspect-ratio: 1;
-    border-radius: 50%;
-    /* hub with six teeth, then a ring of brown tape */
-    background:
-      radial-gradient(circle, transparent 0 22%, #ffffff 23% 44%, transparent 45%),
-      repeating-conic-gradient(#ffffff 0 18deg, transparent 18deg 60deg),
-      radial-gradient(circle, #ffffff 0 46%, #6b4429 47% 100%);
-    -webkit-mask: radial-gradient(circle, transparent 0 21%, #000 22%);
-    mask: radial-gradient(circle, transparent 0 21%, #000 22%);
-    box-shadow: 0 0 0 2px var(--c-ink);
-  }
-  .reel-full { width: 2.75rem; }
-  .tape-sub { font-size: var(--fs-small); font-weight: 700; padding-top: 0.25rem; }
-  /* the bottom edge of the shell with its two capstan holes */
-  .foot {
-    height: 1.5rem;
-    margin: 0.5rem 1.75rem 0;
-    background:
-      radial-gradient(circle at 30% 55%, var(--c-ink) 0 0.25rem, transparent 0.3rem),
-      radial-gradient(circle at 70% 55%, var(--c-ink) 0 0.25rem, transparent 0.3rem),
-      #23242c;
-    border: var(--border) solid var(--c-ink);
-    border-bottom: 0;
-    clip-path: polygon(8% 0, 92% 0, 100% 100%, 0 100%);
-  }
-  .cassette:hover, .cassette:focus-visible { rotate: 0deg; translate: 0 -4px; box-shadow: 8px 10px 0 var(--shadow); }
-  .cassette:is(:hover, :focus-visible) .reel { animation: spin 1.6s linear infinite; }
-  html[data-calm] .cassette { rotate: none; }
-  html[data-calm] .cassette .reel { animation: none; }
-  @media (prefers-reduced-motion: reduce) {
-    .cassette { rotate: none; }
-    .cassette:is(:hover, :focus-visible) { translate: none; }
-    .cassette .reel { animation: none !important; }
-  }
-
-  .hint-touch { display: none; }
-
   /* ---------- phones and tablets: a sticky era bar (keys of the remote) over a compact list ---------- */
   @media (max-width: 63.99rem) {
     .tools { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: end; width: 100%; }
