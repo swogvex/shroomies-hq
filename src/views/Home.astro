@@ -335,7 +335,7 @@ const hidden = (day: string) => day !== buildDay;
   /* the notes are paper on the cork: the same colours in every theme */
   .notes { display: grid; grid-template-columns: 1.3fr 1fr 1fr; gap: 1.5rem 1.25rem; align-items: center; padding-top: 0.5rem; }
   .note { position: relative; min-height: 9.5rem; padding: 1.25rem 1.125rem 1rem; color: var(--c-ink); box-shadow: 3px 6px 0 color-mix(in srgb, var(--c-ink) 25%, transparent); }
-  .note-soon { background: #fff36b; rotate: -2deg; }
+  .note-soon { background: var(--c-lemon); rotate: -2deg; }
   .note-soon p { font: 400 1.1875rem / 1.3 var(--font-hand); }
   /* blank papers waiting for notes: ruled lines, a ticket stub, an inverse card (the three note styles of the board) */
   .note-blank { background: repeating-linear-gradient(transparent 0 1.55rem, rgb(18 18 22 / 0.14) 1.55rem calc(1.55rem + 1px)) 0 2.5rem / 100% calc(100% - 3.5rem) no-repeat, #ffffff; }

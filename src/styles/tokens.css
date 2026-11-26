@@ -9,6 +9,7 @@
     --c-aura: #ff4a1c;
     --c-aura-text: #c23815;
     --c-plush: #ff8fc7;
+    --c-lemon: #fff36b; /* paper notes and slips: the same yellow in every theme */
     --c-dot-red: #e5302a;
     --c-lcd-1: #c7f26a;
     --c-lcd-2: #a9dc45;
@@ -64,7 +65,7 @@
     --band: #e6e9ff; --band-ink: #121216; --cork: #f2e8cf; --cork-ink: #121216;
   }
   [data-theme="dark"] {
-    --bg: #121216; --surface: #1c1d24; --ink: #ededea; --muted: #b4b6c4; --line: #5a5c6c; --shadow: #000000;
+    --bg: #121216; --surface: #1c1d24; --ink: #ededea; --muted: #b4b6c4; --line: #5a5c6c; --shadow: #3e4054;
     --accent: #2335f0; --on-accent: #ffffff; --link: #a9b2ff; --hot: #ff6a3d; --on-hot: #121216;
     --inverse: #0a0a0d; --inverse-ink: #ffffff; --inverse-muted: #b4b6c4;
     --band: #18206a; --band-ink: #ffffff; --cork: #2b2720; --cork-ink: #ededea;
