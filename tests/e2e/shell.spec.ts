@@ -62,3 +62,14 @@ test.describe('without JavaScript', () => {
     await expect(page.locator('.theme-pill')).toBeHidden();
   });
 });
+
+test('the kit page is not indexed, has no axe violations and no CSP errors', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('console', (m) => m.type() === 'error' && errors.push(m.text()));
+  await page.goto('/dev/kit/', { waitUntil: 'networkidle' });
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', 'noindex, nofollow');
+  await expect(page.getByRole('heading', { level: 2 })).toHaveCount(3);
+  const { violations } = await new AxeBuilder({ page }).analyze();
+  expect(violations).toEqual([]);
+  expect(errors).toEqual([]);
+});
