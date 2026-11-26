@@ -1,5 +1,6 @@
 ---
 title: When the drop hits
+subtitle: the dancefloor
 order: 3
 # Picked by the owner: her electronic, energetic, drop-led side.
 tracks:
@@ -11,6 +12,6 @@ tracks:
   - party-w-out-me#1
   - apeshit#1
   - lover-tofu-fruit#7 # HELLA BOY CRAZY
-draft: true
+draft: false
 ---
 The dancefloor side: collaborations with electronic producers, the MONOLID flips and her most energetic songs.

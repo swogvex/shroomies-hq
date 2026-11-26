@@ -112,7 +112,7 @@ export const collections = {
 
   mixtapes: defineCollection({
     loader: many('mixtapes'),
-    schema: z.object({ title: z.string(), tracks: z.array(trackRef).min(1), order: z.number().int(), draft }),
+    schema: z.object({ title: z.string(), subtitle: z.string(), tracks: z.array(trackRef).min(1), order: z.number().int(), draft }), // subtitle: a few words on the tape label
   }),
 
   journal: defineCollection({

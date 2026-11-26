@@ -1,5 +1,6 @@
 ---
 title: The college years
+subtitle: the four Projects
 order: 4
 # The four Projects in order, all five songs of each EP.
 tracks:
@@ -23,6 +24,6 @@ tracks:
   - the-gratitude-project#3
   - the-gratitude-project#4
   - the-gratitude-project#5
-draft: true
+draft: false
 ---
 Recovery, Dependency, Renewal, Gratitude: four EPs made during her college years.
