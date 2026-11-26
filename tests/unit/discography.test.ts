@@ -141,6 +141,9 @@ describe('corrections and catalogue', () => {
       eras,
     );
     expect(ownTracks(rels).map((x) => [x.release, x.n, x.mbid])).toEqual([['halo', 1, 'intro'], ['halo', 2, 'start-over']]);
+    // search also lists remix and guest tracks, and a song she has on her own release still points there
+    const withRemixOfSame = [...rels, { ...release({ mbid: '6', slug: 'remix-2', type: 'remix', date: '2026-06-01', tracks: [t('start-over')] }), era: 'halo' as const }];
+    expect(ownTracks(withRemixOfSame, true).map((x) => [x.release, x.mbid])).toEqual([['halo', 'intro'], ['halo', 'start-over'], ['remix', 'start-over-remix'], ['guest', 'wish-upon-a-star']]);
   });
 });
 

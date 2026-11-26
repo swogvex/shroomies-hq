@@ -6,15 +6,18 @@ import '../styles/primitives.css';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import Remote from '../components/Remote.astro';
+import Search from '../components/Search.astro';
 import { localePath, locales, t, type Locale } from '../i18n';
 
 interface Props {
   title: string;
   description: string;
   noindex?: boolean;
+  /** what the remote's LCD shows instead of the section track (the 404) */
+  lcd?: string;
 }
 
-const { title, description, noindex = false } = Astro.props;
+const { title, description, noindex = false, lcd } = Astro.props;
 const locale = (Astro.currentLocale ?? 'en') as Locale;
 const path = Astro.url.pathname;
 ---
@@ -44,6 +47,7 @@ const path = Astro.url.pathname;
       <slot />
     </main>
     <Footer locale={locale} />
-    <Remote locale={locale} />
+    <Remote locale={locale} lcd={lcd} />
+    <Search locale={locale} />
   </body>
 </html>

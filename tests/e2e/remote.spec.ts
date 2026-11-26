@@ -12,11 +12,11 @@ test.describe('desktop remote', () => {
     await expect(main(page).getByRole('link', { name: /01.*Home/ })).toHaveAttribute('aria-current', 'page');
     const names: string[] = [];
     await page.getByRole('link', { name: 'Previous section' }).focus();
-    for (let i = 0; i < 11; i++) {
+    for (let i = 0; i < 12; i++) {
       names.push((await page.evaluate(() => document.activeElement?.textContent?.trim() ?? '')).replace(/\s+/g, ' '));
       await page.keyboard.press('Tab');
     }
-    expect(names.join(' | ')).toMatch(/back.*skip.*play.*01.*07.*calm mode/i);
+    expect(names.join(' | ')).toMatch(/back.*skip.*play.*01.*07.*search.*calm mode/i);
   });
 
   test('arrow keys on the remote and number keys walk the tracklist', async ({ page }) => {

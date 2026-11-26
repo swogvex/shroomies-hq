@@ -1,0 +1,596 @@
+---
+// Search (15-spec-navigation): a dialog that looks like the remote's display over a printed sheet of results.
+// Opens from the remote's search key, "/" or Ctrl/⌘ + K. Static Pagefind index per language (integrations/search.ts),
+// loaded the first time the dialog opens. Results grouped Songs · Releases · Journal; ↑ ↓ move, ↵ opens, Esc closes.
+import { localePath, t, type Locale } from '../i18n';
+import { discography, surprisePool } from '../lib/music';
+
+const { locale } = Astro.props as { locale: Locale };
+const releases = await discography();
+const newest = releases.at(-1)!;
+// three ways in for an empty box: the newest release, the first year and a kind of release
+const tries = [newest.title, releases[0]!.date.slice(0, 4), t(locale, 'type.remix').toLowerCase()];
+const strings = Object.fromEntries(
+  (['lcd', 'ready', 'loading', 'offline', 'count', 'countOne', 'say', 'sayOne', 'songs', 'releases', 'journal', 'empty', 'more', 'track'] as const).map((k) => [k, t(locale, `search.${k}`)]),
+);
+---
+
+<dialog class="search" id="search" aria-labelledby="search-title" data-search data-strings={JSON.stringify(strings)} closedby="any">
+  <div class="shell">
+    <form class="bar" role="search" data-search-form>
+      <div class="screen">
+        <span class="screen-top" aria-hidden="true">
+          <span>▶ <span data-search-lcd>{t(locale, 'search.lcd')}</span></span>
+          <span class="screen-state" data-search-state>{t(locale, 'search.ready')}</span>
+        </span>
+        <label class="visually-hidden" for="search-q" id="search-title">{t(locale, 'search.open')}</label>
+        <span class="field">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" /><path d="m15.5 15.5 5 5" /></svg>
+          <input id="search-q" type="search" role="combobox" aria-expanded="false" aria-controls="search-results" aria-autocomplete="list"
+            aria-describedby="search-scope" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="go"
+            placeholder={t(locale, 'search.placeholder')} data-search-input />
+        </span>
+      </div>
+      <button type="button" class="esc" data-search-close>
+        <span aria-hidden="true">esc</span>
+        <span class="visually-hidden">{t(locale, 'search.close')}</span>
+      </button>
+    </form>
+
+    <div class="sheet">
+      <div class="idle" data-panel="idle">
+        <p class="try-label">{t(locale, 'search.try')}</p>
+        <ul class="tries">
+          {tries.map((q) => <li><button type="button" class="try lift" data-try={q}>{q}</button></li>)}
+        </ul>
+      </div>
+
+      <div id="search-results" class="results" role="listbox" aria-label={t(locale, 'search.title')} data-panel="results" hidden></div>
+      <p class="more" data-search-more hidden></p>
+
+      <div class="state" data-panel="empty" hidden>
+        <img class="sticker" src="/stickers/flash.svg" alt="" width="104" height="104" loading="lazy" />
+        <div>
+          <p class="state-title" data-search-empty></p>
+          <p>
+            {t(locale, 'search.emptyHint')}{' '}<button type="button" class="linkish" data-surprise data-pool={JSON.stringify(await surprisePool())} data-base={localePath('/music/', locale)}>{t(locale, 'search.surprise')}</button>.
+          </p>
+        </div>
+      </div>
+
+      <div class="state" data-panel="error" hidden>
+        <svg class="unplugged" viewBox="0 0 64 64" aria-hidden="true"><path d="M8 40h14l4-6h10l4 6h16M26 34v-8m10 8v-8M22 20h20v6H22z" /><path d="M10 52c6-6 14 2 20-4" /></svg>
+        <div>
+          <p class="state-title">{t(locale, 'search.error')}</p>
+          <p>{t(locale, 'search.errorHint')}</p>
+          <button type="button" class="btn btn-sm btn-secondary" data-search-retry>{t(locale, 'search.retry')}</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="foot">
+      <p class="keys" aria-hidden="true">
+        <span><kbd>↑</kbd><kbd>↓</kbd> {t(locale, 'search.move')}</span>
+        <span><kbd>↵</kbd> {t(locale, 'search.go')}</span>
+        <span><kbd>esc</kbd> {t(locale, 'search.esc')}</span>
+      </p>
+      <p class="scope" id="search-scope">{t(locale, 'search.scope')}</p>
+    </div>
+  </div>
+  <p class="visually-hidden" aria-live="polite" data-search-say></p>
+</dialog>
+
+<script>
+  import '../scripts/surprise';
+
+  type Kind = 'song' | 'release' | 'journal';
+  type Hit = { url: string; content: string; meta: { title: string; kind: Kind; sub: string; image?: string; n?: string } };
+  type Pagefind = {
+    init(): Promise<void>;
+    debouncedSearch(q: string, opts?: object, ms?: number): Promise<{ results: { data(): Promise<Hit> }[] } | null>;
+  };
+
+  const dialog = document.querySelector<HTMLDialogElement>('[data-search]');
+
+  if (dialog) {
+    const s = JSON.parse(dialog.dataset.strings!) as Record<string, string>;
+    const $ = <T extends HTMLElement>(sel: string) => dialog.querySelector<T>(sel)!;
+    const input = $<HTMLInputElement>('[data-search-input]');
+    const list = $('[data-panel="results"]');
+    const state = $('[data-search-state]');
+    const say = $('[data-search-say]');
+    const more = $('[data-search-more]');
+    const panels = dialog.querySelectorAll<HTMLElement>('[data-panel]');
+    const show = (name: string) => panels.forEach((p) => (p.hidden = p.dataset.panel !== name));
+    const LIMIT = 40;
+
+    let pagefind: Promise<Pagefind> | undefined;
+    const load = () =>
+      (pagefind ??= import(/* @vite-ignore */ `${'/pagefind/'}pagefind.js`).then(async (pf: Pagefind) => {
+        await pf.init();
+        return pf;
+      }).catch((err) => {
+        pagefind = undefined; // let "Try again" fetch it again
+        throw err;
+      }));
+
+    // ---- open / close ----
+    const open = () => {
+      if (dialog.open) return;
+      document.querySelector('[data-tracklist-toggle]')?.setAttribute('aria-expanded', 'false'); // phone sheet
+      dialog.showModal();
+      input.focus();
+      input.select();
+      load().catch(() => {});
+      if (input.value) run();
+    };
+    const close = () => dialog.close();
+    document.addEventListener('click', (e) => {
+      if ((e.target as Element).closest?.('[data-search-open]')) open();
+    });
+    $('[data-search-close]').addEventListener('click', close);
+    // browsers without closedby="any": a click on the backdrop (the dialog box itself, outside the shell) closes it
+    dialog.addEventListener('click', (e) => {
+      if (e.target === dialog) close();
+    });
+    document.addEventListener('keydown', (e) => {
+      const el = e.target as HTMLElement;
+      const typing = el.isContentEditable || !!el.closest('input, textarea, select, [role="textbox"]');
+      if ((e.key === 'k' || e.key === 'K') && (e.ctrlKey || e.metaKey) && !e.altKey) {
+        e.preventDefault();
+        if (dialog.open) close();
+        else open();
+      } else if (e.key === '/' && !typing && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        e.preventDefault();
+        open();
+      }
+    });
+
+    // ---- active option (aria-activedescendant: focus stays in the box) ----
+    const options = () => [...list.querySelectorAll<HTMLAnchorElement>('[role="option"]')];
+    const activate = (el: HTMLElement | undefined, scroll = true) => {
+      for (const o of options()) o.setAttribute('aria-selected', String(o === el));
+      if (el) input.setAttribute('aria-activedescendant', el.id);
+      else input.removeAttribute('aria-activedescendant');
+      if (el && scroll) el.scrollIntoView({ block: 'nearest' });
+    };
+    input.addEventListener('keydown', (e) => {
+      const all = options();
+      const i = all.findIndex((o) => o.getAttribute('aria-selected') === 'true');
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        if (!all.length) return;
+        e.preventDefault();
+        const step = e.key === 'ArrowDown' ? 1 : -1;
+        activate(all[(i + step + all.length) % all.length]);
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        const target = all[Math.max(i, 0)];
+        if (target) location.assign(target.href);
+      }
+    });
+    list.addEventListener('pointermove', (e) => {
+      const o = (e.target as Element).closest<HTMLElement>('[role="option"]');
+      if (o && o.getAttribute('aria-selected') !== 'true') activate(o, false);
+    });
+
+    // ---- matching and marking ----
+    // Pagefind ranks pages that match any word; a result here must match every word typed (as the start of a word),
+    // with accents and case ignored, so "cancion" finds "canción" and "same la" finds SAME LA.
+    const fold = (x: string) => x.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
+    const words = (q: string) => fold(q).split(/[^\p{L}\p{N}]+/u).filter(Boolean);
+    // terms are letters and digits only (words() splits on the rest), so they need no escaping
+    const starts = (term: string) => new RegExp(`(?<![\p{L}\p{N}])${term}`, 'gu');
+    const matchesAll = (text: string, terms: string[]) => {
+      const f = fold(text);
+      return terms.every((w) => starts(w).test(f));
+    };
+    /** Title matches first: the exact title, then titles holding every word, then the rest (Pagefind's order within each). */
+    const score = (h: Hit, terms: string[]) => (words(h.meta.title).join(' ') === terms.join(' ') ? 0 : matchesAll(h.meta.title, terms) ? 1 : 2);
+    /** Text with the query words marked; built from text nodes, never from HTML. */
+    const marked = (text: string, terms: string[]) => {
+      const frag = document.createDocumentFragment();
+      const nfc = text.normalize('NFC');
+      const f = fold(nfc);
+      const ranges: [number, number][] = [];
+      if (f.length === nfc.length) {
+        for (const w of terms) for (const m of f.matchAll(starts(w))) ranges.push([m.index, m.index + w.length]);
+      }
+      ranges.sort((x, y) => x[0] - y[0]);
+      let at = 0;
+      for (const [from, to] of ranges) {
+        if (from < at) continue;
+        frag.append(nfc.slice(at, from));
+        const m = document.createElement('mark');
+        m.textContent = nfc.slice(from, to);
+        frag.append(m);
+        at = to;
+      }
+      frag.append(nfc.slice(at));
+      return frag;
+    };
+    /** A short window of a journal entry around the first word found (its title and kind line left out). */
+    const snippet = (h: Hit, terms: string[]) => {
+      let body = h.content;
+      const sub = body.indexOf(h.meta.sub);
+      if (body.startsWith(h.meta.title) && sub >= 0) body = body.slice(sub + h.meta.sub.length).replace(/^[\s.·]+/, '');
+      const f = fold(body);
+      const hit = Math.min(...terms.map((w) => f.search(starts(w))).filter((i) => i >= 0), body.length);
+      let from = hit > 70 ? body.lastIndexOf(' ', hit - 50) + 1 : 0;
+      if (hit >= body.length) from = 0;
+      const cut = body.slice(from, from + 170);
+      return `${from > 0 ? '…' : ''}${cut}${from + 170 < body.length ? '…' : ''}`;
+    };
+    const el = (tag: string, cls?: string, text?: string) => {
+      const e = document.createElement(tag);
+      if (cls) e.className = cls;
+      if (text !== undefined) e.textContent = text;
+      return e;
+    };
+
+    const groups: [Kind, string][] = [['song', s.songs!], ['release', s.releases!], ['journal', s.journal!]];
+    const rank = (hits: Hit[], kind: Kind) => {
+      const i = hits.findIndex((h) => h.meta.kind === kind);
+      return i < 0 ? Infinity : i;
+    };
+    const render = (hits: Hit[], terms: string[]) => {
+      list.replaceChildren();
+      let id = 0;
+      // the group holding the best match comes first ("halo" opens on the album, "same la" on the song)
+      const order = [...groups].sort(([a], [b]) => rank(hits, a) - rank(hits, b));
+      for (const [kind, label] of order) {
+        const mine = hits.filter((h) => h.meta.kind === kind);
+        if (!mine.length) continue;
+        const group = el('div', 'group');
+        group.setAttribute('role', 'group');
+        const head = el('p', 'group-head');
+        head.id = `search-g-${kind}`;
+        head.append(el('span', '', label), el('span', 'group-n', String(mine.length).padStart(2, '0')));
+        group.setAttribute('aria-labelledby', head.id);
+        group.append(head);
+        for (const h of mine) {
+          const a = el('a', `hit hit-${kind}`) as HTMLAnchorElement;
+          a.href = h.url;
+          a.id = `search-o-${id++}`;
+          a.tabIndex = -1;
+          a.setAttribute('role', 'option');
+          a.setAttribute('aria-selected', 'false');
+          const thumb = el('span', 'thumb');
+          thumb.setAttribute('aria-hidden', 'true');
+          if (h.meta.image) {
+            const img = el('img') as HTMLImageElement;
+            Object.assign(img, { src: h.meta.image, alt: '', width: 48, height: 48, loading: 'lazy', decoding: 'async' });
+            thumb.append(img);
+          } else thumb.append(el('span', 'initial', [...h.meta.title][0]?.toUpperCase() ?? '♪'));
+          const text = el('span', 'text');
+          const title = el('span', 'title');
+          title.lang = kind === 'journal' ? document.documentElement.lang : 'en'; // song and release names stay in English
+          title.append(marked(h.meta.title, terms));
+          text.append(title, el('span', 'sub', h.meta.sub));
+          if (kind === 'journal') {
+            const ex = el('span', 'excerpt');
+            ex.append(marked(snippet(h, terms), terms));
+            text.append(ex);
+          }
+          a.append(thumb, text);
+          if (kind === 'song' && h.meta.n) {
+            const trk = el('span', 'trk', `${s.track} ${h.meta.n}`);
+            trk.setAttribute('aria-hidden', 'true');
+            a.append(trk);
+          }
+          a.append(el('span', 'go', '↵'));
+          group.append(a);
+        }
+        list.append(group);
+      }
+      activate(options()[0], false);
+    };
+
+    const count = (n: number) => (n === 1 ? s.countOne! : s.count!.replace('{n}', String(n)));
+    const announce = (n: number) => (n === 1 ? s.sayOne! : s.say!.replace('{n}', String(n)));
+    const reset = () => {
+      show('idle');
+      more.hidden = true;
+      list.replaceChildren();
+      input.setAttribute('aria-expanded', 'false');
+      input.removeAttribute('aria-activedescendant');
+      state.textContent = s.ready!;
+      say.textContent = '';
+    };
+
+    let ticket = 0;
+    const run = async () => {
+      const q = input.value.trim();
+      const mine = ++ticket;
+      if (!q) return reset();
+      state.textContent = s.loading!;
+      dialog.toggleAttribute('data-busy', true);
+      try {
+        const pf = await load();
+        const found = await pf.debouncedSearch(q, {}, 140);
+        if (found === null || mine !== ticket) return; // a newer keystroke took over
+        const terms = words(q);
+        const hits = (await Promise.all(found.results.slice(0, 200).map((r) => r.data()))).filter((h) => terms.length > 0 && matchesAll(h.content, terms))
+          .sort((a, b) => score(a, terms) - score(b, terms));
+        if (mine !== ticket) return;
+        const n = hits.length;
+        state.textContent = count(n);
+        say.textContent = announce(n);
+        if (!n) {
+          $('[data-search-empty]').textContent = s.empty!.replace('{q}', q);
+          list.replaceChildren();
+          show('empty');
+          input.setAttribute('aria-expanded', 'false');
+          input.removeAttribute('aria-activedescendant');
+        } else {
+          render(hits.slice(0, LIMIT), terms);
+          show('results');
+          input.setAttribute('aria-expanded', 'true');
+        }
+        more.hidden = n <= LIMIT;
+        more.textContent = s.more!.replace('{n}', String(LIMIT));
+      } catch {
+        if (mine !== ticket) return;
+        state.textContent = s.offline!;
+        show('error');
+        input.setAttribute('aria-expanded', 'false');
+      } finally {
+        if (mine === ticket) dialog.removeAttribute('data-busy');
+      }
+    };
+    input.addEventListener('input', run);
+    $('[data-search-form]').addEventListener('submit', (e) => e.preventDefault());
+    $('[data-search-retry]').addEventListener('click', () => {
+      input.focus();
+      run();
+    });
+    for (const b of dialog.querySelectorAll<HTMLButtonElement>('[data-try]')) {
+      b.addEventListener('click', () => {
+        input.value = b.dataset.try!;
+        input.focus();
+        run();
+      });
+    }
+  }
+</script>
+
+<style>
+  /* the dialog: the remote's plastic (identical in every theme) with the paper sheet of results inside */
+  .search {
+    width: min(42rem, 100% - 1.5rem);
+    max-width: none;
+    max-height: min(40rem, 100dvh - 2rem);
+    margin: max(1rem, 9vh) auto auto;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--ink);
+    overflow: visible;
+  }
+  .search[open] { display: flex; }
+  .search::backdrop {
+    background: rgb(18 18 22 / 0.62);
+    backdrop-filter: blur(3px) saturate(0.8);
+  }
+  /* opening: drops in from just above, like the display lighting up (calm mode and reduced motion: instant) */
+  .search[open], .search[open]::backdrop { transition: opacity 160ms ease, translate 220ms cubic-bezier(0.2, 0.8, 0.2, 1), overlay 160ms allow-discrete, display 160ms allow-discrete; }
+  @starting-style {
+    .search[open] { opacity: 0; translate: 0 -0.75rem; }
+    .search[open]::backdrop { opacity: 0; }
+  }
+  :global(html:has(dialog.search[open])) { overflow: hidden; }
+
+  .shell {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    min-height: 0;
+    padding: 0.625rem;
+    gap: 0.625rem;
+    border-radius: var(--radius-remote);
+    background: linear-gradient(180deg, var(--c-remote-hi) 0%, var(--c-remote-mid) 40%, var(--c-remote-lo) 100%);
+    border: 1px solid var(--c-remote-edge);
+    box-shadow:
+      inset 0 1px 0 color-mix(in srgb, var(--c-flash) 14%, transparent),
+      0 4px 0 var(--c-remote-edge),
+      10px 12px 0 var(--c-strobe);
+  }
+
+  /* ---- the display: the search box is the remote's LCD ---- */
+  .bar { display: flex; gap: 0.5rem; align-items: stretch; }
+  .screen {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+    padding: 0.5rem 0.75rem 0.375rem;
+    border-radius: 12px;
+    background: linear-gradient(180deg, var(--c-lcd-1), var(--c-lcd-2));
+    box-shadow: inset 0 3px 8px color-mix(in srgb, var(--c-ink) 50%, transparent), inset 0 0 0 2px color-mix(in srgb, var(--c-ink) 25%, transparent);
+    color: var(--c-lcd-ink);
+    font-family: var(--font-lcd);
+  }
+  .screen-top { display: flex; justify-content: space-between; gap: 1rem; font-size: 1rem; line-height: 1; white-space: nowrap; }
+  .screen-state { overflow: hidden; text-overflow: ellipsis; }
+  .search[data-busy] .screen-state { animation: blink 0.9s steps(2, jump-none) infinite; }
+  @keyframes blink { 50% { opacity: 0.35; } }
+  .field { display: flex; align-items: center; gap: 0.5rem; }
+  .field svg { flex: none; width: 1.375rem; height: 1.375rem; fill: none; stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; }
+  input {
+    flex: 1;
+    min-width: 0;
+    height: 2.75rem;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--c-lcd-ink);
+    caret-color: var(--c-lcd-ink);
+    font: 400 2rem / 1 var(--font-lcd);
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    outline: none;
+    appearance: none;
+  }
+  input::placeholder { color: color-mix(in srgb, var(--c-lcd-ink) 55%, transparent); text-transform: none; font-size: 1.5rem; }
+  input::-webkit-search-cancel-button { display: none; }
+  /* the whole display shows focus: a ring of the remote's blue around the glass */
+  .screen:has(input:focus-visible) { box-shadow: inset 0 3px 8px color-mix(in srgb, var(--c-ink) 50%, transparent), 0 0 0 3px var(--c-strobe), 0 0 0 5px var(--c-flash); }
+
+  /* esc: a remote key */
+  .esc {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 3.5rem;
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-key);
+    background: linear-gradient(var(--c-key-hi), var(--c-key-lo));
+    color: var(--c-flash);
+    font: 400 1.25rem / 1 var(--font-lcd);
+    box-shadow: inset 0 1px 0 color-mix(in srgb, var(--c-flash) 22%, transparent), inset 0 -4px 0 color-mix(in srgb, var(--c-ink) 45%, transparent), 0 3px 0 var(--c-remote-edge);
+    cursor: pointer;
+    transition: transform 80ms;
+  }
+  .esc:hover { transform: translateY(-2px); }
+  .esc:active { transform: translateY(2px); }
+  .esc:focus-visible { outline: 3px solid var(--c-strobe); outline-offset: 2px; }
+
+  /* ---- the sheet: printed paper with the grain, like the back of a CD case ---- */
+  .sheet {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 0.875rem 0.75rem;
+    border-radius: 6px;
+    background-color: var(--surface);
+    background-image: radial-gradient(color-mix(in srgb, var(--ink) 6%, transparent) 1px, transparent 1.2px);
+    background-size: 5px 5px;
+    color: var(--ink);
+    scrollbar-color: var(--era-accent-text) var(--surface);
+  }
+
+  .try-label, .results :global(.group-head) { font: 800 0.8125rem / 1 var(--font-display); font-stretch: 125%; text-transform: uppercase; letter-spacing: 0.06em; }
+  .idle { display: flex; flex-wrap: wrap; align-items: center; gap: 0.625rem 0.75rem; padding: 0.25rem; }
+  .tries { display: flex; flex-wrap: wrap; gap: 0.625rem; padding: 0; list-style: none; }
+  .try {
+    min-height: 44px;
+    padding: 0 0.875rem;
+    border: var(--border) solid var(--line);
+    background: var(--surface);
+    color: var(--ink);
+    font: 700 0.9375rem var(--font-body);
+  }
+  .try::before { content: '“'; }
+  .try::after { content: '”'; }
+  .try:focus-visible { outline: none; }
+
+  /* groups: a tracklist heading with an LCD count and a dashed rule */
+  .results :global(.group) + :global(.group) { margin-top: 1rem; }
+  .results :global(.group-head) {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    margin: 0 0 0.375rem;
+    padding-inline: 0.25rem;
+  }
+  .results :global(.group-head)::after { content: ''; flex: 1; order: 1; border-top: 2px dashed color-mix(in srgb, var(--ink) 35%, transparent); }
+  .results :global(.group-n) { order: 2; padding: 0.125rem 0.375rem; border-radius: 3px; background: linear-gradient(var(--c-lcd-1), var(--c-lcd-2)); color: var(--c-lcd-ink); font: 400 1rem / 1 var(--font-lcd); letter-spacing: 0; }
+
+  .results :global(.hit) {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto 1fr auto auto;
+    align-items: center;
+    gap: 0.75rem;
+    min-height: 60px;
+    padding: 0.375rem 0.625rem 0.375rem 0.375rem;
+    border: var(--border) solid transparent;
+    color: var(--ink);
+    text-decoration: none;
+    scroll-margin-block: 2.5rem;
+  }
+  .results :global(.hit) + :global(.hit) { margin-top: 2px; }
+  .results :global(.hit[aria-selected='true']) {
+    background: var(--accent);
+    color: var(--on-accent);
+    border-color: var(--line);
+    box-shadow: var(--shadow-sm);
+    translate: -1px -1px;
+  }
+  .results :global(.thumb) {
+    display: grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    overflow: hidden;
+    border: var(--border) solid var(--line);
+    background: var(--c-remote-mid);
+    box-shadow: 2px 2px 0 var(--shadow);
+  }
+  .results :global(.thumb img) { width: 100%; height: 100%; object-fit: cover; }
+  .results :global(.initial) { font: 900 1.5rem / 1 var(--font-display); font-stretch: 130%; color: var(--c-flash); }
+  /* journal entries get a torn paper note instead of a cover */
+  .results :global(.hit-journal) :global(.thumb) { background: var(--c-lemon); rotate: -3deg; }
+  .results :global(.hit-journal) :global(.initial) { color: var(--c-ink); font-family: var(--font-hand); font-weight: 400; }
+  .results :global(.text) { display: grid; gap: 0.125rem; min-width: 0; }
+  .results :global(.title) { font: 800 1.0625rem / 1.15 var(--font-display); font-stretch: 115%; overflow-wrap: anywhere; }
+  .results :global(.sub) { font-size: 0.875rem; color: var(--muted); }
+  .results :global(.excerpt) { font-size: 0.875rem; color: var(--muted); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .results :global(.hit[aria-selected='true'] :is(.sub, .excerpt)) { color: inherit; }
+  .results :global(mark) { background: color-mix(in srgb, var(--c-lcd-1) 85%, transparent); color: var(--c-ink); padding-inline: 1px; }
+  .results :global(.hit[aria-selected='true']) :global(mark) { background: var(--c-lcd-1); }
+  .results :global(.trk) { padding: 0.125rem 0.375rem; border-radius: 3px; background: linear-gradient(var(--c-lcd-1), var(--c-lcd-2)); color: var(--c-lcd-ink); font: 400 1.0625rem / 1 var(--font-lcd); white-space: nowrap; }
+  .results :global(.go) { grid-column: 4; font-size: 1.125rem; opacity: 0; translate: -4px 0; transition: opacity 120ms, translate 120ms; }
+  .results :global(.hit[aria-selected='true']) :global(.go) { opacity: 1; translate: 0 0; }
+
+  .more { margin-top: 0.75rem; padding-inline: 0.25rem; font-size: var(--fs-small); color: var(--muted); }
+
+  /* empty and error: the board's sticker + a clear next step */
+  .state { display: flex; align-items: center; gap: 1.25rem; padding: 1rem 0.5rem; }
+  .state p + p { margin-top: 0.25rem; }
+  .state-title { font: 800 1.25rem / 1.15 var(--font-display); font-stretch: 110%; overflow-wrap: anywhere; }
+  .sticker { flex: none; width: 6.5rem; height: auto; rotate: -8deg; animation: flash 2.4s ease-in-out infinite; }
+  @keyframes flash { 0%, 86%, 100% { scale: 1; filter: none; } 90% { scale: 1.06; filter: brightness(1.15); } }
+  .linkish { padding: 0; border: 0; background: none; color: var(--link); font: inherit; font-weight: 700; text-decoration: underline; text-underline-offset: 0.15em; cursor: pointer; }
+  .linkish:hover { text-decoration-thickness: 2px; }
+  .unplugged { flex: none; width: 5rem; fill: none; stroke: var(--ink); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+  .state .btn { margin-top: 0.75rem; }
+
+  /* ---- foot: keys and scope, printed on the remote ---- */
+  .foot { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.25rem 1rem; padding: 0 0.375rem 0.125rem; font-size: 0.8125rem; color: var(--c-remote-label); }
+  .keys { display: flex; flex-wrap: wrap; gap: 0.25rem 1rem; }
+  .keys span { display: inline-flex; align-items: center; gap: 0.25rem; }
+  kbd {
+    display: inline-grid;
+    place-items: center;
+    min-width: 1.5rem;
+    height: 1.375rem;
+    padding-inline: 0.25rem;
+    border-radius: 5px;
+    background: linear-gradient(var(--c-key-hi), var(--c-key-lo));
+    box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--c-ink) 50%, transparent), 0 1px 0 var(--c-remote-edge);
+    color: var(--c-flash);
+    font: 400 1rem / 1 var(--font-lcd);
+  }
+
+  /* phones: the dialog fills the top of the screen (the keyboard takes the bottom) and keys hints give way */
+  @media (max-width: 40rem) {
+    .search { width: calc(100% - 1rem); margin-top: 0.5rem; max-height: calc(100dvh - 1rem); }
+    .shell { padding: 0.5rem; border-radius: 18px; box-shadow: inset 0 1px 0 color-mix(in srgb, var(--c-flash) 14%, transparent), 0 4px 0 var(--c-remote-edge), 6px 8px 0 var(--c-strobe); }
+    input { font-size: 1.625rem; }
+    input::placeholder { font-size: 1.25rem; }
+    .keys { display: none; }
+    .state { flex-direction: column; text-align: center; }
+    .results :global(.hit) { grid-template-columns: auto 1fr auto; }
+    .results :global(.go) { display: none; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .sticker, .search[data-busy] .screen-state { animation: none; }
+    .results :global(.hit[aria-selected='true']) { translate: none; }
+  }
+  :global(html[data-calm]) .sticker, :global(html[data-calm]) .search[data-busy] .screen-state { animation: none; }
+  :global(html[data-calm]) .results :global(.hit[aria-selected='true']) { translate: none; }
+</style>

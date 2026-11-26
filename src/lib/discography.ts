@@ -48,11 +48,12 @@ const preference: Record<ReleaseType, number> = { album: 0, ep: 1, single: 2, co
  * Her own songs, once each (remixes and guest features left out). A song on a single and later on an album is shown "from" the album.
  * Same song = same songKey (e.g. Calone, single and EP).
  * Order is by release date so the song-of-the-day shuffle stays stable when nothing new comes out.
+ * `withFeatures` also lists remix and guest tracks (search), still from her own release when the song is on one.
  */
-export function ownTracks(releases: readonly Release[]): CatalogueTrack[] {
+export function ownTracks(releases: readonly Release[], withFeatures = false): CatalogueTrack[] {
   const best = new Map<string, { t: CatalogueTrack; rank: number }>();
   for (const r of releases) {
-    if (preference[r.type] === 9) continue;
+    if (preference[r.type] === 9 && !withFeatures) continue;
     for (const t of r.tracks) {
       const key = songKey(t.title);
       const prev = best.get(key);
