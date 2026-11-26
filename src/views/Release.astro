@@ -61,7 +61,7 @@ const jsonLd = {
       </div>
       <div class="side">
         <figure class="case">
-          <Cover image={r.image} title={r.title} alt={t(locale, 'release.coverAlt', { title: r.title })} widths={[400, 800]} sizes="(min-width: 64rem) 400px, 90vw" eager />
+          <Cover image={r.image} title={r.title} alt={t(locale, 'release.coverAlt', { title: r.title })} widths={[360, 720]} sizes="(min-width: 52rem) 360px, min(19rem, 80vw)" eager />
           {r.note?.data.coverCredit ? <figcaption>{r.note.data.coverCredit}</figcaption> : r.image && <figcaption>{t(locale, 'release.coverSource')}</figcaption>}
         </figure>
         <PlayerGate locale={locale} title={r.title} links={r.listen} artistSpotify={site.official.spotify.url} />

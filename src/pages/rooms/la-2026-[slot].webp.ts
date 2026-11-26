@@ -1,6 +1,8 @@
 // The LA '26 room at each time of day, as a still picture for the home teaser (the full interactive room is M9).
 // Built from the approved template: every {{hole}} gets the value of that time state, with the radio off.
+// Served as WebP: drawing the 100 KB SVG cost the home ~600 ms of main-thread work on desktop (Lighthouse).
 import type { APIRoute, GetStaticPaths } from 'astro';
+import sharp from 'sharp';
 import template from '../../assets/rooms/la-2026.template.svg?raw';
 import room from '../../assets/rooms/la-2026.json';
 
@@ -19,4 +21,7 @@ export function fill(slot: string): string {
   });
 }
 
-export const GET: APIRoute = ({ params }) => new Response(fill(params.slot!), { headers: { 'Content-Type': 'image/svg+xml' } });
+export const GET: APIRoute = async ({ params }) => {
+  const webp = await sharp(Buffer.from(fill(params.slot!)), { density: 120 }).resize(1160).webp({ quality: 72 }).toBuffer();
+  return new Response(new Uint8Array(webp), { headers: { 'Content-Type': 'image/webp' } });
+};

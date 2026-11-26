@@ -158,7 +158,7 @@ const hidden = (day: string) => day !== buildDay;
       }
       <a class:list={['room', { wide: journal.length === 0 }]} href={localePath('/room/', locale)}>
         <span class="room-pic" aria-hidden="true">
-          {['morning', 'afternoon', 'sunset', 'night'].map((slot) => <img class={`slot-${slot}`} src={`/rooms/la-2026-${slot}.svg`} alt="" width="1440" height="860" loading="lazy" decoding="async" />)}
+          {['morning', 'afternoon', 'sunset', 'night'].map((slot) => <img class={`slot-${slot}`} src={`/rooms/la-2026-${slot}.webp`} alt="" width="1160" height="693" loading="lazy" decoding="async" />)}
         </span>
         <span class="room-bar">{t(locale, 'home.room')} →</span>
       </a>
@@ -213,7 +213,12 @@ const hidden = (day: string) => day !== buildDay;
 
 <style>
   .portal { width: var(--column); margin-inline: auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: 2.5rem; padding-block: 0.625rem 1rem; }
-  h2 { font-size: var(--fs-h2); font-stretch: 130%; }
+  h2 { font-size: var(--fs-h2); font-stretch: 130%; text-wrap: balance; }
+  /* side-column headings fit their column on one line, in every language (no lone "hoy" or "journal") */
+  .journal, .pick { container-type: inline-size; }
+  @media (min-width: 52.01rem) {
+    .journal h2, .pick h2 { font-size: min(var(--fs-h2), 6.4cqi); white-space: nowrap; }
+  }
 
   .tonight {
     display: flex;

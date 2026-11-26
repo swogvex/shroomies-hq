@@ -18,7 +18,7 @@ const { image, title, alt, widths, sizes, eager = false, class: cls } = Astro.pr
 
 {
   image ? (
-    <Image class:list={['cover', cls]} src={image} alt={alt} widths={widths} sizes={sizes} loading={eager ? 'eager' : 'lazy'} fetchpriority={eager ? 'high' : undefined} />
+    <Image class:list={['cover', cls]} src={image} alt={alt} widths={widths} sizes={sizes} quality={60} loading={eager ? 'eager' : 'lazy'} fetchpriority={eager ? 'high' : undefined} />
   ) : (
     <span class:list={['cover', 'cover-type', cls]} role={alt ? 'img' : undefined} aria-label={alt || undefined} aria-hidden={alt ? undefined : 'true'}>
       <span aria-hidden="true">{title}</span>
