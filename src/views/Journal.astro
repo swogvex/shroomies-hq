@@ -42,7 +42,7 @@ const description = slug && entry ? summary(entry.body ?? '').slice(0, 160) : t(
         {
           filters.map((f) => (
             <li>
-              <a class:list={['chip', { on: f.on }]} href={f.to} aria-current={f.on ? 'page' : undefined}>
+              <a class:list={['chip', 'lift', { on: f.on }]} href={f.to} aria-current={f.on ? 'page' : undefined}>
                 {t(locale, f.id === 'all' ? 'journal.all' : `journal.filter.${f.id as JournalType}`)}
               </a>
             </li>
@@ -142,7 +142,7 @@ const description = slug && entry ? summary(entry.body ?? '').slice(0, 160) : t(
   .side { display: grid; align-content: start; gap: 1.5rem; }
   .journal > .filters { margin-bottom: -0.5rem; }
   .chips { display: flex; flex-wrap: wrap; gap: 0.5rem; padding: 0; list-style: none; }
-  .chip { display: inline-flex; align-items: center; min-height: 44px; padding: 0 0.875rem; font-weight: 700; color: var(--ink); text-decoration: none; background: var(--surface); border: var(--border) solid var(--line); box-shadow: var(--shadow-sm); }
+  .chip { display: inline-flex; align-items: center; min-height: 44px; padding: 0 0.875rem; font-weight: 700; color: var(--ink); text-decoration: none; background: var(--surface); border: var(--border) solid var(--line); }
   .chip.on { background: var(--accent); color: var(--on-accent); }
   .year { display: grid; gap: 0.5rem; }
   .year h2, .year-title { font: 900 var(--fs-h3) / 1.05 var(--font-display); }
@@ -172,7 +172,7 @@ const description = slug && entry ? summary(entry.body ?? '').slice(0, 160) : t(
       var(--c-paper);
     color: var(--c-ink);
     border: var(--border) solid var(--c-ink);
-    box-shadow: 10px 10px 0 var(--c-ink);
+    box-shadow: 10px 10px 0 var(--shadow);
   }
   /* punched holes down the margin */
   .page::before { content: ''; position: absolute; inset: 1.5rem auto 1.5rem 0.875rem; width: 1rem; background: radial-gradient(circle, color-mix(in srgb, var(--c-ink) 18%, transparent) 0 0.4rem, transparent 0.45rem) 0 0 / 1rem 4rem repeat-y; }
@@ -184,7 +184,7 @@ const description = slug && entry ? summary(entry.body ?? '').slice(0, 160) : t(
   .page h2 a:hover { text-decoration: underline; }
   .body { display: grid; gap: 1rem; font-size: 1.125rem; line-height: var(--rule); max-width: 62ch; }
   .review { font-size: var(--fs-small); font-style: italic; }
-  .tour-note { padding: 1rem 1.25rem; background: #fff36b; rotate: -0.6deg; box-shadow: 3px 5px 0 color-mix(in srgb, var(--c-ink) 22%, transparent); }
+  .tour-note { padding: 1rem 1.25rem; background: var(--c-lemon); rotate: -0.6deg; box-shadow: 3px 5px 0 color-mix(in srgb, var(--c-ink) 22%, transparent); }
   .source { font-size: var(--fs-small); }
   .pager { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 1rem; margin-top: 0.5rem; }
   .pager .newer { margin-inline-start: auto; }

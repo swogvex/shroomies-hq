@@ -73,3 +73,10 @@ for (const [path, lang] of [['/rss.xml', 'en'], ['/es/rss.xml', 'es']] as const)
     for (const link of feed.links) expect(link).toMatch(lang === 'es' ? /^https:\/\/shroomieshq\.fan\/es\/journal\/[a-z0-9-]+\/$/ : /^https:\/\/shroomieshq\.fan\/journal\/[a-z0-9-]+\/$/);
   });
 }
+
+test('filter chips lift on hover like the buttons', async ({ page }) => {
+  await page.goto('/journal/');
+  const chip = page.locator('.chip').nth(1);
+  await chip.hover();
+  await expect.poll(() => chip.evaluate((e) => getComputedStyle(e).transform)).not.toBe('none');
+});
