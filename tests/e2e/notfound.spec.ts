@@ -30,7 +30,7 @@ test('the missing address is shown as text, never as HTML', async ({ page }) => 
 test('the Spanish 404 is in Spanish', async ({ page }) => {
   await page.goto('/es/404/');
   await expect(page.locator('html')).toHaveAttribute('lang', 'es');
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Saltada.');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Pista saltada.');
   await expect(page.getByRole('link', { name: 'Volver al inicio' })).toHaveAttribute('href', '/es/');
 });
 

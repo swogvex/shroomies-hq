@@ -15,9 +15,9 @@
 }
 @font-face {
   font-family: "VT323";
-  src: url("/fonts/vt323-ascii.woff2") format("woff2");
+  src: url("/fonts/vt323-latin.woff2") format("woff2");
   font-display: swap; /* the LCD is the site's voice: show it as soon as it arrives (was optional, often missing on a first visit) */
-  unicode-range: U+0020-007E, U+00B7;
+  unicode-range: U+0020-007E, U+00A1, U+00B7, U+00BF, U+00C1, U+00C9, U+00CD, U+00D1, U+00D3, U+00DA, U+00DC, U+00E1, U+00E9, U+00ED, U+00F1, U+00F3, U+00FA, U+00FC; /* ASCII + the Spanish letters */
 }
 @font-face {
   font-family: "Permanent Marker";
