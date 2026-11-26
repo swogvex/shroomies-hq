@@ -12,10 +12,12 @@
     border: var(--border) solid var(--line);
     box-shadow: 4px 4px 0 var(--shadow);
     cursor: pointer;
-    transition: transform 80ms, box-shadow 80ms;
   }
-  .btn:hover { transform: translate(-1px, -2px); box-shadow: 5px 6px 0 var(--shadow); }
-  .btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--shadow); }
+  /* every boxed control lifts on hover and presses down on click: .btn, and .lift for chips, selects and the like */
+  .lift { box-shadow: var(--shadow-sm); cursor: pointer; }
+  :is(.btn, .lift) { transition: transform 80ms, box-shadow 80ms; }
+  :is(.btn, .lift):hover { transform: translate(-1px, -2px); box-shadow: 5px 6px 0 var(--shadow); }
+  :is(.btn, .lift):active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--shadow); }
   .btn-primary { background: var(--accent); color: var(--on-accent); }
   .btn-secondary { background: var(--surface); color: var(--ink); }
   .btn-hot { background: var(--hot); color: var(--on-hot); }
@@ -77,7 +79,7 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .btn:hover, .btn:active { transform: none; }
+    :is(.btn, .lift):is(:hover, :active) { transform: none; }
   }
-  html[data-calm] .btn:hover, html[data-calm] .btn:active { transform: none; }
+  html[data-calm] :is(.btn, .lift):is(:hover, :active) { transform: none; }
 }
