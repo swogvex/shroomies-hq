@@ -1,9 +1,8 @@
 name: CI
 
+# Runs once per pull request; checks also run locally before pushing, so main is not re-checked after merge.
 on:
   pull_request:
-  push:
-    branches: [main]
 
 permissions:
   contents: read
@@ -28,6 +27,7 @@ jobs:
       - run: npm audit --audit-level=high
       - run: npm run check
       - run: npm test
+      - run: npm run check:contrast
       - run: npm run build
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
