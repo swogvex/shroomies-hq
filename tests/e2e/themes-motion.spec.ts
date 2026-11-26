@@ -1,16 +1,18 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 
-const pages = ['/', '/es/', '/music/', '/es/music/halo/', '/music/mixtapes/when-the-drop-hits/'];
+const pages = ['/', '/es/', '/music/', '/es/music/halo/', '/music/mixtapes/when-the-drop-hits/', '/tracker/', '/es/tracker/'];
 
-test('new pages have no axe violations in the light theme', async ({ page }) => {
-  await page.addInitScript(() => localStorage.setItem('shq:theme', 'light'));
-  for (const path of pages) {
-    await page.goto(path);
-    const { violations } = await new AxeBuilder({ page }).analyze();
-    expect(violations, path).toEqual([]);
-  }
-});
+for (const theme of ['light', 'dark']) {
+  test(`new pages have no axe violations in the ${theme} theme`, async ({ page }) => {
+    await page.addInitScript((t) => localStorage.setItem('shq:theme', t), theme);
+    for (const path of pages) {
+      await page.goto(path);
+      const { violations } = await new AxeBuilder({ page }).analyze();
+      expect(violations, path).toEqual([]);
+    }
+  });
+}
 
 for (const how of ['calm', 'reduced'] as const) {
   test(`no CD or cassette motion with ${how === 'calm' ? 'calm mode' : 'reduced motion'}`, async ({ page }) => {
