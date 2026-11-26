@@ -1,0 +1,362 @@
+---
+// /music/ — The Shelf (08-spec-music). One shelf per era; each release is a CD spine that slides out on hover or focus.
+// Without JS: every shelf and link works; the filter and Surprise me (both need JS) stay hidden.
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import Cover from '../components/Cover.astro';
+import { localePath, t, type Locale } from '../i18n';
+import { formatDate } from '../lib/dates';
+import { discography, mixtapes, published, showGroup, surprisePool, type ShelfRelease } from '../lib/music';
+
+const locale = (Astro.currentLocale ?? 'en') as Locale;
+const releases = await discography();
+const eras = (await getCollection('eras', published)).sort((a, b) => a.data.order - b.data.order);
+const shelves = eras
+  .map((era) => ({
+    era,
+    own: releases.filter((r) => r.era === era.id && r.type !== 'guest'),
+    guests: releases.filter((r) => r.era === era.id && r.type === 'guest'),
+  }))
+  .filter((s) => s.own.length + s.guests.length > 0);
+const tapes = await mixtapes();
+const pool = await surprisePool();
+const filters = ['all', 'albums', 'eps', 'singles', 'collabs'] as const;
+const href = (r: ShelfRelease) => localePath(`/music/${r.slug}/`, locale);
+const meta = (r: ShelfRelease) =>
+  [
+    t(locale, `type.${r.type}`),
+    formatDate(r.date, locale),
+    r.type === 'guest' ? r.artistCredit : r.tracks.length === 1 ? t(locale, 'release.track') : t(locale, 'release.tracks', { n: String(r.tracks.length) }),
+  ].join(' · ');
+---
+
+<Base title={t(locale, 'music.title')} description={t(locale, 'music.description')}>
+  <div class="music">
+    <header class="music-head">
+      <div>
+        <p class="kicker">{t(locale, 'music.kicker')}</p>
+        <h1>{t(locale, 'music.heading')}</h1>
+      </div>
+      <button type="button" class="btn btn-primary" hidden data-surprise data-pool={JSON.stringify(pool)} data-base={localePath('/music/', locale)}>
+        <span aria-hidden="true">⚄</span> {t(locale, 'music.surprise')}
+      </button>
+    </header>
+
+    <div class="filters" role="group" aria-labelledby="show-label" hidden data-filters>
+      <span id="show-label" class="filters-label">{t(locale, 'music.show')}</span>
+      {filters.map((f) => <button type="button" class="chip" aria-pressed={f === 'all' ? 'true' : 'false'} data-filter={f}>{t(locale, `music.show.${f}`)}</button>)}
+      <span class="visually-hidden" role="status" data-count data-label={t(locale, 'music.count')}></span>
+    </div>
+
+    <nav class="era-jump" aria-label={t(locale, 'music.eras')}>
+      {shelves.map(({ era }) => <a href={`#era-${era.id}`}>{era.data.title}</a>)}
+    </nav>
+
+    <div class="cabinet">
+      <p class="hint">{t(locale, 'music.shelfHint')}</p>
+      {
+        shelves.map(({ era, own, guests }) => (
+          <section class="shelf" id={`era-${era.id}`} aria-labelledby={`era-${era.id}-title`} data-shelf>
+            <h2 id={`era-${era.id}-title`}>
+              {era.data.title} <span class="years">{era.data.years}</span>
+            </h2>
+            <div class="rack">
+              {[own, guests].map(
+                (list, g) =>
+                  list.length > 0 && (
+                    <div class:list={['group', { guests: g === 1 }]} data-group>
+                      {g === 1 && <p class="guests-label">{t(locale, 'music.featuring')}</p>}
+                      <ul class="cds" aria-label={g === 1 ? t(locale, 'music.featuring') : undefined}>
+                        {list.map((r) => (
+                          <li class="cd" data-show={showGroup[r.type]}>
+                            <a href={href(r)}>
+                              <span class:list={['spine', `spine-${r.spine}`]} aria-hidden="true">
+                                <span class="spine-title">{r.title}</span>
+                                <span class="spine-year">&nbsp;· {r.date.slice(0, 4)}</span>
+                              </span>
+                              <Cover image={r.image} title={r.title} alt="" widths={[112, 384]} sizes="(min-width: 64rem) 192px, 56px" class="cd-cover" />
+                              <span class="info">
+                                <b>{r.title}</b>
+                                <span class="meta">{meta(r)}</span>
+                              </span>
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ),
+              )}
+            </div>
+            <div class="plank" aria-hidden="true" />
+          </section>
+        ))
+      }
+    </div>
+
+    {
+      tapes.length > 0 && (
+        <section class="tapes" aria-labelledby="tapes-title">
+          <div class="tapes-head">
+            <h2 id="tapes-title">{t(locale, 'music.mixtapes')}</h2>
+            <p>{t(locale, 'music.mixtapesNote')}</p>
+          </div>
+          <ul>
+            {tapes.map((m) => (
+              <li>
+                <a class="tape-card" href={localePath(`/music/mixtapes/${m.id}/`, locale)}>
+                  <span class="reels" aria-hidden="true"><span /><span /></span>
+                  <b>{m.data.title}</b>
+                  <span>{t(locale, 'music.songs', { n: String(m.tracks.length) })}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )
+    }
+
+    <p class="data-note">{t(locale, 'music.dataNote')}</p>
+  </div>
+</Base>
+
+<script>
+  import { readJSON, writeJSON } from '../lib/storage';
+
+  const filters = document.querySelector<HTMLElement>('[data-filters]')!;
+  const buttons = [...filters.querySelectorAll<HTMLButtonElement>('[data-filter]')];
+  const count = filters.querySelector<HTMLElement>('[data-count]')!;
+  const kinds = ['all', 'albums', 'eps', 'singles', 'collabs'];
+
+  const show = (kind: string, announce = true) => {
+    for (const b of buttons) b.setAttribute('aria-pressed', String(b.dataset.filter === kind));
+    let n = 0;
+    for (const cd of document.querySelectorAll<HTMLElement>('.cd')) {
+      cd.hidden = kind !== 'all' && cd.dataset.show !== kind;
+      if (!cd.hidden) n++;
+    }
+    // hide what would be left empty: a featuring group, or a whole era
+    for (const box of document.querySelectorAll<HTMLElement>('[data-group], [data-shelf]')) box.hidden = !box.querySelector('.cd:not([hidden])');
+    if (announce) count.textContent = count.dataset.label!.replace('{n}', String(n));
+    const url = new URL(location.href);
+    if (kind === 'all') url.searchParams.delete('show');
+    else url.searchParams.set('show', kind);
+    history.replaceState(null, '', url);
+  };
+  for (const b of buttons) b.addEventListener('click', () => show(b.dataset.filter!));
+  const asked = new URLSearchParams(location.search).get('show') ?? 'all';
+  show(kinds.includes(asked) ? asked : 'all', false);
+  filters.hidden = false;
+
+  // Surprise me: a song this visitor hasn't been sent to yet; when all have been, start over.
+  const surprise = document.querySelector<HTMLButtonElement>('[data-surprise]')!;
+  surprise.addEventListener('click', () => {
+    const pool: string[] = JSON.parse(surprise.dataset.pool!);
+    const opened = new Set(readJSON<string[]>('opened-songs', []));
+    const fresh = pool.filter((s) => !opened.has(s));
+    const choices = fresh.length ? fresh : pool;
+    const pick = choices[Math.floor(Math.random() * choices.length)]!;
+    writeJSON('opened-songs', fresh.length ? [...opened, pick] : [pick]);
+    const [slug, n] = pick.split('#');
+    location.assign(`${surprise.dataset.base}${slug}/#t${n}`);
+  });
+  surprise.hidden = false;
+</script>
+
+<style>
+  .music { width: var(--column); margin-inline: auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: 2.5rem; padding-block: 0.5rem 1rem; }
+
+  .music-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 1rem 1.25rem; }
+  .kicker { margin-bottom: 0.375rem; font-size: var(--fs-small); font-weight: 700; color: var(--era-accent-text); }
+  h1 { font-size: clamp(1.875rem, 0.25rem + 7.5vw, 5rem); overflow-wrap: break-word; font-stretch: 150%; letter-spacing: -0.02em; line-height: 0.92; }
+
+  .filters { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin-top: -1.25rem; }
+  .filters-label { font-weight: 700; margin-inline-end: 0.25rem; }
+  .chip {
+    min-height: 44px;
+    padding: 0 1rem;
+    font-weight: 700;
+    background: var(--surface);
+    color: var(--ink);
+    border: var(--border) solid var(--line);
+    border-radius: 999px;
+    cursor: pointer;
+  }
+  .chip[aria-pressed='true'] { background: var(--ink); color: var(--bg); }
+
+  .era-jump { display: none; }
+
+  /* the cabinet is an object on the board: the same dark wood-and-ink in every theme */
+  .cabinet {
+    display: grid;
+    gap: 2rem;
+    padding: 1.75rem 1.75rem 0;
+    background: linear-gradient(180deg, var(--c-remote-hi), var(--c-remote-lo));
+    color: var(--c-flash);
+    border: var(--border) solid var(--c-ink);
+    box-shadow: 8px 8px 0 var(--era-accent);
+  }
+  .hint { color: var(--c-remote-label); font-size: 0.875rem; }
+  .shelf h2 { font-size: var(--fs-h3); font-stretch: 125%; margin-bottom: 1rem; }
+  .years { font: 400 1.25rem var(--font-lcd); color: var(--c-lcd-1); margin-inline-start: 0.375rem; }
+  .rack { display: flex; align-items: flex-end; gap: 0.375rem; min-height: 17rem; }
+  .group { display: flex; align-items: flex-end; gap: 0.375rem; }
+  .guests { margin-inline-start: 0.75rem; padding-inline-start: 0.75rem; border-inline-start: 2px dashed var(--c-remote-label); }
+  .guests-label {
+    writing-mode: vertical-rl;
+    rotate: 180deg;
+    align-self: stretch;
+    text-align: end;
+    font-size: var(--fs-small);
+    color: var(--c-remote-label);
+  }
+  .cds { display: flex; align-items: flex-end; gap: 0.375rem; padding: 0; list-style: none; }
+  .plank { height: 1.375rem; margin-inline: -1.75rem; background: linear-gradient(#b98b5f, #7b4f2e); border-top: var(--border) solid var(--c-ink); }
+
+  .cd a {
+    position: relative;
+    display: block;
+    width: 2.5rem;
+    height: 16rem;
+    color: var(--c-ink);
+    text-decoration: none;
+    border: var(--border) solid var(--c-ink);
+    box-shadow: 3px 0 0 color-mix(in srgb, var(--c-ink) 25%, transparent);
+    transition: width 220ms ease, translate 220ms ease, rotate 220ms ease;
+  }
+  .spine {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    writing-mode: vertical-rl;
+    rotate: 180deg;
+    overflow: hidden;
+    padding-block: 0.5rem;
+    font: 800 0.8125rem / 1 var(--font-display);
+    font-stretch: 80%;
+    white-space: nowrap;
+    text-transform: uppercase;
+    /* the shine and shadow of a jewel case edge */
+    background-image: linear-gradient(90deg, rgb(255 255 255 / 0.55) 0 3px, transparent 3px calc(100% - 4px), rgb(0 0 0 / 0.2) calc(100% - 4px));
+  }
+  .spine-title { min-height: 0; overflow: hidden; text-overflow: ellipsis; }
+  .spine-year { flex: none; }
+  .spine-flash { background-color: #ffffff; }
+  .spine-night { background-color: #3a3c48; color: #ffffff; }
+  .spine-plush { background-color: #ff8fc7; }
+  .spine-aura { background-color: #ff4a1c; }
+  .spine-peri { background-color: #9aa6ff; }
+  .spine-lemon { background-color: #fff36b; }
+  .spine-strobe { background-color: #2335f0; color: #ffffff; }
+  .spine-grass { background-color: #3f9a3a; }
+
+  /* closed: only the spine shows; the name stays for screen readers */
+  .cd :global(.cd-cover) { display: none; }
+  .info {
+    position: absolute;
+    width: 1px; height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  /* pulled out: the case turns to show the cover */
+  .cd a:hover, .cd a:focus-visible {
+    z-index: 1;
+    width: 12rem;
+    translate: 0 -1rem;
+    rotate: -2deg;
+    background: var(--c-remote-lo);
+    color: var(--c-flash);
+    box-shadow: 10px 14px 20px rgb(0 0 0 / 0.5);
+  }
+  .cd a:is(:hover, :focus-visible) .spine { display: none; }
+  .cd a:is(:hover, :focus-visible) :global(.cd-cover) { display: block; }
+  .cd a:is(:hover, :focus-visible) .info {
+    position: absolute;
+    inset: auto 0.625rem 0.5rem;
+    width: auto; height: auto;
+    clip-path: none;
+    white-space: normal;
+    display: grid;
+    line-height: 1.15;
+  }
+  .info b { font: 900 1rem / 1 var(--font-display); font-stretch: 125%; overflow-wrap: anywhere; }
+  .meta { font-size: var(--fs-small); }
+  html[data-calm] .cd a:is(:hover, :focus-visible) { rotate: none; translate: none; }
+  @media (prefers-reduced-motion: reduce) {
+    .cd a:is(:hover, :focus-visible) { rotate: none; translate: none; }
+  }
+
+  .tapes { display: grid; gap: 1rem; }
+  .tapes-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 0.25rem 1rem; }
+  .tapes-head p, .data-note { font-size: var(--fs-small); color: var(--muted); }
+  .tapes ul { display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); gap: 1.25rem; padding: 0; list-style: none; }
+  /* tape cards are paper on the board: light in every theme */
+  .tape-card {
+    display: grid;
+    gap: 0.25rem;
+    height: 100%;
+    padding-bottom: 0.875rem;
+    color: var(--c-ink);
+    text-decoration: none;
+    background: #ffffff;
+    border: var(--border) solid var(--c-ink);
+    box-shadow: 5px 5px 0 var(--shadow);
+    rotate: -1.5deg;
+    transition: translate 80ms, box-shadow 80ms;
+  }
+  .tapes li:nth-child(4n + 2) .tape-card { background: #fff36b; rotate: 1deg; }
+  .tapes li:nth-child(4n + 3) .tape-card { background: #ffd1ea; rotate: -1deg; }
+  .tapes li:nth-child(4n + 4) .tape-card { background: #dfe3ff; rotate: 1.5deg; }
+  .tape-card:hover { translate: -1px -2px; box-shadow: 6px 7px 0 var(--shadow); }
+  .tape-card b { padding-inline: 0.875rem; padding-top: 0.75rem; font: 400 1.1875rem / 1.15 var(--font-hand); }
+  .tape-card > span:last-child { padding-inline: 0.875rem; font-size: var(--fs-small); }
+  .reels { display: flex; justify-content: center; gap: 1.625rem; padding-block: 1.375rem; background: var(--c-remote-hi); border-bottom: var(--border) solid var(--c-ink); }
+  .reels span { width: 2.125rem; aspect-ratio: 1; border-radius: 50%; border: var(--border) solid var(--c-ink); background: radial-gradient(#fff 0 22%, #c9ccda 24% 60%, #5d6174 62%); }
+  html[data-calm] .tape-card { rotate: none; }
+
+  /* phones and tablets: a compact list with era links instead of the shelf */
+  @media (max-width: 63.99rem) {
+    .era-jump { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: -1.25rem; }
+    .era-jump a {
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px;
+      padding: 0 0.75rem;
+      font-size: 0.875rem;
+      font-weight: 700;
+      color: var(--ink);
+      text-decoration: none;
+      border: var(--border) solid var(--line);
+      border-radius: 999px;
+      background: var(--surface);
+    }
+    .chip { padding: 0 0.75rem; font-size: 0.875rem; }
+    .cabinet { padding: 0; background: none; color: var(--ink); border: 0; box-shadow: none; gap: 2rem; }
+    .hint, .plank, .spine { display: none; }
+    .guests-label { writing-mode: horizontal-tb; rotate: none; text-align: start; color: var(--muted); }
+    .shelf { scroll-margin-top: 1rem; }
+    .years { color: var(--era-accent-text); font-size: 1.125rem; }
+    .rack, .group, .cds { display: grid; min-height: 0; gap: 0.625rem; }
+    .guests { margin: 0.625rem 0 0; padding: 0.625rem 0 0; border: 0; border-top: 2px dashed var(--line); }
+    .cd a, .cd a:hover, .cd a:focus-visible {
+      display: grid;
+      grid-template-columns: 3.5rem 1fr;
+      align-items: center;
+      gap: 0.875rem;
+      width: auto;
+      height: auto;
+      padding: 0.5rem;
+      translate: none;
+      rotate: none;
+      background: var(--surface);
+      color: var(--ink);
+      border-color: var(--line);
+      box-shadow: var(--shadow-sm);
+    }
+    .cd :global(.cd-cover), .cd a:is(:hover, :focus-visible) :global(.cd-cover) { display: block; border: 1px solid var(--line); }
+    .info, .cd a:is(:hover, :focus-visible) .info { position: static; display: grid; width: auto; height: auto; clip-path: none; white-space: normal; line-height: 1.2; }
+    .meta { color: var(--muted); }
+  }
+</style>

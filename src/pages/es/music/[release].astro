@@ -1,0 +1,10 @@
+---
+import Release from '../../../views/Release.astro';
+import { discography } from '../../../lib/music';
+
+export async function getStaticPaths() {
+  return (await discography()).map((r) => ({ params: { release: r.slug } }));
+}
+---
+
+<Release slug={Astro.params.release} />

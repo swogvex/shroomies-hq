@@ -1,0 +1,186 @@
+---
+// /music/<release>/ (08-spec-music): cover, player gate, meta, fan note, credits, tracklist with lyrics links (never lyrics).
+import { getEntry, render } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import Cover from '../components/Cover.astro';
+import PlayerGate from '../components/PlayerGate.astro';
+import { localePath, t, type Locale } from '../i18n';
+import { formatDate } from '../lib/dates';
+import { discography, duration, songsOfDays } from '../lib/music';
+
+const { slug } = Astro.props as { slug: string };
+const locale = (Astro.currentLocale ?? 'en') as Locale;
+const releases = await discography();
+const i = releases.findIndex((r) => r.slug === slug);
+const r = releases[i]!;
+const prev = releases[i - 1];
+const next = releases[i + 1];
+const site = (await getEntry('site', 'site'))!.data;
+const Note = r.note && (await render(r.note)).Content;
+const year = r.date.slice(0, 4);
+
+// song of the day on this release for yesterday, today and tomorrow (UTC); the script picks the visitor's local date
+const days = await songsOfDays();
+const today = Object.fromEntries(Object.entries(days).flatMap(([date, s]) => (s.release === r.slug ? [[date, s.n]] : [])));
+const buildDay = Object.keys(days)[1]!;
+
+const producers = [...new Set(r.credits.filter((c) => c.role === 'producer').map((c) => c.name))];
+const others = r.credits.filter((c) => c.role !== 'producer');
+const meta = [
+  formatDate(r.date, locale, { day: 'numeric', month: 'long', year: 'numeric' }),
+  r.artistCredit !== 'Tiffany Day' && t(locale, 'release.by', { artist: r.artistCredit }),
+  r.label ?? t(locale, 'release.selfReleased'),
+  r.tracks.length === 1 ? t(locale, 'release.track') : t(locale, 'release.tracks', { n: String(r.tracks.length) }),
+  r.durationMs && duration(r.durationMs),
+].filter(Boolean);
+
+const url = new URL(Astro.url.pathname, Astro.site).href;
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': r.tracks.length > 1 ? 'MusicAlbum' : 'MusicRecording',
+  name: r.title,
+  url,
+  datePublished: r.date,
+  byArtist: { '@type': 'MusicGroup', name: 'Tiffany Day', sameAs: [site.official.site.url, site.official.spotify.url].filter(Boolean) },
+  ...(r.tracks.length > 1
+    ? { numTracks: r.tracks.length, track: r.tracks.map((tr) => ({ '@type': 'MusicRecording', name: tr.title, position: tr.n })) }
+    : {}),
+};
+---
+
+<Base title={`${r.title} · ${t(locale, 'nav.music')} · Shroomies HQ`} description={t(locale, 'release.description', { title: r.title, year })}>
+  <script type="application/ld+json" is:inline set:html={JSON.stringify(jsonLd)} />
+  <div class="release" data-era={r.era}>
+    <p class="crumbs"><a href={localePath('/music/', locale)}>{t(locale, 'nav.music')}</a> / <span aria-current="page">{r.title}</span></p>
+
+    <div class="layout">
+      <div class="head">
+        <p class="meta"><span class="lcd">{t(locale, `type.${r.type}`).toUpperCase()}</span> {meta.join(' · ')}</p>
+        <h1>{r.title}</h1>
+      </div>
+      <div class="side">
+        <figure class="case">
+          <Cover image={r.image} title={r.title} alt={t(locale, 'release.coverAlt', { title: r.title })} widths={[400, 800]} sizes="(min-width: 64rem) 400px, 90vw" eager />
+          {r.note?.data.coverCredit ? <figcaption>{r.note.data.coverCredit}</figcaption> : r.image && <figcaption>{t(locale, 'release.coverSource')}</figcaption>}
+        </figure>
+        <PlayerGate locale={locale} title={r.title} links={r.listen} artistSpotify={site.official.spotify.url} />
+      </div>
+
+      <div class="main">
+
+        {
+          Note && (
+            <div class="fan-note">
+              <p class="fan-note-label">{t(locale, 'release.fanNote')}</p>
+              <div class="fan-note-text"><Note /></div>
+            </div>
+          )
+        }
+
+        {
+          (producers.length > 0 || others.length > 0) && (
+            <div class="credits">
+              <h2 class="visually-hidden">{t(locale, 'release.credits')}</h2>
+              {producers.length > 0 && <p><b>{t(locale, 'release.producers')}</b> · {producers.join(', ')}</p>}
+              {others.length > 0 && <p class="others">{others.map((c) => `${c.name} (${c.role})`).join(', ')}</p>}
+            </div>
+          )
+        }
+
+        <h2 class="visually-hidden" id="tracklist">{t(locale, 'release.tracklist')}</h2>
+        <ol class="tracks" aria-labelledby="tracklist" data-today={JSON.stringify(today)} data-today-label={t(locale, 'release.todayLabel')}>
+          {
+            r.tracks.map((tr) => (
+              <li id={`t${tr.n}`} class:list={{ today: today[buildDay] === tr.n }}>
+                <b class="n">{String(tr.n).padStart(2, '0')}</b>
+                <span class="title" lang="en">{tr.title}</span>
+                <span class="lcd today-chip" title={t(locale, 'release.todayLabel')}>{t(locale, 'release.today')}</span>
+                {r.lyrics[tr.n] && <a class="lyrics" href={r.lyrics[tr.n]} rel="noopener">{t(locale, 'release.lyrics')} ↗</a>}
+                <span class="dur">{tr.durationMs ? duration(tr.durationMs) : ''}</span>
+              </li>
+            ))
+          }
+        </ol>
+        <p class="note">{t(locale, 'release.tracklistNote')}</p>
+
+        <nav class="pager" aria-label={t(locale, 'nav.music')}>
+          {prev && <a class="btn btn-secondary" href={localePath(`/music/${prev.slug}/`, locale)} rel="prev"><span aria-hidden="true">←</span><span class="visually-hidden">{t(locale, 'release.prev')}:</span> {prev.title}</a>}
+          {next && <a class="btn btn-secondary next" href={localePath(`/music/${next.slug}/`, locale)} rel="next"><span class="visually-hidden">{t(locale, 'release.next')}:</span> {next.title} <span aria-hidden="true">→</span></a>}
+        </nav>
+      </div>
+    </div>
+  </div>
+</Base>
+
+<script>
+  import { localDateKey } from '../lib/dates';
+
+  // The page was built for the UTC date: move the TODAY marker to the visitor's own date.
+  const list = document.querySelector<HTMLElement>('[data-today]');
+  if (list) {
+    const n = (JSON.parse(list.dataset.today!) as Record<string, number>)[localDateKey()];
+    for (const li of list.querySelectorAll('li')) li.classList.toggle('today', li.id === `t${n}`);
+  }
+</script>
+
+<style>
+  .release { width: var(--column); margin-inline: auto; display: grid; gap: 2rem; padding-block: 0.5rem 1rem; }
+  .crumbs { font-size: var(--fs-small); color: var(--muted); }
+  .layout {
+    display: grid;
+    grid-template: 'side head' auto 'side main' 1fr / minmax(0, 5fr) minmax(0, 7fr);
+    gap: 1.25rem 2.25rem;
+    align-items: start;
+  }
+  .head { grid-area: head; display: grid; gap: 1rem; min-width: 0; }
+  .side { grid-area: side; }
+  .main { grid-area: main; }
+  .side, .main { display: grid; gap: 1.25rem; min-width: 0; }
+
+  /* jewel case: cover with the dark hinge on the right */
+  .case {
+    position: relative;
+    padding: 0.875rem 1.875rem 0.875rem 0.875rem;
+    background: linear-gradient(135deg, rgb(255 255 255 / 0.55), rgb(255 255 255 / 0.08) 45%, rgb(255 255 255 / 0.3)), var(--surface);
+    border: var(--border) solid var(--line);
+    box-shadow: 12px 14px 0 var(--shadow);
+  }
+  .case::after { content: ''; position: absolute; inset: 0 0 0 auto; width: 1.125rem; background: var(--c-ink); }
+  .case :global(.cover) { border: 1px solid var(--line); }
+  figcaption { margin-top: 0.5rem; font-size: var(--fs-small); color: var(--muted); }
+
+  .meta { font-size: 0.9375rem; }
+  .meta .lcd { font-size: 1.0625rem; padding-block: 0; margin-inline-end: 0.25rem; }
+  h1 { font-size: clamp(2.75rem, 1.5rem + 6vw, 7.5rem); font-stretch: 150%; letter-spacing: -0.025em; line-height: 0.92; overflow-wrap: anywhere; }
+
+  /* the fan note is a yellow paper slip: same in every theme */
+  .fan-note { padding: 1rem 1.125rem; background: #fff36b; color: var(--c-ink); rotate: -0.8deg; box-shadow: 3px 5px 0 color-mix(in srgb, var(--c-ink) 25%, transparent); }
+  .fan-note-label { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.15em; margin-bottom: 0.25rem; }
+  .fan-note-text { font: 400 1.1875rem / 1.35 var(--font-hand); }
+  html[data-calm] .fan-note { rotate: none; }
+
+  .credits { display: grid; gap: 0.25rem; font-size: 0.9375rem; }
+  .others { color: var(--muted); font-size: var(--fs-small); }
+
+  /* the tracklist is the remote's display: dark in every theme */
+  .tracks { padding: 0; list-style: none; background: var(--c-ink); color: var(--c-flash); border: var(--border) solid var(--line); }
+  .tracks li { display: flex; align-items: center; gap: 0.875rem; padding: 0.6875rem 1rem; border-bottom: 1px solid #2a2b35; scroll-margin-block: 6rem; }
+  .tracks li:last-child { border-bottom: 0; }
+  .tracks li.today { background: #1f2a8f; }
+  .tracks li:target { outline: 3px solid var(--c-aura); outline-offset: -3px; background: #1f2a8f; }
+  .n { flex: none; width: 1.75rem; font: 400 1.375rem var(--font-lcd); color: var(--c-lcd-1); }
+  .title { flex: 1; min-width: 0; font-weight: 700; overflow-wrap: anywhere; }
+  .today-chip { display: none; flex: none; font-size: 0.9375rem; padding-block: 0; }
+  .today .today-chip { display: inline-block; }
+  .lyrics { flex: none; font-size: var(--fs-small); color: var(--c-flash); }
+  .dur { flex: none; min-width: 2.75rem; text-align: end; font: 400 1.25rem var(--font-lcd); color: #9a9cab; }
+  .note { font-size: var(--fs-small); color: var(--muted); }
+
+  .pager { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.75rem; }
+  .pager .next { margin-inline-start: auto; }
+
+  @media (max-width: 52rem) {
+    .layout { grid-template: 'head' 'side' 'main' / minmax(0, 1fr); }
+    .case { max-width: 22rem; }
+  }
+</style>
