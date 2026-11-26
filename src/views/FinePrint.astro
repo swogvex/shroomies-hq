@@ -1,0 +1,198 @@
+---
+// The fine print (18-privacy-legal): legal notice, privacy, wall rules, credits and about, EN/ES, from
+// src/content/pages/<lang>/<slug>.md. Printed like the back pages of a CD booklet: an LCD running head, an
+// "In short" note taped on top, numbered sections, and the other pages as a small tracklist beside it.
+import { getCollection, render } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import { localePath, t, type Locale } from '../i18n';
+import { formatDate } from '../lib/dates';
+import { published } from '../lib/music';
+import { finePrint, type FinePrint } from '../lib/sections';
+
+const { slug } = Astro.props as { slug: FinePrint };
+const locale = (Astro.currentLocale ?? 'en') as Locale;
+const mine = await getCollection('pages', (e) => e.id.startsWith(`${locale}/`) && published(e));
+const entry = mine.find((e) => e.id === `${locale}/${slug}`)!;
+const { Content } = await render(entry);
+const shown = finePrint.filter((s) => mine.some((e) => e.id === `${locale}/${s}`));
+const n = (s: FinePrint) => String(finePrint.indexOf(s) + 1).padStart(2, '0');
+---
+
+<Base title={`${entry.data.title} · Shroomies HQ`} description={entry.data.description} lcd={`${t(locale, 'fine.lcd')} · ${n(slug)}`}>
+  <div class="fine">
+    <header class="head">
+      <p class="kicker">{t(locale, 'fine.kicker')}</p>
+      <h1 class="page-title" id="fine-title">{entry.data.title}</h1>
+    </header>
+
+    <article class="sheet" aria-labelledby="fine-title">
+      {entry.data.draft && <p class="stamp">{t(locale, 'fine.draft')}</p>}
+      <p class="running">
+        <span class="lcd">{t(locale, 'fine.lcd')} · {n(slug)}/{String(finePrint.length).padStart(2, '0')}</span>
+        <time datetime={entry.data.updated}>{t(locale, 'fine.updated', { date: formatDate(entry.data.updated, locale, { day: 'numeric', month: 'long', year: 'numeric' }) })}</time>
+      </p>
+      {
+        entry.data.summary && (
+          <aside class="short" aria-label={t(locale, 'fine.short')}>
+            <span class="tape" aria-hidden="true" />
+            <p class="short-label">{t(locale, 'fine.short')}</p>
+            <p>{entry.data.summary}</p>
+          </aside>
+        )
+      }
+      <div class="prose"><Content /></div>
+    </article>
+
+    <nav class="index" aria-label={t(locale, 'fine.index')}>
+      <p class="index-title" aria-hidden="true">{t(locale, 'fine.index')}</p>
+      <ol>
+        {
+          shown.map((s) => (
+            <li>
+              <a class:list={['row', { on: s === slug }]} href={localePath(`/${s}/`, locale)} aria-current={s === slug ? 'page' : undefined}>
+                <b aria-hidden="true">{n(s)}</b>
+                <span>{t(locale, `fine.${s}`)}</span>
+              </a>
+            </li>
+          ))
+        }
+      </ol>
+    </nav>
+  </div>
+</Base>
+
+<style>
+  .fine {
+    width: var(--column);
+    margin-inline: auto;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 15rem;
+    grid-template-areas: 'head head' 'sheet index';
+    align-items: start;
+    gap: 2rem clamp(1.5rem, 4vw, 3rem);
+    padding-block: 0.5rem 1rem;
+  }
+  .head { grid-area: head; }
+  .page-title { text-wrap: balance; }
+
+  /* ---- the sheet: a booklet page, paper in every theme, with the printed inner frame ---- */
+  .sheet {
+    grid-area: sheet;
+    position: relative;
+    display: grid;
+    gap: 1.5rem;
+    padding: clamp(1.25rem, 4vw, 2.75rem);
+    background: var(--c-flash);
+    color: var(--c-ink);
+    border: var(--border) solid var(--c-ink);
+    box-shadow: 10px 10px 0 var(--shadow);
+    outline: 1px solid color-mix(in srgb, var(--c-ink) 30%, transparent);
+    outline-offset: -0.625rem;
+  }
+  .running { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5rem 1rem; font-size: var(--fs-small); color: #4a4b55; }
+  .running .lcd { font-size: 1.0625rem; }
+
+  /* the draft stamp (previews only: drafts never reach production) */
+  .stamp {
+    position: absolute;
+    top: -1.125rem;
+    right: 1.5rem;
+    z-index: 1;
+    padding: 0.25rem 0.75rem;
+    border: 3px solid var(--c-aura-text);
+    color: var(--c-aura-text);
+    background: color-mix(in srgb, var(--c-flash) 85%, transparent);
+    font: 800 0.875rem / 1.2 var(--font-display);
+    font-stretch: 120%;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    rotate: 6deg;
+  }
+
+  /* "In short": a lemon slip taped over the top of the page */
+  .short {
+    position: relative;
+    max-width: 52ch;
+    padding: 1.375rem 1.25rem 1rem;
+    background: var(--c-lemon);
+    color: var(--c-ink);
+    box-shadow: 3px 5px 0 color-mix(in srgb, var(--c-ink) 22%, transparent);
+    rotate: -0.8deg;
+    font-size: 1.0625rem;
+    line-height: 1.45;
+  }
+  .short .tape { --tape-tilt: 2deg; }
+  .short-label { margin-bottom: 0.25rem; font: 400 1.125rem / 1.2 var(--font-hand); }
+
+  /* ---- the text: numbered sections like booklet tracks ---- */
+  .prose { counter-reset: sec; max-width: 64ch; font-size: 1.0625rem; line-height: 1.65; }
+  .prose :global(h2) {
+    counter-increment: sec;
+    display: flex;
+    align-items: center; /* not baseline: the LCD number's font loads late and must not move the heading */
+    gap: 0.625rem;
+    margin: 2rem 0 0.625rem;
+    padding-bottom: 0.375rem;
+    border-bottom: 2px dashed color-mix(in srgb, var(--c-ink) 30%, transparent);
+    font-size: clamp(1.25rem, 1.1rem + 0.6vw, 1.5rem);
+    font-stretch: 115%;
+    text-wrap: balance;
+  }
+  .prose :global(h2:first-child) { margin-top: 0; }
+  .prose :global(h2)::before {
+    content: counter(sec, decimal-leading-zero);
+    flex: none;
+    display: inline-grid;
+    place-items: center;
+    height: 1.5rem;
+    padding: 0 0.375rem;
+    border-radius: 3px;
+    background: linear-gradient(var(--c-lcd-1), var(--c-lcd-2));
+    color: var(--c-lcd-ink);
+    font: 400 1.125rem / 1 var(--font-lcd);
+  }
+  .prose :global(p + p) { margin-top: 0.75rem; }
+  .prose :global(ul) { display: grid; gap: 0.375rem; margin: 0.75rem 0; padding-inline-start: 1.5rem; list-style: none; }
+  .prose :global(li) { position: relative; }
+  .prose :global(li)::before { content: '✶'; position: absolute; left: -1.375rem; color: var(--c-strobe); font-size: 0.875em; }
+  .prose :global(a) { color: var(--c-ink); text-decoration-color: var(--c-strobe); text-decoration-thickness: 2px; text-underline-offset: 0.18em; overflow-wrap: anywhere; }
+  .prose :global(a:hover) { color: var(--c-strobe); }
+  .prose :global(a:focus-visible) { outline: 3px solid var(--c-aura); outline-offset: 2px; }
+  .prose :global(code) { padding: 0 0.25rem; border-radius: 3px; background: color-mix(in srgb, var(--c-lcd-1) 55%, var(--c-flash)); font: 400 1.125em / 0 var(--font-lcd); } /* line-height 0: the late LCD font never changes the line's height */
+  .prose :global(strong) { font-weight: 700; }
+
+  /* ---- the index: the other pages as a small tracklist ---- */
+  .index { grid-area: index; position: sticky; top: 1.5rem; }
+  .index-title { margin-bottom: 0.625rem; font: 800 0.8125rem / 1 var(--font-display); font-stretch: 125%; letter-spacing: 0.06em; text-transform: uppercase; }
+  .index ol { display: grid; gap: 0.25rem; padding: 0; list-style: none; }
+  .row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-height: 48px;
+    padding: 0.5rem 0.75rem;
+    border: var(--border) solid transparent;
+    color: var(--ink);
+    font-weight: 700;
+    text-decoration: none;
+    transition: transform 80ms, box-shadow 80ms;
+  }
+  .row b { font: 400 1.25rem / 1 var(--font-lcd); color: var(--era-accent-text); }
+  .row:is(:hover, :focus-visible) { background: var(--surface); border-color: var(--line); transform: translate(-1px, -2px); box-shadow: 5px 6px 0 var(--shadow); outline: none; }
+  .row:focus-visible { box-shadow: 5px 6px 0 var(--accent); }
+  .row:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--shadow); }
+  .row.on { background: var(--surface); border-color: var(--line); box-shadow: 4px 4px 0 var(--accent); }
+
+  @media (max-width: 52rem) {
+    .fine { grid-template-columns: minmax(0, 1fr); grid-template-areas: 'head' 'sheet' 'index'; }
+    .index { position: static; }
+    /* the LCD label and the date always on two lines here: a late LCD font must not push the date down */
+    .running { flex-direction: column; align-items: flex-start; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .row:is(:hover, :focus-visible, :active) { transform: none; }
+    .short, .stamp { rotate: none; }
+  }
+  :global(html[data-calm]) .row:is(:hover, :focus-visible, :active) { transform: none; }
+  :global(html[data-calm]) :is(.short, .stamp) { rotate: none; }
+</style>

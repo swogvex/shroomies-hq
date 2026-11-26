@@ -1,13 +1,14 @@
 ---
+import { getEntry } from 'astro:content';
 import { localePath, t, type Locale } from '../i18n';
+import { finePrint } from '../lib/sections';
 
 const { locale } = Astro.props as { locale: Locale };
-// External links (official site, Spotify, our X) join once src/content/site.md exists; the pages arrive with the legal pages.
-const links = [
-  ['/legal/', 'footer.legal'],
-  ['/privacy/', 'footer.privacy'],
-  ['/wall-rules/', 'footer.rules'],
-  ['/credits/', 'footer.credits'],
+const { official } = (await getEntry('site', 'site'))!.data;
+// her official channels first (they open her pages), then the fine print; our X joins when the project has one
+const external = [
+  [official.site.url, 'footer.official'],
+  [official.spotify.url, 'footer.spotify'],
 ] as const;
 ---
 
@@ -17,7 +18,9 @@ const links = [
     <p><b>{t(locale, 'footer.made')}</b> {t(locale, 'footer.disclaimer')}</p>
   </div>
   <nav aria-label={t(locale, 'footer.nav')}>
-    {links.map(([href, key]) => <a href={localePath(href, locale)}>{t(locale, key)}</a>)}
+    <!-- two rows that wrap on their own: her official pages, then the fine print -->
+    <p class="group">{external.map(([href, key]) => href && <a href={href} rel="noopener">{t(locale, key)} <span aria-hidden="true">↗</span></a>)}</p>
+    <p class="group">{finePrint.map((slug) => <a href={localePath(`/${slug}/`, locale)}>{t(locale, `fine.${slug}`)}</a>)}</p>
   </nav>
 </footer>
 
@@ -35,6 +38,9 @@ const links = [
   .about { display: flex; gap: 0.875rem; align-items: flex-start; }
   .about img { flex: none; }
   .about p { max-width: 60ch; }
-  nav { display: flex; flex-wrap: wrap; gap: 0.25rem 1.125rem; justify-content: flex-end; align-content: flex-start; }
+  nav { display: grid; align-content: start; gap: 0.25rem; min-width: 0; }
+  .group { display: flex; flex-wrap: wrap; gap: 0 1.125rem; justify-content: flex-end; }
+  /* phones: one column, so the links read as a left-aligned list */
+  @media (max-width: 40rem) { .group { justify-content: flex-start; } }
   nav a { display: inline-flex; align-items: center; min-height: 44px; }
 </style>

@@ -182,7 +182,7 @@ export const collections = {
 
   pages: defineCollection({
     loader: many('pages'), // pages/<lang>/<slug>.md
-    schema: z.object({ title: z.string(), description: z.string(), updated: date, draft }),
+    schema: z.object({ title: z.string(), description: z.string(), summary: z.string().optional(), updated: date, draft }), // summary: the "In short" note
   }),
 
   'song-of-day': defineCollection({
