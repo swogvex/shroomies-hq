@@ -93,5 +93,6 @@
   "mixtape.from": "from {release} ({year})",
   "mixtape.back": "All music",
   "release.producers": "Producers",
-  "music.pick": "Pick a CD"
+  "music.pick": "Pick a CD",
+  "music.swipeHint": "Swipe the list sideways to change era."
 }
