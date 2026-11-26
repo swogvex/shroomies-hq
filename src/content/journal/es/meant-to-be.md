@@ -5,8 +5,8 @@ type: release
 source: https://www.yahoo.com/entertainment/music/articles/dance-comer-month-tiffany-day-204624114.html
 sourceLabel: Billboard (vía Yahoo) · Dance Up & Comer of the Month
 translationOf: meant-to-be
-reviewed: false
-draft: true
+reviewed: true
+draft: false
 ---
 Ya ha salido *MEANT TO BE*, una colaboración con glaive, que además la acompaña en la gira de este otoño.
 

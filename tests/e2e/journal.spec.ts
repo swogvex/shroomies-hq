@@ -40,9 +40,11 @@ test('an entry shows its source, reading time and older/newer links', async ({ p
 });
 
 test('an unreviewed Spanish entry says so and links the English one; tour entries point to the tracker', async ({ page }) => {
-  await page.goto('/es/journal/spring-2027-tour/');
+  await page.goto('/es/journal/halo-is-out/'); // reviewed: false
   await expect(page.locator('.review')).toContainText('Traducción en revisión');
-  await expect(page.locator('.review a')).toHaveAttribute('href', '/journal/spring-2027-tour/');
+  await expect(page.locator('.review a')).toHaveAttribute('href', '/journal/halo-is-out/');
+  await page.goto('/es/journal/spring-2027-tour/'); // reviewed: true
+  await expect(page.locator('.review')).toHaveCount(0);
   await expect(page.locator('.tour-note a')).toHaveAttribute('href', '/es/tracker/');
 });
 
