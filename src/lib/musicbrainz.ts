@@ -16,6 +16,7 @@ export type RawRelease = {
   artistCredit: string;
   tracks: Track[];
   credits: Credit[];
+  cover: string | null; // file in src/assets/covers/, shared by releases with the same artwork; null = typographic cover
 };
 
 type MbArtistCredit = { name: string; joinphrase?: string; artist?: { id: string } }[];
@@ -84,7 +85,7 @@ const creditString = (ac: MbArtistCredit = []) => ac.map((a) => a.name + (a.join
  * One release lookup (inc=recordings+artist-credits+labels+release-groups+artist-rels+recording-level-rels) → snapshot entry, or null.
  * On a guest release only her tracks are kept; track numbers stay those of the release.
  */
-export function normalizeRelease(r: MbRelease, artist: string): Omit<RawRelease, 'slug'> | null {
+export function normalizeRelease(r: MbRelease, artist: string): Omit<RawRelease, 'slug' | 'cover'> | null {
   const guest = isGuest(r['artist-credit'], artist);
   const type = releaseType(r['release-group'], r['artist-credit']?.length ?? 1, guest);
   if (!type) return null;
@@ -108,9 +109,10 @@ export function normalizeRelease(r: MbRelease, artist: string): Omit<RawRelease,
   };
 }
 
-/** Adds slugs: keeps the slug a release already had (links stay stable), otherwise a free one from the title. */
-export function assignSlugs(releases: Omit<RawRelease, 'slug'>[], previous: Pick<RawRelease, 'mbid' | 'slug'>[]): RawRelease[] {
+/** Adds slugs: keeps the slug a release already had (links stay stable), otherwise a free one from the title. Keeps its cover too. */
+export function assignSlugs(releases: Omit<RawRelease, 'slug' | 'cover'>[], previous: Pick<RawRelease, 'mbid' | 'slug' | 'cover'>[]): RawRelease[] {
   const old = new Map(previous.map((p) => [p.mbid, p.slug]));
+  const cover = new Map(previous.map((p) => [p.mbid, p.cover ?? null]));
   const taken = new Set(releases.map((r) => old.get(r.mbid)).filter(Boolean));
   return releases.map((r) => {
     let slug = old.get(r.mbid);
@@ -119,7 +121,7 @@ export function assignSlugs(releases: Omit<RawRelease, 'slug'>[], previous: Pick
       slug = [base, `${base}-${r.type}`, `${base}-${r.type}-${r.date.slice(0, 4)}`, `${base}-${r.mbid.slice(0, 8)}`].find((s) => !taken.has(s))!;
       taken.add(slug);
     }
-    return { ...r, slug };
+    return { ...r, slug, cover: cover.get(r.mbid) ?? null };
   });
 }
 
