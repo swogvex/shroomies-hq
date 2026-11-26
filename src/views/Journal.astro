@@ -149,8 +149,16 @@ const description = slug && entry ? summary(entry.body ?? '').slice(0, 160) : t(
   details.year summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; gap: 0.5rem; }
   .rows { display: grid; gap: 0.25rem; padding: 0; list-style: none; }
   .row { display: grid; grid-template-columns: 4rem minmax(0, 1fr); gap: 0.75rem; padding: 0.75rem 0.875rem; color: var(--ink); text-decoration: none; border: var(--border) solid transparent; }
-  .row:hover .row-title { text-decoration: underline; }
+  /* rows become a lifted box on hover or focus, like every boxed control (no outline ring) */
+  .row { transition: transform 80ms, box-shadow 80ms; }
+  .row:is(:hover, :focus-visible) { background: var(--surface); border-color: var(--line); transform: translate(-1px, -2px); box-shadow: 5px 6px 0 var(--shadow); outline: none; }
+  .row:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--shadow); }
   .row.on { background: var(--surface); border-color: var(--line); box-shadow: 4px 4px 0 var(--accent); }
+  .row.on:is(:hover, :focus-visible) { box-shadow: 5px 6px 0 var(--accent); }
+  :global(html[data-calm]) .row:is(:hover, :focus-visible, :active) { transform: none; }
+  @media (prefers-reduced-motion: reduce) {
+    .row:is(:hover, :focus-visible, :active) { transform: none; }
+  }
   .when { font: 400 1.125rem/1.2 var(--font-lcd); color: var(--c-aura-text); }
   :global([data-theme="dark"]) .when { color: var(--hot); } /* aura text is for paper; dark needs the lighter red */
   .what { display: grid; gap: 0.125rem; }
