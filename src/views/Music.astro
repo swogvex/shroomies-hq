@@ -49,7 +49,7 @@ const lcd = (text: string) => text.toUpperCase().replace(/[’‘]/g, "'").norma
         <p class="kicker">{t(locale, 'music.kicker')}</p>
         <h1>{t(locale, 'music.heading')}</h1>
       </div>
-      <div class="tools" hidden data-tools>
+      <div class="tools" data-tools>
         <button type="button" class="btn btn-primary" data-surprise data-pool={JSON.stringify(pool)} data-base={localePath('/music/', locale)}>
           <span aria-hidden="true">⚄</span> {t(locale, 'music.surprise')}
         </button>
@@ -64,7 +64,7 @@ const lcd = (text: string) => text.toUpperCase().replace(/[’‘]/g, "'").norma
     </header>
 
     <section class="cabinet-wrap" aria-label={t(locale, 'music.heading')}>
-      <div class="tabs" role="tablist" aria-label={t(locale, 'music.eras')} hidden data-tabs>
+      <div class="tabs" role="tablist" aria-label={t(locale, 'music.eras')} data-tabs>
         {
           shelves.map(({ era }) => (
             <button type="button" role="tab" class="tab" id={`tab-${era.id}`} data-era={era.id} aria-controls={`era-${era.id}`}
@@ -77,7 +77,7 @@ const lcd = (text: string) => text.toUpperCase().replace(/[’‘]/g, "'").norma
       <div class="cabinet" data-era={current} data-cabinet>
         {
           shelves.map(({ era, own, guests, Intro }) => (
-            <section class="shelf" id={`era-${era.id}`} data-era={era.id} aria-labelledby={`era-${era.id}-title`} data-shelf>
+            <section class:list={['shelf', { later: era.id !== current }]} id={`era-${era.id}`} data-era={era.id} aria-labelledby={`era-${era.id}-title`} data-shelf>
               <div class="shelf-head">
                 <h2 id={`era-${era.id}-title`}>
                   {era.data.title} <span class="years">{era.data.years}</span>
@@ -235,8 +235,7 @@ const lcd = (text: string) => text.toUpperCase().replace(/[’‘]/g, "'").norma
   const fromHash = tabs.find((t) => `#era-${t.dataset.era}` === location.hash);
   open(fromHash ?? tabs.find((t) => t.getAttribute('aria-selected') === 'true')!, false, false);
   show(select.value, false);
-  root.dataset.shelfTabs = '';
-  tablist.hidden = false;
+  for (const panel of panels) panel.classList.remove('later'); // JS owns the shelves now (hidden attribute)
   const selectedTab = tabs.find((t) => t.getAttribute('aria-selected') === 'true')!;
   tablist.scrollLeft = selectedTab.offsetLeft - tablist.offsetLeft - 16;
 
@@ -251,7 +250,6 @@ const lcd = (text: string) => text.toUpperCase().replace(/[’‘]/g, "'").norma
     for (const type of ['pointerover', 'pointerout', 'focusin', 'focusout']) shelf.addEventListener(type, say);
   }
 
-  document.querySelector<HTMLElement>('[data-tools]')!.hidden = false;
 </script>
 
 <style>
@@ -260,7 +258,12 @@ const lcd = (text: string) => text.toUpperCase().replace(/[’‘]/g, "'").norma
   .music-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 1rem 1.25rem; }
   .kicker { margin-bottom: 0.375rem; font-size: var(--fs-small); font-weight: 700; color: var(--era-accent-text); }
   h1 { font-size: clamp(1.875rem, 0.25rem + 7.5vw, 5rem); font-stretch: 150%; letter-spacing: -0.02em; line-height: 0.92; overflow-wrap: break-word; }
-  .tools { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem 1rem; }
+  /* JS-only controls show from first paint when init.js has set html[data-js], so nothing jumps when the script runs */
+  .tools, .tabs, .hint-touch { display: none; }
+  :global(html[data-js]) .tools { display: flex; }
+  :global(html[data-js]) .tabs { display: flex; }
+  :global(html[data-js]) .shelf.later { display: none; }
+  .tools { flex-wrap: wrap; align-items: center; gap: 0.75rem 1rem; }
   .show { display: flex; align-items: center; gap: 0.5rem; font-weight: 700; }
   .show select {
     min-height: 48px;
@@ -279,7 +282,7 @@ const lcd = (text: string) => text.toUpperCase().replace(/[’‘]/g, "'").norma
 
   /* ---------- tabs: index cards clipped to the top of the cabinet ---------- */
   .cabinet-wrap { display: grid; }
-  .tabs { display: flex; gap: 0.25rem; padding-inline: 0.75rem; overflow-x: auto; scrollbar-width: none; }
+  .tabs { gap: 0.25rem; padding-inline: 0.75rem; overflow-x: auto; scrollbar-width: none; }
   .tab {
     flex: none;
     min-height: 44px;
@@ -322,7 +325,7 @@ const lcd = (text: string) => text.toUpperCase().replace(/[’‘]/g, "'").norma
   .intro, .hint { font-size: 0.875rem; color: var(--c-remote-label); }
   .intro :global(p) { margin: 0; }
   /* with tabs, the tab already names the era */
-  :global(html[data-shelf-tabs]) .shelf h2 { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  :global(html[data-js]) .shelf h2 { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
   .rack { display: flex; align-items: flex-end; gap: 0.375rem; min-height: 18rem; padding-top: 1.25rem; }
   .group, .cds { display: flex; align-items: flex-end; gap: 0.3125rem; }
@@ -495,15 +498,16 @@ const lcd = (text: string) => text.toUpperCase().replace(/[’‘]/g, "'").norma
   .tapes ul { display: grid; grid-template-columns: repeat(auto-fill, minmax(14.5rem, 1fr)); gap: 1.75rem 1.5rem; padding: 0.5rem 0 0; list-style: none; }
   /* ---------- phones and tablets: a sticky era bar (keys of the remote) over a compact list ---------- */
   @media (max-width: 63.99rem) {
-    .tools { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: end; width: 100%; }
+    :global(html[data-js]) .tools { display: grid; }
+    .tools { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: end; width: 100%; }
     .tools .btn { width: 100%; padding-inline: 0.75rem; }
     .show { display: grid; gap: 0.25rem; font-size: var(--fs-small); }
     .show select { width: 100%; }
+    :global(html[data-js]) .tabs { display: grid; }
     .tabs {
       position: sticky;
       top: 0;
       z-index: 3;
-      display: grid;
       grid-auto-flow: column;
       grid-auto-columns: minmax(0, 1fr);
       gap: 0.375rem;
@@ -544,7 +548,7 @@ const lcd = (text: string) => text.toUpperCase().replace(/[’‘]/g, "'").norma
     .years { color: var(--era-accent-text); font-size: 1.125rem; }
     .intro { color: var(--muted); }
     .hint, .plank, .spine, .disc, .deck { display: none; }
-    :global(html[data-shelf-tabs]) .hint-touch { display: block; font-size: var(--fs-small); color: var(--muted); }
+    :global(html[data-js]) .hint-touch { display: block; font-size: var(--fs-small); color: var(--muted); }
 
     .rack, .group { display: grid; min-height: 0; gap: 0.5rem; padding: 0; }
     .rack { gap: 1.25rem; }

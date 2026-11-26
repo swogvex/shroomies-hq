@@ -1,132 +1,188 @@
 ---
-// A mixtape as a cassette (B2-Music board): handwritten label, side A, tape length, reels that spin on hover.
+// A mixtape as a compact cassette (owner's reference photos, 2026-11-26): plastic shell with four screws, a paper label
+// with side A, ruled lines and a colour band, the window with two tape packs and two spinning hubs, the length printed
+// like "C-60", and the raised bottom edge with its holes and centre screw.
 import { localePath, t, type Locale } from '../i18n';
 import type { mixtapes } from '../lib/music';
 
 interface Props {
   tape: Awaited<ReturnType<typeof mixtapes>>[number];
-  /** 1–4: label colour and tilt */
+  /** 1–4: shell, label and band style */
   variant: number;
 }
 
 const { tape, variant } = Astro.props;
 const locale = (Astro.currentLocale ?? 'en') as Locale;
-/** Cassette length printed on the label: the smallest standard tape the songs fit on. */
-const cassette = (ms: number) => `C-${[30, 46, 60, 90, 120].find((c) => c * 60_000 >= ms) ?? 120}`;
+const total = tape.tracks.reduce((s, tr) => s + (tr.durationMs ?? 0), 0);
+/** The smallest standard tape length the songs fit on, printed on the label. */
+const length = [30, 46, 60, 90, 120].find((c) => c * 60_000 >= total) ?? 120;
 ---
 
 <a class:list={['cassette', `cassette-${variant}`]} href={localePath(`/music/mixtapes/${tape.id}/`, locale)}>
   <span class="label">
-    <span class="label-top" aria-hidden="true">
-      <span class="side">A</span>
-      <span class="len">{cassette(tape.tracks.reduce((s, tr) => s + (tr.durationMs ?? 0), 0))}</span>
+    <span class="label-top">
+      <span class="side" aria-hidden="true">A</span>
+      <b class="tape-title">{tape.data.title}</b>
     </span>
-    <b class="tape-title">{tape.data.title}</b>
-    <span class="window" aria-hidden="true">
-      <span class="reel reel-full" />
-      <span class="ribbon" />
-      <span class="reel" />
+    <span class="band" aria-hidden="true">
+      <span class="window">
+        <span class="pack pack-full"><span class="hub" /></span>
+        <span class="peek" />
+        <span class="pack pack-thin"><span class="hub" /></span>
+      </span>
     </span>
-    <span class="tape-sub">
-      {tape.data.subtitle} · {t(locale, 'music.songs', { n: String(tape.tracks.length) })}
+    <span class="label-bottom">
+      <span class="tape-sub">{tape.data.subtitle}<br />{t(locale, 'music.songs', { n: String(tape.tracks.length) })}</span>
+      <span class="len" aria-hidden="true">C-{length}</span>
     </span>
   </span>
-  <span class="foot" aria-hidden="true" />
+  <span class="foot" aria-hidden="true"><span class="screw" /></span>
 </a>
 
 <style>
   .cassette {
-    --paper: #ffffff;
-    --stripe: var(--c-strobe);
+    /* shell, label paper, the band across the window (one or more colours) and the printed length colour */
+    --shell: #2a2b33;
+    --shell-hi: #3b3d48;
+    --paper: #f4f1e8;
+    --band: linear-gradient(#e5302a 0 33%, #ff9a2e 33% 66%, #2335f0 66%);
+    --print: #b3261e;
     --tilt: -1.5deg;
     position: relative;
+    min-width: 0;
     display: grid;
-    padding: 0.625rem 0.625rem 0;
+    padding: 5.5% 5.5% 0; /* % of the width: cqi here would measure the parent, not the cassette */
     color: var(--c-ink);
     text-decoration: none;
-    /* the shell: smoky plastic with four screws */
+    container-type: inline-size;
+    /* the shell: plastic with a soft top light and a screw in each corner */
     background:
-      radial-gradient(circle at 0.625rem 0.625rem, #9a9cab 0 2px, var(--c-ink) 2.5px 3px, transparent 3.5px),
-      radial-gradient(circle at calc(100% - 0.625rem) 0.625rem, #9a9cab 0 2px, var(--c-ink) 2.5px 3px, transparent 3.5px),
-      radial-gradient(circle at 0.625rem calc(100% - 0.625rem), #9a9cab 0 2px, var(--c-ink) 2.5px 3px, transparent 3.5px),
-      radial-gradient(circle at calc(100% - 0.625rem) calc(100% - 0.625rem), #9a9cab 0 2px, var(--c-ink) 2.5px 3px, transparent 3.5px),
-      linear-gradient(160deg, rgb(255 255 255 / 0.14), transparent 35%),
-      var(--c-remote-hi);
+      radial-gradient(circle at 3.2% 5%, #c9cbd6 0 2px, #4a4b55 2.5px 3.5px, transparent 4px),
+      radial-gradient(circle at 96.8% 5%, #c9cbd6 0 2px, #4a4b55 2.5px 3.5px, transparent 4px),
+      radial-gradient(circle at 3.2% 95%, #c9cbd6 0 2px, #4a4b55 2.5px 3.5px, transparent 4px),
+      radial-gradient(circle at 96.8% 95%, #c9cbd6 0 2px, #4a4b55 2.5px 3.5px, transparent 4px),
+      linear-gradient(170deg, color-mix(in srgb, var(--shell-hi) 100%, transparent), var(--shell) 40%);
     border: var(--border) solid var(--c-ink);
     border-radius: 12px;
-    box-shadow: 5px 6px 0 var(--shadow);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.18), 5px 6px 0 var(--shadow);
     rotate: var(--tilt);
     transition: rotate 200ms ease, translate 200ms ease, box-shadow 200ms ease;
   }
-  .cassette-2 { --paper: #fff36b; --stripe: var(--c-aura); --tilt: 1deg; }
-  .cassette-3 { --paper: #ffd1ea; --stripe: var(--c-ink); --tilt: -1deg; }
-  .cassette-4 { --paper: #dfe3ff; --stripe: #3f9a3a; --tilt: 1.5deg; }
+  /* grey shell, cream label, red and black band (the D-C60 photo) */
+  .cassette-2 { --shell: #b9bac0; --shell-hi: #d9dadf; --paper: #f6f1e1; --band: linear-gradient(#121216 0 45%, transparent 45% 55%, #e5302a 55%); --print: #8a5a00; --tilt: 1deg; }
+  /* black shell, orange label (the colour cassette sheet) */
+  .cassette-3 { --shell: #1d1e24; --shell-hi: #33343d; --paper: #ff9a2e; --band: linear-gradient(#fff 0 40%, transparent 40% 60%, #fff 60%); --print: #121216; --tilt: -1deg; }
+  /* smoky clear shell, pink label, chrome-tape magenta (the CR-90 photo) */
+  .cassette-4 { --shell: #5d6070; --shell-hi: #8a8ea1; --paper: #ffd1ea; --band: linear-gradient(#d6197e, #d6197e); --print: #a3105c; --tilt: 1.5deg; }
+
   .label {
+    min-width: 0;
     display: grid;
-    gap: 0.375rem;
-    padding: 0.5rem 0.75rem 0.625rem;
-    background:
-      linear-gradient(var(--stripe), var(--stripe)) 0 calc(100% - 1.75rem) / 100% 0.3125rem no-repeat,
-      repeating-linear-gradient(transparent 0 1.3rem, rgb(18 18 22 / 0.12) 1.3rem calc(1.3rem + 1px)),
-      var(--paper);
-    border: var(--border) solid var(--c-ink);
-    border-radius: 6px;
+    grid-template-rows: auto 1fr auto;
+    gap: 3cqi;
+    padding: 3.5cqi 5cqi 3cqi;
+    background: var(--paper);
+    border: 2px solid var(--c-ink);
+    border-radius: 2cqi;
   }
-  .label-top { display: flex; justify-content: space-between; align-items: center; font: 400 1.125rem / 1 var(--font-lcd); }
-  .side { display: grid; place-items: center; width: 1.375rem; aspect-ratio: 1; color: var(--paper); background: var(--c-ink); border-radius: 3px; }
-  .tape-title { font: 400 1.25rem / 1.1 var(--font-hand); min-height: 2.2em; }
-  /* the window: two reels, the left one full of tape, joined by the ribbon */
+  .label-top {
+    min-width: 0;
+    display: flex;
+    align-items: flex-start;
+    gap: 3.5cqi;
+    min-height: 13cqi;
+    /* the ruled lines people wrote the title on */
+    background: repeating-linear-gradient(transparent 0 calc(6.5cqi - 1px), rgb(18 18 22 / 0.28) calc(6.5cqi - 1px) 6.5cqi) 0 0.5cqi / 100% 13cqi no-repeat;
+  }
+  .side { flex: none; margin-top: 3cqi; display: grid; place-items: center; width: 7cqi; aspect-ratio: 1; font: 700 5cqi / 1 var(--font-body); color: var(--paper); background: var(--c-ink); }
+  /* written on the two ruled lines: wraps once, then gives way */
+  .tape-title {
+    min-width: 0;
+    font: 400 6.4cqi / 6.5cqi var(--font-hand);
+    padding-top: 0.6cqi;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
+  }
+
+  /* the coloured band runs across the label, behind the window */
+  .band { display: grid; align-items: center; background: var(--band) 0 50% / 100% 34% no-repeat; }
   .window {
     position: relative;
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    height: 3.5rem;
-    padding-inline: 0.875rem;
-    background: linear-gradient(180deg, #2a2b35, #121216);
-    border: var(--border) solid var(--c-ink);
-    border-radius: 2rem;
+    justify-content: space-between;
+    justify-self: center;
+    width: 66%;
+    height: 21cqi;
+    padding-inline: 4cqi;
+    background: linear-gradient(180deg, #3a3b45, #16171c);
+    border: 2px solid var(--c-ink);
+    border-radius: 3cqi;
+    box-shadow: inset 0 2px 6px rgb(0 0 0 / 0.5);
   }
-  .ribbon { position: absolute; inset: auto 2.75rem 0.625rem; height: 0.3125rem; background: #5a3a24; border-radius: 2px; }
-  .reel {
-    position: relative;
-    z-index: 1;
-    width: 2.25rem;
+  /* the tape wound on each reel: more on the left, less on the right */
+  .pack { position: relative; z-index: 1; display: grid; place-items: center; border-radius: 50%; background: radial-gradient(circle, #6b4429 0 60%, #4b2e1b 61% 100%); }
+  .pack-full { width: 17cqi; aspect-ratio: 1; margin-inline-start: -2cqi; }
+  .pack-thin { width: 12cqi; aspect-ratio: 1; }
+  .hub {
+    width: 10cqi;
     aspect-ratio: 1;
     border-radius: 50%;
-    /* hub with six teeth, then a ring of brown tape */
+    /* a white hub: outer ring, six teeth pointing at the spindle, dark spindle hole */
     background:
-      radial-gradient(circle, transparent 0 22%, #ffffff 23% 44%, transparent 45%),
-      repeating-conic-gradient(#ffffff 0 18deg, transparent 18deg 60deg),
-      radial-gradient(circle, #ffffff 0 46%, #6b4429 47% 100%);
-    -webkit-mask: radial-gradient(circle, transparent 0 21%, #000 22%);
-    mask: radial-gradient(circle, transparent 0 21%, #000 22%);
-    box-shadow: 0 0 0 2px var(--c-ink);
+      radial-gradient(circle, #16171c 0 24%, transparent 25%),
+      radial-gradient(circle, transparent 0 46%, #f4f4f7 47%),
+      repeating-conic-gradient(#f4f4f7 0 16deg, #2a2b33 16deg 60deg);
+    box-shadow: 0 0 0 1px rgb(0 0 0 / 0.45);
   }
-  .reel-full { width: 2.75rem; }
-  .tape-sub { font-size: var(--fs-small); font-weight: 700; padding-top: 0.25rem; }
-  /* the bottom edge of the shell with its two capstan holes */
+  /* the clear little window between the reels, with its tick marks */
+  .peek {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 22%;
+    height: 52%;
+    translate: -50% -50%;
+    background:
+      repeating-linear-gradient(90deg, rgb(255 255 255 / 0.55) 0 1px, transparent 1px 3cqi) 0 50% / 100% 22% no-repeat,
+      linear-gradient(90deg, #3a2414, #6b4429 50%, #3a2414);
+    border: 1px solid rgb(255 255 255 / 0.25);
+  }
+
+  .label-bottom { display: flex; justify-content: space-between; align-items: flex-end; gap: 3cqi; }
+  .tape-sub { font: 700 4.1cqi / 1.2 var(--font-body); }
+  .len { flex: none; font: 900 9cqi / 0.9 var(--font-display); font-stretch: 120%; color: var(--print); letter-spacing: -0.02em; }
+  .cassette-3 .len, .cassette-3 .side { color: var(--c-ink); }
+  .cassette-3 .side { background: var(--c-flash); }
+
+  /* the raised bottom edge: two round capstan holes, two square guide holes and the centre screw */
   .foot {
-    height: 1.5rem;
-    margin: 0.5rem 1.75rem 0;
+    position: relative;
+    height: 11cqi;
+    margin: 2.5cqi 9% 0;
     background:
-      radial-gradient(circle at 30% 55%, var(--c-ink) 0 0.25rem, transparent 0.3rem),
-      radial-gradient(circle at 70% 55%, var(--c-ink) 0 0.25rem, transparent 0.3rem),
-      #23242c;
-    border: var(--border) solid var(--c-ink);
+      radial-gradient(circle at 22% 62%, var(--c-ink) 0 1.6cqi, transparent 1.7cqi),
+      radial-gradient(circle at 78% 62%, var(--c-ink) 0 1.6cqi, transparent 1.7cqi),
+      linear-gradient(var(--c-ink), var(--c-ink)) 37% 64% / 2.4cqi 2.4cqi no-repeat,
+      linear-gradient(var(--c-ink), var(--c-ink)) 63% 64% / 2.4cqi 2.4cqi no-repeat,
+      linear-gradient(180deg, color-mix(in srgb, var(--shell-hi) 80%, #000), var(--shell));
+    border: 2px solid var(--c-ink);
     border-bottom: 0;
-    clip-path: polygon(8% 0, 92% 0, 100% 100%, 0 100%);
+    clip-path: polygon(6% 0, 94% 0, 100% 100%, 0 100%);
   }
-  .cassette:hover, .cassette:focus-visible { rotate: 0deg; translate: 0 -4px; box-shadow: 8px 10px 0 var(--shadow); }
-  .cassette:is(:hover, :focus-visible) .reel { animation: spin 1.6s linear infinite; }
+  .screw { position: absolute; left: 50%; top: 18%; width: 2.6cqi; aspect-ratio: 1; translate: -50% 0; border-radius: 50%; background: radial-gradient(circle, #4a4b55 0 30%, #c9cbd6 32%); }
+
+  .cassette:hover, .cassette:focus-visible { rotate: 0deg; translate: 0 -4px; box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.18), 8px 10px 0 var(--shadow); }
+  .cassette:is(:hover, :focus-visible) .hub { animation: spin 1.4s linear infinite; }
   html[data-calm] .cassette { rotate: none; }
-  html[data-calm] .cassette .reel { animation: none; }
+  html[data-calm] .cassette .hub { animation: none; }
   @media (prefers-reduced-motion: reduce) {
     .cassette { rotate: none; }
     .cassette:is(:hover, :focus-visible) { translate: none; }
-    .cassette .reel { animation: none !important; }
+    .cassette .hub { animation: none !important; }
   }
-
-  .hint-touch { display: none; }
   @keyframes spin { to { rotate: 360deg; } }
 </style>
