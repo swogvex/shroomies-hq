@@ -1,0 +1,26 @@
+/* Self-hosted Latin subsets (Latin-1 covers ñ ¿ ¡ á é í ó ú ü). A face only downloads when a glyph uses it,
+   so the accent faces cost nothing on pages that don't show the LCD or handwriting. Licences in /fonts/. */
+@font-face {
+  font-family: "Anybody";
+  src: url("/fonts/anybody-latin.woff2") format("woff2");
+  font-weight: 100 900;
+  font-stretch: 50% 150%;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Atkinson Hyperlegible Next";
+  src: url("/fonts/atkinson-next-latin.woff2") format("woff2");
+  font-weight: 200 800;
+  font-display: swap;
+}
+@font-face {
+  font-family: "VT323";
+  src: url("/fonts/vt323-ascii.woff2") format("woff2");
+  font-display: optional;
+  unicode-range: U+0020-007E, U+00B7;
+}
+@font-face {
+  font-family: "Permanent Marker";
+  src: url("/fonts/permanent-marker-latin.woff2") format("woff2");
+  font-display: optional;
+}
