@@ -1,6 +1,7 @@
 // Runs before first paint (blocking, external so the CSP needs no inline hash): theme, calm mode, time slot.
 (function () {
   var d = document.documentElement;
+  d.dataset.js = ''; // CSS shows the remote skin only when JS runs; otherwise the plain dock list
   var t = null, calm = null;
   try { t = localStorage.getItem('shq:theme'); calm = localStorage.getItem('shq:calm'); } catch (e) {}
   d.dataset.theme = t === 'original' || t === 'light' || t === 'dark' ? t

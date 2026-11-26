@@ -5,6 +5,7 @@ import '../styles/base.css';
 import '../styles/primitives.css';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import Remote from '../components/Remote.astro';
 import { localePath, locales, t, type Locale } from '../i18n';
 
 interface Props {
@@ -42,5 +43,6 @@ const path = Astro.url.pathname;
       <slot />
     </main>
     <Footer locale={locale} />
+    <Remote locale={locale} />
   </body>
 </html>

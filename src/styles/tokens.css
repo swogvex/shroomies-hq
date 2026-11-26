@@ -13,6 +13,16 @@
     --c-lcd-1: #c7f26a;
     --c-lcd-2: #a9dc45;
     --c-lcd-ink: #1d2a08;
+    /* the remote is an object on the board (B2-Remote): identical in every theme */
+    --c-remote-hi: #30323d;
+    --c-remote-mid: #1b1c23;
+    --c-remote-lo: #101116;
+    --c-remote-edge: #050507;
+    --c-remote-line: #3a3c48;
+    --c-remote-label: #c9cbd6;
+    --c-key-hi: #41434f;
+    --c-key-lo: #24252e;
+    --c-key-on-lo: #d3d5df;
 
     /* type */
     --font-display: "Anybody", "Atkinson Hyperlegible Next", sans-serif;
