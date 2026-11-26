@@ -21,3 +21,7 @@ export function neighbours(index: number): { prev: number; next: number } {
   const i = Math.max(index, 0);
   return { prev: (i + sections.length - 1) % sections.length, next: (i + 1) % sections.length };
 }
+
+/** The fine print (18-privacy-legal), in footer and index order: src/content/pages/<lang>/<slug>.md, served at /<slug>/. */
+export const finePrint = ['legal', 'privacy', 'wall-rules', 'credits', 'about'] as const;
+export type FinePrint = (typeof finePrint)[number];

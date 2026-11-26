@@ -1,0 +1,14 @@
+---
+// The fine print: /legal/, /privacy/, /wall-rules/, /credits/, /about/ (drafts only outside production).
+import { getCollection } from 'astro:content';
+import FinePrint from '../../views/FinePrint.astro';
+import { published } from '../../lib/music';
+import { finePrint } from '../../lib/sections';
+
+export async function getStaticPaths() {
+  const pages = await getCollection('pages', (e) => e.id.startsWith('es/') && published(e));
+  return finePrint.filter((s) => pages.some((e) => e.id === `es/${s}`)).map((page) => ({ params: { page } }));
+}
+---
+
+<FinePrint slug={Astro.params.page} />
