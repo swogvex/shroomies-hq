@@ -167,9 +167,14 @@ const hidden = (day: string) => day !== buildDay;
     <div class:list={['lower', { solo: !featured }]}>
     <section class="wall" aria-labelledby="wall-title">
       <h2 id="wall-title">{t(locale, 'home.wall')}</h2>
-      <div class="wall-soon">
-        <span class="pin" aria-hidden="true"></span>
-        <p>{t(locale, 'home.wallSoon')}</p>
+      <!-- three slots, like the three approved notes the preview will show in M6 (note of the week first) -->
+      <div class="notes">
+        <div class="note note-soon">
+          <span class="pin" aria-hidden="true"></span>
+          <p>{t(locale, 'home.wallSoon')}</p>
+        </div>
+        <div class="note note-blank note-ticket" aria-hidden="true"><span class="pin" /></div>
+        <div class="note note-blank note-ink" aria-hidden="true"><span class="pin" /></div>
       </div>
     </section>
 
@@ -331,9 +336,17 @@ const hidden = (day: string) => day !== buildDay;
 
   /* fan wall preview: the corkboard, waiting for M6 */
   .wall { display: grid; gap: 1rem; padding: 1.5rem 1.625rem; background: var(--cork); color: var(--cork-ink); border: var(--border) solid var(--line); }
-  .wall-soon { position: relative; justify-self: start; max-width: 28rem; padding: 1.25rem 1.125rem 1rem; background: #fff36b; color: var(--c-ink); rotate: -1.5deg; box-shadow: 3px 6px 0 color-mix(in srgb, var(--c-ink) 25%, transparent); }
-  .wall-soon p { font: 400 1.25rem / 1.3 var(--font-hand); }
-  html[data-calm] .wall-soon { rotate: none; }
+  .wall { align-self: stretch; grid-template-rows: auto 1fr; }
+  /* the notes are paper on the cork: the same colours in every theme */
+  .notes { display: grid; grid-template-columns: 1.3fr 1fr 1fr; gap: 1.5rem 1.25rem; align-items: center; padding-top: 0.5rem; }
+  .note { position: relative; min-height: 9.5rem; padding: 1.25rem 1.125rem 1rem; color: var(--c-ink); box-shadow: 3px 6px 0 color-mix(in srgb, var(--c-ink) 25%, transparent); }
+  .note-soon { background: #fff36b; rotate: -2deg; }
+  .note-soon p { font: 400 1.1875rem / 1.3 var(--font-hand); }
+  /* blank papers waiting for notes: ruled lines, a ticket stub, an inverse card (the three note styles of the board) */
+  .note-blank { background: repeating-linear-gradient(transparent 0 1.55rem, rgb(18 18 22 / 0.14) 1.55rem calc(1.55rem + 1px)) 0 2.5rem / 100% calc(100% - 3.5rem) no-repeat, #ffffff; }
+  .note-ticket { rotate: 1.5deg; }
+  .note-ink { rotate: -1deg; background: repeating-linear-gradient(transparent 0 1.55rem, rgb(255 255 255 / 0.16) 1.55rem calc(1.55rem + 1px)) 0 2.5rem / 100% calc(100% - 3.5rem) no-repeat, var(--c-ink); }
+  html[data-calm] .note { rotate: none; }
 
   .lower { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 1.625rem; align-items: start; }
   .lower.solo { grid-template-columns: minmax(0, 1fr); }
@@ -346,6 +359,8 @@ const hidden = (day: string) => day !== buildDay;
     .song { padding: 1.5rem 1.125rem 1.25rem; }
     .since-n { font-size: 7.5rem; }
     .band-day { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+    .notes { grid-template-columns: minmax(0, 1fr); }
+    .note-blank { display: none; }
     .pick-tape { max-width: 20rem; }
     .room-bar { font-size: 1.25rem; font-stretch: 120%; }
   }
