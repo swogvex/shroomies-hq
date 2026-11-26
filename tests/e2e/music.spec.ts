@@ -32,18 +32,37 @@ for (const theme of ['original', 'dark'] as const) {
   });
 }
 
-test('the shelf filter shows one kind and keeps it in the URL', async ({ page }) => {
+test('era tabs show one shelf at a time and work by keyboard', async ({ page }) => {
   await page.goto('/music/');
-  await page.getByRole('button', { name: 'Albums' }).click();
-  await expect(page).toHaveURL(/\?show=albums$/);
-  await expect(page.getByRole('button', { name: 'Albums' })).toHaveAttribute('aria-pressed', 'true');
-  const visible = page.locator('.cd:not([hidden])');
-  await expect(visible).toHaveCount(releases.filter((r) => r.type === 'album').length);
-  await expect(page.locator('#era-first-singles')).toBeHidden();
+  const halo = page.getByRole('tab', { name: /HALO/ });
+  await expect(halo).toHaveAttribute('aria-selected', 'true');
+  await expect(page.locator('#era-halo')).toBeVisible();
+  await expect(page.locator('#era-ltf')).toBeHidden();
+  await halo.focus();
+  await page.keyboard.press('ArrowLeft');
+  const ltf = page.getByRole('tab', { name: /LOVER TOFU FRUIT/ });
+  await expect(ltf).toBeFocused();
+  await expect(ltf).toHaveAttribute('aria-selected', 'true');
+  await expect(page.locator('#era-ltf')).toBeVisible();
+  await expect(page.locator('#era-halo')).toBeHidden();
+  await expect(page).toHaveURL(/#era-ltf$/);
   await page.reload();
-  await expect(visible).toHaveCount(releases.filter((r) => r.type === 'album').length);
-  await page.getByRole('button', { name: 'Everything' }).click();
-  await expect(page).toHaveURL(/\/music\/$/);
+  await expect(ltf).toHaveAttribute('aria-selected', 'true');
+});
+
+test('the Show select keeps one kind, hides empty eras and keeps it in the URL', async ({ page }) => {
+  await page.goto('/music/');
+  const select = page.getByLabel('Show');
+  await select.selectOption('albums');
+  await expect(page).toHaveURL(/\?show=albums/);
+  const albums = releases.filter((r) => r.type === 'album').length;
+  await expect(page.locator('.cd:not([hidden])')).toHaveCount(albums);
+  await expect(page.getByRole('tab', { name: /First singles/ })).toBeHidden();
+  await page.reload();
+  await expect(select).toHaveValue('albums');
+  await expect(page.locator('.cd:not([hidden])')).toHaveCount(albums);
+  await select.selectOption('all');
+  await expect(page).not.toHaveURL(/show=/);
 });
 
 test('Surprise me opens a song not opened before and remembers it', async ({ page }) => {
@@ -87,7 +106,9 @@ test.describe('without JavaScript', () => {
     await page.goto('/music/');
     await expect(page.locator('.cd a').first()).toBeVisible();
     await expect(page.getByRole('button', { name: 'Surprise me' })).toBeHidden();
-    await expect(page.getByRole('group', { name: 'Show' })).toBeHidden();
+    await expect(page.getByRole('combobox')).toBeHidden();
+    await expect(page.getByRole('tablist')).toBeHidden();
+    await expect(page.locator('#era-first-singles')).toBeVisible(); // every era stacked
     await page.goto('/music/halo/');
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('HALO');
   });
