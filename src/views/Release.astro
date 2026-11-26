@@ -16,7 +16,7 @@ const r = releases[i]!;
 const prev = releases[i - 1];
 const next = releases[i + 1];
 const site = (await getEntry('site', 'site'))!.data;
-const Note = r.note && (await render(r.note)).Content;
+const Note = r.note?.body?.trim() ? (await render(r.note)).Content : undefined; // a file may only carry links, with no fan note yet
 const year = r.date.slice(0, 4);
 // the title is set as big as its longest word allows, so a single word never breaks
 const longest = Math.max(...r.title.split(/\s+/).map((w) => w.length));
