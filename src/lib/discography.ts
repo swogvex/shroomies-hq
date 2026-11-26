@@ -32,6 +32,9 @@ export function applyCorrections(raw: readonly RawRelease[], { overrides, additi
 
 export type CatalogueTrack = Track & { release: string; releaseTitle: string; date: string };
 
+/** What resets "days since" and counts in the tracker stats: her releases incl. collabs, not remixes or guest features (home and tracker share it). */
+export const countsAsRelease = (r: { type: ReleaseType }) => r.type !== 'remix' && r.type !== 'guest';
+
 /** Same title = same song (MusicBrainz sometimes keeps the single and EP versions as two recordings). */
 export const songKey = (title: string) => title.trim().toLowerCase();
 

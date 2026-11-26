@@ -10,6 +10,7 @@ import { anniversaries, formatDate } from '../lib/dates';
 import { allShows, discography, listenFor, mixtapes, published, songsOfDays, surprisePool, titleFit } from '../lib/music';
 import { lastRelease, monthlyCounts, nextShow } from '../lib/portal';
 import { seededShuffle } from '../lib/song-of-day';
+import { countsAsRelease } from '../lib/discography';
 
 const locale = (Astro.currentLocale ?? 'en') as Locale;
 const releases = await discography();
@@ -23,7 +24,7 @@ const journal = (await getCollection('journal', (e) => e.id.startsWith(`${locale
 const tapes = await mixtapes();
 const featured = seededShuffle(tapes, buildDay)[0];
 // "days since" and the sparkline count her own releases, not remixes or guest features
-const own = releases.filter((r) => r.type !== 'remix' && r.type !== 'guest');
+const own = releases.filter(countsAsRelease);
 const counts = monthlyCounts(own, buildDay);
 const peak = Math.max(2, ...counts.map((c) => c.count)); // one release a month is a half bar
 
