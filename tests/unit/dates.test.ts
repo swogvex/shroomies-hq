@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { anniversaries, daysBetween, daysSinceEpoch, formatDate, localDateKey, utcDateKey } from '../../src/lib/dates';
+import { anniversaries, aroundDay, daysBetween, daysSinceEpoch, formatDate, localDateKey, utcDateKey } from '../../src/lib/dates';
 
 describe('date keys', () => {
   it('local and UTC keys differ across midnight', () => {
@@ -49,5 +49,12 @@ describe('formatDate', () => {
     expect(formatDate('2026-04-03', 'es')).toBe('3 abr 2026');
     expect(formatDate('2020', 'en')).toBe('2020');
     expect(formatDate('2020-06', 'en')).toBe('Jun 2020');
+  });
+});
+
+describe('aroundDay', () => {
+  it('gives yesterday, today and tomorrow across a month and a leap day', () => {
+    expect(aroundDay('2024-03-01')).toEqual(['2024-02-29', '2024-03-01', '2024-03-02']);
+    expect(aroundDay('2026-12-31')).toEqual(['2026-12-30', '2026-12-31', '2027-01-01']);
   });
 });

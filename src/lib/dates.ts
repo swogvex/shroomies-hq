@@ -46,3 +46,6 @@ export function formatDate(key: string, locale: string, opts: Intl.DateTimeForma
   const partial = key.length === 4 ? { year: 'numeric' as const } : key.length === 7 ? { month: opts.month ?? 'short', year: 'numeric' as const } : opts;
   return new Intl.DateTimeFormat(locale, { ...partial, timeZone: 'UTC' }).format(new Date(Date.UTC(y, m - 1, d)));
 }
+
+/** The build's UTC date with the day either side, so a page can switch to the visitor's local date. */
+export const aroundDay = (today = utcDateKey()) => [-1, 0, 1].map((o) => utcDateKey(new Date((daysSinceEpoch(today) + o) * DAY)));

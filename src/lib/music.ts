@@ -7,7 +7,7 @@ import raw from '../data/discography.json';
 import { applyCorrections, ownTracks, songKey, type EraId, type Release } from './discography.ts';
 import type { Links, RawRelease, Track } from './musicbrainz.ts';
 import { matches, songOfDay } from './song-of-day.ts';
-import { daysSinceEpoch, utcDateKey } from './dates.ts';
+import { aroundDay, utcDateKey } from './dates.ts';
 import tour from '../data/tour.json';
 import { mergeShows, type Show } from './tour.ts';
 
@@ -90,8 +90,7 @@ export async function songsOfDays(today = utcDateKey()) {
   const rules = (await getEntry('song-of-day', 'song-of-day'))!.data;
   for (const ref of [...Object.values(rules.pins), ...rules.exclude]) resolve(releases, ref, 'src/content/song-of-day.md');
   const catalogue = ownTracks(releases);
-  const day = (offset: number) => new Date((daysSinceEpoch(today) + offset) * 86_400_000).toISOString().slice(0, 10);
-  return Object.fromEntries([-1, 0, 1].map((o) => [day(o), songOfDay(catalogue, day(o), rules)!])) as Record<string, (typeof catalogue)[number]>;
+  return Object.fromEntries(aroundDay(today).map((d) => [d, songOfDay(catalogue, d, rules)!])) as Record<string, (typeof catalogue)[number]>;
 }
 
 /** Surprise me pool: her own songs (no collabs, remixes or features) minus song-of-day.md exclusions, as "slug#n". */

@@ -200,24 +200,14 @@ const hidden = (day: string) => day !== buildDay;
 
 <script>
   import '../scripts/surprise';
-  import { localDateKey } from '../lib/dates';
+  import '../scripts/local-day';
 
-  // The page was built for the UTC date: show the visitor's own day wherever it differs.
-  const today = localDateKey();
-  for (const group of document.querySelectorAll<HTMLElement>('[data-days]')) {
-    const days = [...group.querySelectorAll<HTMLElement>(':scope > [data-day]')];
-    if (!days.some((d) => d.dataset.day === today)) continue; // a stale build keeps what it has
-    for (const d of days) d.hidden = d.dataset.day !== today;
-    // the visible song title names the card
-    const title = group.querySelector<HTMLElement>(':scope > [data-day]:not([hidden]) .song-title');
-    if (title) {
-      group.querySelector('#song-title')?.removeAttribute('id');
-      title.id = 'song-title';
-    }
-  }
-  // tonight's start time in the visitor's own clock
-  for (const time of document.querySelectorAll<HTMLTimeElement>('[data-local-time]')) {
-    time.textContent = new Date(time.dateTime).toLocaleTimeString(document.documentElement.lang, { hour: '2-digit', minute: '2-digit' });
+  // the visible song title names the card
+  const card = document.querySelector<HTMLElement>('#today');
+  const title = card?.querySelector<HTMLElement>(':scope > [data-day]:not([hidden]) .song-title');
+  if (card && title) {
+    card.querySelector('#song-title')?.removeAttribute('id');
+    title.id = 'song-title';
   }
 </script>
 
