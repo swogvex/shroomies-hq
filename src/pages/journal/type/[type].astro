@@ -1,0 +1,10 @@
+---
+import Journal from '../../../views/Journal.astro';
+import { journalTypes, type JournalType } from '../../../lib/journal';
+
+export function getStaticPaths() {
+  return journalTypes.map((type) => ({ params: { type } }));
+}
+---
+
+<Journal filter={Astro.params.type as JournalType} />

@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 
-const pages = ['/', '/es/', '/music/', '/es/music/halo/', '/music/mixtapes/when-the-drop-hits/', '/tracker/', '/es/tracker/'];
+const pages = ['/', '/es/', '/music/', '/es/music/halo/', '/music/mixtapes/when-the-drop-hits/', '/tracker/', '/es/tracker/', '/journal/', '/es/journal/meant-to-be/'];
 
 for (const theme of ['light', 'dark']) {
   test(`new pages have no axe violations in the ${theme} theme`, async ({ page }) => {

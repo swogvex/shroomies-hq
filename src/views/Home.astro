@@ -1,13 +1,13 @@
 ---
 // 01 · Portal (07-spec-home, B2-Home board). Built for the UTC date with the day either side; a small script shows the
 // visitor's local day (song of the day, days since, on this day, tonight's show). No third-party request before a click.
-import { getCollection, getEntry } from 'astro:content';
+import { getEntry } from 'astro:content';
 import Base from '../layouts/Base.astro';
 import PlayerGate from '../components/PlayerGate.astro';
 import Cassette from '../components/Cassette.astro';
 import { localePath, t, type Locale } from '../i18n';
 import { anniversaries, formatDate } from '../lib/dates';
-import { allShows, discography, listenFor, mixtapes, published, songsOfDays, surprisePool, titleFit } from '../lib/music';
+import { allShows, discography, journal, listenFor, mixtapes, songsOfDays, surprisePool, titleFit } from '../lib/music';
 import { lastRelease, monthlyCounts, nextShow } from '../lib/portal';
 import { seededShuffle } from '../lib/song-of-day';
 import { countsAsRelease } from '../lib/discography';
@@ -20,7 +20,7 @@ const buildDay = days[1]!;
 const site = (await getEntry('site', 'site'))!.data;
 const shows = await allShows();
 const pool = await surprisePool();
-const journal = (await getCollection('journal', (e) => e.id.startsWith(`${locale}/`) && published(e))).sort((a, b) => b.data.date.localeCompare(a.data.date));
+const entries = await journal(locale);
 const tapes = await mixtapes();
 const featured = seededShuffle(tapes, buildDay)[0];
 // "days since" and the sparkline count her own releases, not remixes or guest features
@@ -146,11 +146,11 @@ const hidden = (day: string) => day !== buildDay;
 
     <section class="mid">
       {
-        journal.length > 0 && (
+        entries.length > 0 && (
           <div class="journal">
             <h2>{t(locale, 'home.journal')}</h2>
-            {journal.slice(0, 2).map((e) => (
-              <a class="entry" href={localePath(`/journal/${e.id.slice(3)}/`, locale)}>
+            {entries.slice(0, 2).map((e) => (
+              <a class="entry" href={localePath(`/journal/${e.slug}/`, locale)}>
                 <span class="entry-meta">
                   {formatDate(e.data.date, locale)} · {t(locale, `journal.${e.data.type}`)}
                 </span>
@@ -161,7 +161,7 @@ const hidden = (day: string) => day !== buildDay;
           </div>
         )
       }
-      <a class:list={['room', { wide: journal.length === 0 }]} href={localePath('/room/', locale)}>
+      <a class:list={['room', { wide: entries.length === 0 }]} href={localePath('/room/', locale)}>
         <span class="room-pic" aria-hidden="true">
           {['morning', 'afternoon', 'sunset', 'night'].map((slot) => <img class={`slot-${slot}`} src={`/rooms/la-2026-${slot}.webp`} alt="" width="1160" height="693" loading="lazy" decoding="async" />)}
         </span>

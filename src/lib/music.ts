@@ -134,3 +134,10 @@ export async function allShows(): Promise<Show[]> {
   const { shows: manual, hide } = (await getEntry('tours', 'tours'))!.data;
   return mergeShows(tour as Show[], manual, hide);
 }
+
+/** Journal entries in one language, newest first, with their slug (file name without the language folder). */
+export async function journal(locale: string) {
+  return (await getCollection('journal', (e) => e.id.startsWith(`${locale}/`) && published(e)))
+    .map((e) => ({ ...e, slug: e.id.slice(locale.length + 1) }))
+    .sort((a, b) => b.data.date.localeCompare(a.data.date) || a.slug.localeCompare(b.slug));
+}
