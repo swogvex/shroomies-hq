@@ -1,0 +1,219 @@
+{
+  "room": "la-2026",
+  "viewBox": "0 0 1440 860",
+  "defaultState": "sunset",
+  "holes": [
+    "beamOp",
+    "cityOp",
+    "dialC1",
+    "dialC2",
+    "dialGlow",
+    "discoOp",
+    "glowOp",
+    "lampOp",
+    "ledC",
+    "lightC",
+    "moonOp",
+    "needleX",
+    "nightOp",
+    "screenOp",
+    "shroomOp",
+    "sky1",
+    "sky2",
+    "sky3",
+    "sunGlow",
+    "sunOp",
+    "sunY",
+    "timeLabel",
+    "waveOp"
+  ],
+  "timeStates": {
+    "morning": {
+      "sky1": "#9fd3ff",
+      "sky2": "#d9efff",
+      "sky3": "#fff1c9",
+      "lightC": "#fff4d6",
+      "beamOp": 0.55,
+      "sunOp": 1.0,
+      "sunY": 260.0,
+      "sunGlow": 0.35,
+      "moonOp": 0.0,
+      "cityOp": 0.0,
+      "nightOp": 0.0,
+      "glowOp": 0.25,
+      "lampOp": 0.0,
+      "screenOp": 0.25,
+      "label": "08:10"
+    },
+    "afternoon": {
+      "sky1": "#5aa2ff",
+      "sky2": "#9cc9ff",
+      "sky3": "#dcefff",
+      "lightC": "#ffffff",
+      "beamOp": 0.4,
+      "sunOp": 1.0,
+      "sunY": 215.0,
+      "sunGlow": 0.3,
+      "moonOp": 0.0,
+      "cityOp": 0.0,
+      "nightOp": 0.0,
+      "glowOp": 0.2,
+      "lampOp": 0.0,
+      "screenOp": 0.2,
+      "label": "14:30"
+    },
+    "sunset": {
+      "sky1": "#6a4fc4",
+      "sky2": "#ff7a45",
+      "sky3": "#ffc46b",
+      "lightC": "#ff9a55",
+      "beamOp": 0.85,
+      "sunOp": 1.0,
+      "sunY": 420.0,
+      "sunGlow": 0.6,
+      "moonOp": 0.0,
+      "cityOp": 0.3,
+      "nightOp": 0.08,
+      "glowOp": 0.7,
+      "lampOp": 0.35,
+      "screenOp": 0.45,
+      "label": "17:40"
+    },
+    "night": {
+      "sky1": "#05061a",
+      "sky2": "#141a46",
+      "sky3": "#2b2560",
+      "lightC": "#9aa6ff",
+      "beamOp": 0.18,
+      "sunOp": 0.0,
+      "sunY": 640.0,
+      "sunGlow": 0.0,
+      "moonOp": 1.0,
+      "cityOp": 1.0,
+      "nightOp": 0.7,
+      "glowOp": 1.0,
+      "lampOp": 1.0,
+      "screenOp": 1.0,
+      "label": "23:55"
+    }
+  },
+  "toggles": {
+    "radio (toggleRadio)": {
+      "off": {
+        "dialC1": "#e9e6da",
+        "dialC2": "#c9c5b6",
+        "dialGlow": 0,
+        "needleX": 102,
+        "waveOp": 0
+      },
+      "on": {
+        "dialC1": "#ffe9a8",
+        "dialC2": "#ffb347",
+        "dialGlow": 0.8,
+        "needleX": 116,
+        "waveOp": 1
+      }
+    },
+    "secret found (findShroom)": {
+      "hidden": {
+        "shroomOp": 0
+      },
+      "visible": {
+        "shroomOp": 1
+      }
+    },
+    "disco / lamp / neon (toggleDisco)": "discoOp: 1 when on; idle value per room (see room spec)"
+  },
+  "hotspots": [
+    {
+      "label": "Radio: Today’s song",
+      "action": "toggleRadio",
+      "rect": [
+        371.0,
+        557.0,
+        214.0,
+        159.0
+      ]
+    },
+    {
+      "label": "Laptop: Open the journal",
+      "action": "noop",
+      "rect": [
+        452.0,
+        407.0,
+        110.0,
+        82.0
+      ]
+    },
+    {
+      "label": "CD tower: The shelf: all music",
+      "action": "noop",
+      "rect": [
+        618.0,
+        363.0,
+        65.0,
+        249.0
+      ]
+    },
+    {
+      "label": "Corkboard: The scrapbook",
+      "action": "noop",
+      "rect": [
+        426.0,
+        288.0,
+        185.0,
+        121.0
+      ]
+    },
+    {
+      "label": "Plush backpack: Your stickers",
+      "action": "noop",
+      "rect": [
+        799.0,
+        402.0,
+        131.0,
+        149.0
+      ]
+    },
+    {
+      "label": "Window: Change the light",
+      "action": "cycleTime",
+      "rect": [
+        139.0,
+        150.0,
+        191.0,
+        363.0
+      ]
+    },
+    {
+      "label": "Plant: Something is growing…",
+      "action": "findShroom",
+      "rect": [
+        220.0,
+        675.0,
+        91.0,
+        88.0
+      ]
+    },
+    {
+      "label": "Disco ball: ?",
+      "action": "toggleDisco",
+      "rect": [
+        779.0,
+        177.0,
+        77.0,
+        77.0
+      ]
+    },
+    {
+      "label": "Phone: Today’s notifications",
+      "action": "noop",
+      "rect": [
+        738.0,
+        781.0,
+        81.0,
+        49.0
+      ]
+    }
+  ]
+}
