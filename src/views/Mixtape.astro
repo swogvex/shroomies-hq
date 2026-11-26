@@ -1,0 +1,52 @@
+---
+// /music/mixtapes/<slug>/: a themed list, each song linking to its release page and to Spotify when we know the link.
+import { render } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import { localePath, t, type Locale } from '../i18n';
+import { duration, mixtapes } from '../lib/music';
+
+const { slug } = Astro.props as { slug: string };
+const locale = (Astro.currentLocale ?? 'en') as Locale;
+const tape = (await mixtapes()).find((m) => m.id === slug)!;
+const { Content } = await render(tape);
+---
+
+<Base title={`${tape.data.title} · ${t(locale, 'music.mixtapes')} · Shroomies HQ`} description={t(locale, 'mixtape.description', { title: tape.data.title })}>
+  <div class="mixtape">
+    <p class="crumbs"><a href={localePath('/music/', locale)}>{t(locale, 'nav.music')}</a> / {t(locale, 'music.mixtapes')}</p>
+    <h1>{tape.data.title}</h1>
+    <div class="intro"><Content /></div>
+    <ol class="songs">
+      {
+        tape.tracks.map((tr, i) => (
+          <li>
+            <b class="n">{String(i + 1).padStart(2, '0')}</b>
+            <span class="what">
+              <a href={localePath(`/music/${tr.release.slug}/#t${tr.n}`, locale)} lang="en">{tr.title}</a>
+              <span class="from">{t(locale, 'mixtape.from', { release: tr.release.title, year: tr.release.date.slice(0, 4) })}</span>
+            </span>
+            {tr.release.listen.spotify && <a class="out" href={tr.release.listen.spotify} rel="noopener">Spotify ↗</a>}
+            <span class="dur">{tr.durationMs ? duration(tr.durationMs) : ''}</span>
+          </li>
+        ))
+      }
+    </ol>
+    <p><a class="btn btn-secondary" href={localePath('/music/', locale)}><span aria-hidden="true">←</span> {t(locale, 'mixtape.back')}</a></p>
+  </div>
+</Base>
+
+<style>
+  .mixtape { width: min(var(--column), 46rem); margin-inline: auto; display: grid; gap: 1.5rem; padding-block: 0.5rem 1rem; }
+  .crumbs { font-size: var(--fs-small); color: var(--muted); }
+  h1 { font: 400 clamp(2.25rem, 1.5rem + 3vw, 3.5rem) / 1.05 var(--font-hand); }
+  .intro { max-width: 60ch; }
+  .songs { padding: 0; list-style: none; background: var(--c-ink); color: var(--c-flash); border: var(--border) solid var(--line); }
+  .songs li { display: flex; align-items: center; gap: 0.875rem; padding: 0.6875rem 1rem; border-bottom: 1px solid #2a2b35; }
+  .songs li:last-child { border-bottom: 0; }
+  .n { flex: none; width: 1.75rem; font: 400 1.375rem var(--font-lcd); color: var(--c-lcd-1); }
+  .what { flex: 1; min-width: 0; display: grid; }
+  .what a { font-weight: 700; color: var(--c-flash); overflow-wrap: anywhere; }
+  .from { font-size: var(--fs-small); color: var(--c-remote-label); }
+  .out { flex: none; font-size: var(--fs-small); color: var(--c-flash); }
+  .dur { flex: none; min-width: 2.75rem; text-align: end; font: 400 1.25rem var(--font-lcd); color: #9a9cab; }
+</style>

@@ -1,0 +1,10 @@
+---
+import Mixtape from '../../../../views/Mixtape.astro';
+import { mixtapes } from '../../../../lib/music';
+
+export async function getStaticPaths() {
+  return (await mixtapes()).map((m) => ({ params: { slug: m.id } }));
+}
+---
+
+<Mixtape slug={Astro.params.slug} />

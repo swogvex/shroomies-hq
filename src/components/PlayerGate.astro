@@ -1,0 +1,106 @@
+---
+// Player gate (08-spec-music): nothing from Spotify loads until the visitor presses the button, on every page view.
+// Without JS the button stays hidden and the plain "Open it on Spotify" link does the job.
+import { t, type Locale } from '../i18n';
+import type { Links } from '../lib/musicbrainz';
+
+interface Props {
+  locale: Locale;
+  title: string;
+  links: Links;
+  /** Artist page, shown when this release has no Spotify link yet. */
+  artistSpotify?: string | null;
+}
+
+const { locale, title, links, artistSpotify } = Astro.props;
+const spotify = links.spotify;
+const embed = spotify?.replace('open.spotify.com/', 'open.spotify.com/embed/');
+const others = (
+  [
+    ['apple', 'Apple Music'],
+    ['youtube', 'YouTube'],
+    ['bandcamp', 'Bandcamp'],
+  ] as const
+).filter(([key]) => links[key]);
+---
+
+<div class="gate" data-gate={embed} data-frame-title={t(locale, 'player.frame', { title })} data-tall={spotify?.includes('/album/') ? '' : undefined}>
+  <span class="tape" aria-hidden="true"></span>
+  <p class="gate-title">{t(locale, 'player.listen')}</p>
+  {
+    spotify ? (
+      <>
+        <p class="gate-note">{t(locale, 'player.note')}</p>
+        <button type="button" class="btn btn-primary" hidden data-gate-load>
+          <span aria-hidden="true">▶</span> {t(locale, 'player.load')}
+        </button>
+        <div class="gate-frame" data-gate-frame></div>
+        <p class="gate-fallback" data-gate-fallback>
+          <span class="gate-failed" hidden data-gate-failed>{t(locale, 'player.failed')} </span>
+          <a href={spotify} rel="noopener">{t(locale, 'player.open')} ↗</a>
+        </p>
+      </>
+    ) : (
+      <p class="gate-note">
+        {t(locale, 'player.none')}
+        {artistSpotify && <a href={artistSpotify} rel="noopener">{t(locale, 'player.artist')} ↗</a>}
+      </p>
+    )
+  }
+  {
+    others.length > 0 && (
+      <p class="gate-also">
+        {t(locale, 'player.alsoOn')}{' '}
+        {others.map(([key, name], i) => (
+          <>
+            {i > 0 && ' · '}
+            <a href={links[key]} rel="noopener">{name} ↗</a>
+          </>
+        ))}
+      </p>
+    )
+  }
+</div>
+
+<script>
+  for (const gate of document.querySelectorAll<HTMLElement>('[data-gate]')) {
+    const load = gate.querySelector<HTMLButtonElement>('[data-gate-load]');
+    const fallback = gate.querySelector<HTMLElement>('[data-gate-fallback]')!;
+    if (!load) continue;
+    load.hidden = false;
+    fallback.hidden = true;
+    load.addEventListener('click', () => {
+      const frame = document.createElement('iframe');
+      frame.src = gate.dataset.gate!;
+      frame.title = gate.dataset.frameTitle!;
+      frame.loading = 'lazy';
+      frame.allow = 'autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture';
+      frame.height = 'tall' in gate.dataset ? '352' : '152';
+      // A blocked or offline embed never fires load: after a while, say so and offer the link.
+      const timer = setTimeout(() => {
+        fallback.hidden = false;
+        gate.querySelector<HTMLElement>('[data-gate-failed]')!.hidden = false;
+      }, 10_000);
+      frame.addEventListener('load', () => clearTimeout(timer), { once: true });
+      gate.querySelector('[data-gate-frame]')!.append(frame);
+      load.remove();
+      frame.focus();
+    });
+  }
+</script>
+
+<style>
+  .gate {
+    position: relative;
+    display: grid;
+    gap: 0.625rem;
+    padding: 1.125rem;
+    background: var(--surface);
+    border: var(--border) solid var(--line);
+  }
+  .gate-title { font-weight: 700; }
+  .gate-note, .gate-fallback, .gate-also { font-size: 0.875rem; }
+  .gate-note a { display: block; margin-top: 0.25rem; }
+  .gate-frame:empty { display: none; }
+  .gate-frame :global(iframe) { display: block; width: 100%; border: 0; border-radius: 12px; }
+</style>

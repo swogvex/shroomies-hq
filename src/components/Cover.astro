@@ -1,0 +1,46 @@
+---
+// A release cover: the self-hosted artwork, or the typographic cover when there is none.
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+
+interface Props {
+  image?: ImageMetadata;
+  title: string;
+  alt: string;
+  widths: number[];
+  sizes: string;
+  eager?: boolean;
+  class?: string;
+}
+
+const { image, title, alt, widths, sizes, eager = false, class: cls } = Astro.props;
+---
+
+{
+  image ? (
+    <Image class:list={['cover', cls]} src={image} alt={alt} widths={widths} sizes={sizes} loading={eager ? 'eager' : 'lazy'} fetchpriority={eager ? 'high' : undefined} />
+  ) : (
+    <span class:list={['cover', 'cover-type', cls]} role={alt ? 'img' : undefined} aria-label={alt || undefined} aria-hidden={alt ? undefined : 'true'}>
+      <span aria-hidden="true">{title}</span>
+    </span>
+  )
+}
+
+<style>
+  .cover { display: block; aspect-ratio: 1; width: 100%; height: auto; object-fit: cover; }
+  .cover-type {
+    display: grid;
+    place-items: center;
+    padding: 8%;
+    overflow: hidden;
+    background: var(--era-accent);
+    color: var(--on-era-accent);
+    font: 900 1rem / 0.95 var(--font-display);
+    font-stretch: 125%;
+    text-align: center;
+    text-transform: uppercase;
+    overflow-wrap: anywhere;
+    container-type: inline-size;
+  }
+  .cover-type span { font-size: clamp(0.625rem, 12cqi, 3rem); }
+</style>
