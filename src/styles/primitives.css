@@ -24,7 +24,7 @@
   /* LCD green is an object on the board: identical in every theme */
   /* page heading: small era-coloured kicker over a huge stretched title (music, tracker, journal) */
   .kicker { margin-bottom: 0.375rem; font-size: var(--fs-small); font-weight: 700; color: var(--era-accent-text); }
-  .page-title { font-size: clamp(1.875rem, 0.25rem + 7.5vw, 5rem); font-stretch: 150%; letter-spacing: -0.02em; line-height: 0.92; overflow-wrap: break-word; }
+  .page-title { font-family: var(--font-display); font-weight: 900; font-size: clamp(1.875rem, 0.25rem + 7.5vw, 5rem); font-stretch: 150%; letter-spacing: -0.02em; line-height: 0.92; overflow-wrap: break-word; }
 
   .lcd {
     display: inline-block;

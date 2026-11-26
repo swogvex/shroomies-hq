@@ -1,0 +1,10 @@
+---
+import Journal from '../../../views/Journal.astro';
+import { journal } from '../../../lib/music';
+
+export async function getStaticPaths() {
+  return (await journal('es')).map((e) => ({ params: { slug: e.slug } }));
+}
+---
+
+<Journal slug={Astro.params.slug} />

@@ -1,0 +1,195 @@
+---
+// 06 · The Journal (12-spec-journal, B2-Journal board). One view for the index (/journal/), the filters
+// (/journal/type/<type>/, plain links so they work without JS) and each entry (/journal/<slug>/): the archive on the
+// left, the open entry on a notebook page on the right.
+import { render } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import { localePath, t, type Locale } from '../i18n';
+import { formatDate } from '../lib/dates';
+import { journalTypes, readingTime, summary, type JournalType } from '../lib/journal';
+import { journal } from '../lib/music';
+
+
+const { slug, filter } = Astro.props as { slug?: string; filter?: JournalType };
+const locale = (Astro.currentLocale ?? 'en') as Locale;
+const all = await journal(locale);
+const shown = filter ? all.filter((e) => e.data.type === filter) : all;
+const entry = slug ? all.find((e) => e.slug === slug)! : shown[0];
+const i = entry ? all.indexOf(entry) : -1;
+const [newer, older] = [all[i - 1], all[i + 1]];
+const { Content } = entry ? await render(entry) : { Content: null };
+const years = Map.groupBy(shown, (e) => e.data.date.slice(0, 4));
+const latestYear = [...years.keys()][0];
+const href = (s: string) => localePath(`/journal/${s}/`, locale);
+const filters = [{ id: 'all', to: localePath('/journal/', locale), on: !filter && !slug }, ...journalTypes.map((ty) => ({ id: ty, to: href(`type/${ty}`), on: filter === ty }))];
+
+const title = slug && entry ? `${entry.data.title} · ${t(locale, 'journal.title')}` : t(locale, 'journal.title');
+const description = slug && entry ? summary(entry.body ?? '').slice(0, 160) : t(locale, 'journal.description');
+---
+
+<Base title={title} description={description}>
+  <div class:list={['journal', { 'is-entry': slug }]}>
+    <header class="journal-head">
+      <div>
+        <p class="kicker">{t(locale, 'journal.kicker')}</p>
+        {slug ? <p class="page-title">{t(locale, 'journal.heading')}</p> : <h1 class="page-title">{t(locale, 'journal.heading')}</h1>}
+      </div>
+      <a class="btn btn-secondary" href={localePath('/rss.xml', locale)} type="application/rss+xml">{t(locale, 'journal.rss')}</a>
+    </header>
+
+    <nav class="filters" aria-label={t(locale, 'journal.filters')}>
+      <ul class="chips">
+        {
+          filters.map((f) => (
+            <li>
+              <a class:list={['chip', { on: f.on }]} href={f.to} aria-current={f.on ? 'page' : undefined}>
+                {t(locale, f.id === 'all' ? 'journal.all' : `journal.filter.${f.id as JournalType}`)}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <nav class="side" aria-label={t(locale, 'journal.archive')}>
+      {shown.length === 0 && <p class="empty">{t(locale, 'journal.empty')}</p>}
+      {
+        [...years].map(([year, list]) => {
+          const rows = (
+            <ol class="rows">
+              {list.map((e) => (
+                <li>
+                  <a class:list={['row', { on: e === entry }]} href={href(e.slug)} aria-current={slug && e === entry ? 'page' : undefined}>
+                    <span class="when">{formatDate(e.data.date, locale, { day: 'numeric', month: 'short' })}</span>
+                    <span class="what">
+                      <span class="type">{t(locale, `journal.${e.data.type}`)}</span>
+                      <span class="row-title">{e.data.title}</span>
+                    </span>
+                  </a>
+                </li>
+              ))}
+            </ol>
+          );
+          return year === latestYear || list.includes(entry!) ? (
+            <section class="year">
+              <h2>{year}</h2>
+              {rows}
+            </section>
+          ) : (
+            <details class="year">
+              <summary class="year-title">{year}</summary>
+              {rows}
+            </details>
+          );
+        })
+      }
+    </nav>
+
+    {
+      entry && Content && (
+        <article class="page" aria-labelledby="entry-title">
+          <p class="meta">
+            <span class="lcd">{t(locale, `journal.${entry.data.type}`).toUpperCase()}</span>
+            <time datetime={entry.data.date}>{formatDate(entry.data.date, locale)}</time> · {t(locale, 'journal.minRead', { n: String(readingTime(entry.body ?? '')) })}
+          </p>
+          {slug ? <h1 id="entry-title">{entry.data.title}</h1> : <h2 id="entry-title"><a href={href(entry.slug)}>{entry.data.title}</a></h2>}
+          {
+            entry.data.translationOf && !entry.data.reviewed && (
+              <p class="review">
+                {t(locale, 'journal.inReview')} <a href={localePath(`/journal/${entry.data.translationOf}/`, 'en')} hreflang="en" lang="en">{t(locale, 'journal.readOriginal')}</a>
+              </p>
+            )
+          }
+          <div class="body"><Content /></div>
+          {
+            entry.data.type === 'tour' && (
+              <p class="tour-note">
+                {t(locale, 'journal.tourNote')} <a href={localePath('/tracker/', locale)}>{t(locale, 'journal.toTracker')} →</a>
+              </p>
+            )
+          }
+          {entry.data.source && <p class="source">{t(locale, 'journal.source')}: <a href={entry.data.source} rel="noopener">{entry.data.sourceLabel ?? new URL(entry.data.source).hostname} ↗</a></p>}
+          {
+            slug && (older || newer) && (
+              <nav class="pager" aria-label={t(locale, 'journal.pager')}>
+                {older && <a class="btn btn-secondary" href={href(older.slug)} rel="prev"><span aria-hidden="true">←</span> {t(locale, 'journal.older')}<span class="visually-hidden">: {older.data.title}</span></a>}
+                {newer && <a class="btn btn-secondary newer" href={href(newer.slug)} rel="next">{t(locale, 'journal.newer')}<span class="visually-hidden">: {newer.data.title}</span> <span aria-hidden="true">→</span></a>}
+              </nav>
+            )
+          }
+        </article>
+      )
+    }
+  </div>
+</Base>
+
+<style>
+  .journal { width: var(--column); margin-inline: auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: 2rem; padding-block: 0.5rem 1rem; }
+  .journal-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 1rem 1.25rem; }
+  @media (min-width: 64rem) {
+    .journal { grid-template-columns: minmax(16rem, 22rem) minmax(0, 1fr); column-gap: 2.5rem; }
+    .journal-head, .filters { grid-column: 1 / -1; }
+  }
+  /* phones: an entry page opens on the entry; the index opens on the archive */
+  @media (max-width: 63.99rem) {
+    .is-entry .page { order: -1; }
+    .is-entry .journal-head { order: -2; }
+    .chips li { flex: 1 1 auto; } /* chips fill each row: no lone chip with a gap beside it */
+    .chip { justify-content: center; width: 100%; }
+  }
+
+  /* ---------- archive ---------- */
+  .side { display: grid; align-content: start; gap: 1.5rem; }
+  .journal > .filters { margin-bottom: -0.5rem; }
+  .chips { display: flex; flex-wrap: wrap; gap: 0.5rem; padding: 0; list-style: none; }
+  .chip { display: inline-flex; align-items: center; min-height: 44px; padding: 0 0.875rem; font-weight: 700; color: var(--ink); text-decoration: none; background: var(--surface); border: var(--border) solid var(--line); box-shadow: var(--shadow-sm); }
+  .chip.on { background: var(--accent); color: var(--on-accent); }
+  .year { display: grid; gap: 0.5rem; }
+  .year h2, .year-title { font: 900 var(--fs-h3) / 1.05 var(--font-display); }
+  details.year summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; gap: 0.5rem; }
+  .rows { display: grid; gap: 0.25rem; padding: 0; list-style: none; }
+  .row { display: grid; grid-template-columns: 4rem minmax(0, 1fr); gap: 0.75rem; padding: 0.75rem 0.875rem; color: var(--ink); text-decoration: none; border: var(--border) solid transparent; }
+  .row:hover .row-title { text-decoration: underline; }
+  .row.on { background: var(--surface); border-color: var(--line); box-shadow: 4px 4px 0 var(--accent); }
+  .when { font: 400 1.125rem/1.2 var(--font-lcd); color: var(--c-aura-text); }
+  :global([data-theme="dark"]) .when { color: var(--hot); } /* aura text is for paper; dark needs the lighter red */
+  .what { display: grid; gap: 0.125rem; }
+  .type { font-size: var(--fs-small); color: var(--muted); }
+  .row-title { font-weight: 700; overflow-wrap: anywhere; }
+  .empty { color: var(--muted); }
+
+  /* ---------- the notebook page: paper in every theme, like the flyers ---------- */
+  .page {
+    --rule: 2rem;
+    position: relative;
+    display: grid;
+    align-content: start;
+    gap: 1rem;
+    padding: 1.75rem clamp(1rem, 4vw, 2.5rem) 2rem clamp(3rem, 7vw, 4.5rem);
+    background:
+      linear-gradient(90deg, transparent calc(clamp(3rem, 7vw, 4.5rem) - 1rem), color-mix(in srgb, var(--c-aura) 55%, transparent) 0 calc(clamp(3rem, 7vw, 4.5rem) - 1rem + 2px), transparent 0),
+      repeating-linear-gradient(transparent 0 calc(var(--rule) - 1px), color-mix(in srgb, var(--c-strobe) 14%, transparent) 0 var(--rule)),
+      var(--c-paper);
+    color: var(--c-ink);
+    border: var(--border) solid var(--c-ink);
+    box-shadow: 10px 10px 0 var(--c-ink);
+  }
+  /* punched holes down the margin */
+  .page::before { content: ''; position: absolute; inset: 1.5rem auto 1.5rem 0.875rem; width: 1rem; background: radial-gradient(circle, color-mix(in srgb, var(--c-ink) 18%, transparent) 0 0.4rem, transparent 0.45rem) 0 0 / 1rem 4rem repeat-y; }
+  .page a { color: var(--c-ink); }
+  .meta { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; font-size: var(--fs-small); }
+  .meta .lcd { font-size: 1rem; }
+  .page :is(h1, h2) { font-size: clamp(2rem, 1.25rem + 3vw, 3.25rem); line-height: 1; text-wrap: balance; overflow-wrap: anywhere; }
+  .page h2 a { text-decoration: none; }
+  .page h2 a:hover { text-decoration: underline; }
+  .body { display: grid; gap: 1rem; font-size: 1.125rem; line-height: var(--rule); max-width: 62ch; }
+  .review { font-size: var(--fs-small); font-style: italic; }
+  .tour-note { padding: 1rem 1.25rem; background: #fff36b; rotate: -0.6deg; box-shadow: 3px 5px 0 color-mix(in srgb, var(--c-ink) 22%, transparent); }
+  .source { font-size: var(--fs-small); }
+  .pager { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 1rem; margin-top: 0.5rem; }
+  .pager .newer { margin-inline-start: auto; }
+  :global(html[data-calm]) .tour-note { rotate: none; }
+  @media (prefers-reduced-motion: reduce) {
+    .tour-note { rotate: none; }
+  }
+</style>

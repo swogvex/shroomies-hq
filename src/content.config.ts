@@ -4,6 +4,7 @@ import { glob } from 'astro/loaders';
 import { z } from 'astro/zod';
 import { eraIds } from './lib/discography.ts';
 import { releaseTypes } from './lib/musicbrainz.ts';
+import { journalTypes } from './lib/journal.ts';
 
 const one = (file: string) => glob({ pattern: file, base: './src/content' });
 const many = (dir: string) => glob({ pattern: '**/*.md', base: `./src/content/${dir}` });
@@ -125,12 +126,12 @@ export const collections = {
       .object({
         title: z.string(),
         date,
-        type: z.enum(['release', 'tour', 'press', 'site']),
+        type: z.enum(journalTypes),
         source: url.optional(),
         sourceLabel: z.string().optional(),
         cover: z.string().optional(),
         draft,
-        translationOf: z.string().optional(),
+        translationOf: slug.optional(), // the English entry's file name
         reviewed: z.boolean().optional(),
       })
       .refine((e) => e.type === 'site' || e.source, { message: 'source is required unless type is site', path: ['source'] }),
