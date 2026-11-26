@@ -145,7 +145,10 @@ describe('corrections and catalogue', () => {
 });
 
 describe('countsAsRelease', () => {
-  it('only her own albums, EPs and singles reset "days since" (owner, 2026-11-26)', () => {
-    expect(['album', 'ep', 'single', 'collab', 'remix', 'guest'].filter((type) => countsAsRelease({ type: type as never }))).toEqual(['album', 'ep', 'single']);
+  it('her albums, EPs, singles and the collabs she leads reset "days since" (owner, 2026-11-26)', () => {
+    const solo = 'Tiffany Day';
+    expect(['album', 'ep', 'single', 'collab', 'remix', 'guest'].filter((type) => countsAsRelease({ type: type as never, artistCredit: solo }))).toEqual(['album', 'ep', 'single', 'collab']);
+    expect(countsAsRelease({ type: 'collab', artistCredit: 'Tiffany Day & glaive' })).toBe(true);
+    expect(countsAsRelease({ type: 'collab', artistCredit: 'Lucian & Tiffany Day' })).toBe(false);
   });
 });
