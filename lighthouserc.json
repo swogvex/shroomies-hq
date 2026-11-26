@@ -7,7 +7,7 @@
     "assert": {
       "assertMatrix": [
         {
-          "matchingUrlPattern": "^(?!.*/dev/).*$",
+          "matchingUrlPattern": "^(?!.*/(dev/|404)).*$",
           "aggregationMethod": "median-run",
           "assertions": {
             "categories:performance": [
@@ -37,7 +37,7 @@
           }
         },
         {
-          "matchingUrlPattern": ".*/dev/.*",
+          "matchingUrlPattern": ".*/(dev/|404).*",
           "aggregationMethod": "median-run",
           "assertions": {
             "categories:performance": [
