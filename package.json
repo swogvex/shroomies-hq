@@ -9,12 +9,14 @@
   },
   "scripts": {
     "dev": "astro dev",
+    "prebuild": "node scripts/sync-discography.ts",
     "build": "astro build",
     "check": "astro check",
     "test": "vitest run --passWithNoTests",
     "test:e2e": "playwright test",
     "lhci": "lhci autorun && lhci autorun --collect.settings.preset=desktop",
-    "check:contrast": "node scripts/check-contrast.ts"
+    "check:contrast": "node scripts/check-contrast.ts",
+    "sync:discography": "node scripts/sync-discography.ts"
   },
   "dependencies": {
     "@astrojs/vercel": "11.0.22",
