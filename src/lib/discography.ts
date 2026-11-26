@@ -31,17 +31,17 @@ export function applyCorrections(raw: readonly RawRelease[], { overrides, additi
 
 export type CatalogueTrack = Track & { release: string; releaseTitle: string; date: string };
 
-const preference: Record<ReleaseType, number> = { album: 0, ep: 1, single: 2, collab: 3, remix: 9 };
+const preference: Record<ReleaseType, number> = { album: 0, ep: 1, single: 2, collab: 3, remix: 9, guest: 9 };
 
 /**
- * Her own songs, once each (remixes left out). A song on a single and later on an album is shown "from" the album.
+ * Her own songs, once each (remixes and guest features left out). A song on a single and later on an album is shown "from" the album.
  * Same title = same song: MusicBrainz sometimes keeps the single and EP versions as two recordings (e.g. Calone).
  * Order is by release date so the song-of-the-day shuffle stays stable when nothing new comes out.
  */
 export function ownTracks(releases: readonly Release[]): CatalogueTrack[] {
   const best = new Map<string, { t: CatalogueTrack; rank: number }>();
   for (const r of releases) {
-    if (r.type === 'remix') continue;
+    if (preference[r.type] === 9) continue;
     for (const t of r.tracks) {
       const key = t.title.trim().toLowerCase();
       const prev = best.get(key);

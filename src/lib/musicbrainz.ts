@@ -1,7 +1,8 @@
 // Turns MusicBrainz Web Service v2 JSON into the committed discography snapshot (src/data/discography.json).
 // Pure functions only: the network part lives in scripts/sync-discography.ts.
 
-export type ReleaseType = 'album' | 'ep' | 'single' | 'collab' | 'remix';
+/** guest = she is featured on someone else's release (shown after a divider on the shelf). */
+export type ReleaseType = 'album' | 'ep' | 'single' | 'collab' | 'remix' | 'guest';
 export type Credit = { role: string; name: string };
 export type Track = { mbid: string; n: number; title: string; durationMs: number | null; credits: Credit[] };
 export type RawRelease = {
@@ -17,7 +18,7 @@ export type RawRelease = {
   credits: Credit[];
 };
 
-type MbArtistCredit = { name: string; joinphrase?: string }[];
+type MbArtistCredit = { name: string; joinphrase?: string; artist?: { id: string } }[];
 type MbRelation = { 'target-type'?: string; type: string; attributes?: string[]; artist?: { name: string } };
 export type MbReleaseGroup = { id: string; title: string; 'primary-type'?: string | null; 'secondary-types'?: string[] };
 export type MbRelease = {
@@ -29,14 +30,21 @@ export type MbRelease = {
   'artist-credit'?: MbArtistCredit;
   'label-info'?: { label?: { name: string } | null }[];
   relations?: MbRelation[];
-  media?: { tracks?: { position: number; title: string; length?: number | null; recording: { id: string; length?: number | null; relations?: MbRelation[] } }[] }[];
+  media?: { tracks?: { position: number; title: string; length?: number | null; 'artist-credit'?: MbArtistCredit; recording: { id: string; length?: number | null; relations?: MbRelation[] } }[] }[];
 };
 
-/** Our type for a release group, or null when it is not one of her own releases (live, DJ mix, compilation…). */
-export function releaseType(rg: MbReleaseGroup, artistCount: number): ReleaseType | null {
+/** True when the artist is missing from the credit or comes after "feat."/"ft."/"with". */
+export function isGuest(credit: MbArtistCredit = [], artist: string): boolean {
+  const i = credit.findIndex((a) => a.artist?.id === artist);
+  return i === -1 || (i > 0 && /\b(feat|ft|with)\b/i.test(credit[i - 1].joinphrase ?? ''));
+}
+
+/** Our type for a release group, or null when it is not a release we list (live, DJ mix, compilation…). */
+export function releaseType(rg: MbReleaseGroup, artistCount: number, guest = false): ReleaseType | null {
   const secondary = rg['secondary-types'] ?? [];
-  if (secondary.includes('Remix')) return 'remix';
-  if (secondary.length) return null;
+  if (secondary.some((t) => t !== 'Remix')) return null;
+  if (guest) return 'guest';
+  if (secondary.length) return 'remix';
   const base = ({ Album: 'album', EP: 'ep', Single: 'single' } as const)[rg['primary-type'] as 'Album' | 'EP' | 'Single'];
   if (!base) return null;
   return artistCount > 1 ? 'collab' : base;
@@ -72,9 +80,13 @@ function credits(relations: MbRelation[] = []): Credit[] {
 
 const creditString = (ac: MbArtistCredit = []) => ac.map((a) => a.name + (a.joinphrase ?? '')).join('');
 
-/** One release lookup (inc=recordings+artist-credits+labels+release-groups+artist-rels+recording-level-rels) → snapshot entry, or null. */
-export function normalizeRelease(r: MbRelease): Omit<RawRelease, 'slug'> | null {
-  const type = releaseType(r['release-group'], r['artist-credit']?.length ?? 1);
+/**
+ * One release lookup (inc=recordings+artist-credits+labels+release-groups+artist-rels+recording-level-rels) → snapshot entry, or null.
+ * On a guest release only her tracks are kept; track numbers stay those of the release.
+ */
+export function normalizeRelease(r: MbRelease, artist: string): Omit<RawRelease, 'slug'> | null {
+  const guest = isGuest(r['artist-credit'], artist);
+  const type = releaseType(r['release-group'], r['artist-credit']?.length ?? 1, guest);
   if (!type) return null;
   let n = 0;
   return {
@@ -86,13 +98,11 @@ export function normalizeRelease(r: MbRelease): Omit<RawRelease, 'slug'> | null 
     label: r['label-info']?.find((l) => l.label && l.label.name !== '[no label]')?.label?.name ?? null, // "[no label]" = self-released
     artistCredit: creditString(r['artist-credit']),
     tracks: (r.media ?? []).flatMap((m) =>
-      (m.tracks ?? []).map((t) => ({
-        mbid: t.recording.id,
-        n: ++n, // numbered across discs
-        title: t.title,
-        durationMs: t.length ?? t.recording.length ?? null,
-        credits: credits(t.recording.relations),
-      })),
+      (m.tracks ?? []).flatMap((t) => {
+        n++; // numbered across discs, counting every track
+        const hers = !guest || !t['artist-credit'] || t['artist-credit'].some((a) => a.artist?.id === artist);
+        return hers ? [{ mbid: t.recording.id, n, title: t.title, durationMs: t.length ?? t.recording.length ?? null, credits: credits(t.recording.relations) }] : [];
+      }),
     ),
     credits: credits(r.relations),
   };

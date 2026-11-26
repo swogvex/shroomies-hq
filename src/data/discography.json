@@ -586,6 +586,26 @@
     "slug": "party-w-out-me"
   },
   {
+    "mbid": "7a5af5d0-d3a8-4b11-941c-25a7867e44a4",
+    "releaseMbid": "8467f60e-2d6a-4322-b336-2fc56e23307a",
+    "title": "In the Midst of Our Growth",
+    "type": "guest",
+    "date": "2022-08-04",
+    "label": null,
+    "artistCredit": "YOG$",
+    "tracks": [
+      {
+        "mbid": "bcb36763-2f91-4328-b29c-58174aa1dd27",
+        "n": 1,
+        "title": "Someday",
+        "durationMs": 156648,
+        "credits": []
+      }
+    ],
+    "credits": [],
+    "slug": "in-the-midst-of-our-growth"
+  },
+  {
     "mbid": "0341329b-5a2d-4004-b5c8-255311745f58",
     "releaseMbid": "1d4f4efd-526c-4e03-b22b-3f7634d5d59e",
     "title": "SAN FRANCISCO SIDEWALK",
@@ -858,6 +878,26 @@
     "slug": "lover-tofu-fruit"
   },
   {
+    "mbid": "e0a4a5e7-5550-4be5-9873-9943c6f1ceef",
+    "releaseMbid": "4a98ba55-d8ff-4d31-83d7-aa67893a5be1",
+    "title": "Flash Memory",
+    "type": "guest",
+    "date": "2024-10-25",
+    "label": "Cat Cove",
+    "artistCredit": "MELVV",
+    "tracks": [
+      {
+        "mbid": "6f506f90-a25e-4371-b147-0879b95bcdce",
+        "n": 2,
+        "title": "Forward (Foot by Foot)",
+        "durationMs": 177970,
+        "credits": []
+      }
+    ],
+    "credits": [],
+    "slug": "flash-memory"
+  },
+  {
     "mbid": "d729530e-89d3-41aa-8fca-253cda1ede38",
     "releaseMbid": "6deb0834-1a3c-46ff-8412-d781b88d677d",
     "title": "LOVER TOFU FRUIT (MONOLID Flips)",
@@ -907,6 +947,46 @@
     "slug": "lover-tofu-fruit-monolid-flips"
   },
   {
+    "mbid": "3ba0574d-1969-4d91-8be0-390d0c423712",
+    "releaseMbid": "c642455a-c84c-4447-8088-fc6c358adfd0",
+    "title": "Noise Pollution",
+    "type": "guest",
+    "date": "2024-12-06",
+    "label": "Family Affair",
+    "artistCredit": "Daniel Allan",
+    "tracks": [
+      {
+        "mbid": "11b203f4-c2ec-4749-bb58-b344205493bb",
+        "n": 2,
+        "title": "Wish Upon a Star",
+        "durationMs": 125217,
+        "credits": []
+      }
+    ],
+    "credits": [],
+    "slug": "noise-pollution"
+  },
+  {
+    "mbid": "cbabf170-79c2-4bd3-bcf8-6ede2be79b70",
+    "releaseMbid": "ef8402b4-2426-480e-962f-aed92675e583",
+    "title": "Aura Park",
+    "type": "guest",
+    "date": "2025-04-18",
+    "label": "Kannibalen Records",
+    "artistCredit": "Dabin",
+    "tracks": [
+      {
+        "mbid": "ed1e6e50-fd57-49e1-b485-065e9371c465",
+        "n": 9,
+        "title": "Summer’s Gone",
+        "durationMs": 217400,
+        "credits": []
+      }
+    ],
+    "credits": [],
+    "slug": "aura-park"
+  },
+  {
     "mbid": "d513a2cd-7286-46f0-8e15-1faa6a5079c9",
     "releaseMbid": "687cf3f8-4d30-4180-9295-47f091ece27d",
     "title": "PRETTY4U",
@@ -930,7 +1010,7 @@
     "mbid": "2c2cad8c-a05c-45d4-8bdb-2da2985a0f27",
     "releaseMbid": "219b495b-d65c-4a06-90d9-f2d69590c3bd",
     "title": "Summer’s Gone (Skybreak HALF BLOOD remix)",
-    "type": "remix",
+    "type": "guest",
     "date": "2025-08-29",
     "label": "Kannibalen Records",
     "artistCredit": "Dabin & FrostTop feat. Tiffany Day",
@@ -954,6 +1034,35 @@
     ],
     "credits": [],
     "slug": "summers-gone-skybreak-half-blood-remix"
+  },
+  {
+    "mbid": "693ff0b1-5fb2-416c-a9c9-6add5bd850b9",
+    "releaseMbid": "d4a0f9e5-a8d8-4b27-ba36-c35856777247",
+    "title": "Aura Park (remixes)",
+    "type": "guest",
+    "date": "2025-09-05",
+    "label": "Kannibalen Records",
+    "artistCredit": "Dabin",
+    "tracks": [
+      {
+        "mbid": "1eb27d88-46f2-43c2-b359-279431033489",
+        "n": 13,
+        "title": "Summer’s Gone (Skybreak HALF BLOOD remix)",
+        "durationMs": 256000,
+        "credits": [
+          {
+            "role": "remixer",
+            "name": "Skybreak"
+          },
+          {
+            "role": "additional",
+            "name": "Bernie Wagenblast"
+          }
+        ]
+      }
+    ],
+    "credits": [],
+    "slug": "aura-park-remixes"
   },
   {
     "mbid": "5df5a8af-3a58-43fe-a422-1880dfb0aa58",
@@ -1230,5 +1339,30 @@
     ],
     "credits": [],
     "slug": "meant-to-be"
+  },
+  {
+    "mbid": "e63c210b-f04b-43cf-b645-1f8006c08b34",
+    "releaseMbid": "bf27827b-790a-4709-a922-dc9c22f0c3db",
+    "title": "constantly*",
+    "type": "guest",
+    "date": "2026-11-17",
+    "label": null,
+    "artistCredit": "sora",
+    "tracks": [
+      {
+        "mbid": "1c058637-4c08-486a-b582-db3fb840c628",
+        "n": 1,
+        "title": "Constantly (sora remix)",
+        "durationMs": 215269,
+        "credits": [
+          {
+            "role": "remixer",
+            "name": "Sora"
+          }
+        ]
+      }
+    ],
+    "credits": [],
+    "slug": "constantly-guest"
   }
 ]

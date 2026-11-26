@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { applyCorrections, eraFor, ownTracks, type EraStart } from '../../src/lib/discography';
-import { assignSlugs, normalizeRelease, pickRelease, releaseType, slugify, type MbRelease, type RawRelease } from '../../src/lib/musicbrainz';
+import { assignSlugs, isGuest, normalizeRelease, pickRelease, releaseType, slugify, type MbRelease, type RawRelease } from '../../src/lib/musicbrainz';
 
 const eras: EraStart[] = [
   { id: 'covers', startsOn: '2015-01-01' },
@@ -20,6 +20,28 @@ describe('musicbrainz normalisation', () => {
     expect(releaseType(rg('EP', ['Remix']), 1)).toBe('remix');
     expect(releaseType(rg('Broadcast', ['Live', 'DJ-mix']), 1)).toBeNull();
     expect(releaseType(rg('Album', ['Compilation']), 1)).toBeNull();
+    expect(releaseType(rg('Single', ['Remix']), 3, true)).toBe('guest');
+    expect(releaseType(rg('Album', ['Live']), 1, true)).toBeNull();
+  });
+
+  it('spots guest features', () => {
+    const credit = (...parts: [string, string][]) => parts.map(([id, joinphrase]) => ({ name: id, joinphrase, artist: { id } }));
+    expect(isGuest(credit(['TD', '']), 'TD')).toBe(false);
+    expect(isGuest(credit(['TD', ' & '], ['glaive', '']), 'TD')).toBe(false); // collab
+    expect(isGuest(credit(['Lucian', ' & '], ['TD', '']), 'TD')).toBe(false); // joint single
+    expect(isGuest(credit(['Dabin', ' & '], ['FrostTop', ' feat. '], ['TD', '']), 'TD')).toBe(true);
+    expect(isGuest(credit(['Daniel Allan', '']), 'TD')).toBe(true); // only on a track
+  });
+
+  it('keeps only her tracks on a guest release, with the release numbering', () => {
+    const track = (id: string, artist: string) => ({ position: 1, title: id, recording: { id }, 'artist-credit': [{ name: artist, artist: { id: artist } }] });
+    const out = normalizeRelease(
+      { id: 'r', title: 'Noise Pollution', 'release-group': { id: 'g', title: 'Noise Pollution', 'primary-type': 'Album' },
+        'artist-credit': [{ name: 'Daniel Allan', artist: { id: 'DA' } }], media: [{ tracks: [track('a', 'DA'), track('b', 'TD'), track('c', 'DA')] }] },
+      'TD',
+    );
+    expect(out?.type).toBe('guest');
+    expect(out?.tracks.map((t) => [t.mbid, t.n])).toEqual([['b', 2]]);
   });
 
   it('picks the earliest official edition', () => {
@@ -37,7 +59,7 @@ describe('musicbrainz normalisation', () => {
     const lookup: MbRelease = {
       id: 'rel-1', title: 'HALO', date: '2026-04-03', status: 'Official',
       'release-group': { id: 'rg-1', title: 'HALO', 'primary-type': 'Album' },
-      'artist-credit': [{ name: 'Tiffany Day', joinphrase: '' }],
+      'artist-credit': [{ name: 'Tiffany Day', joinphrase: '', artist: { id: 'TD' } }],
       'label-info': [{ label: null }, { label: { name: '[no label]' } }, { label: { name: 'Some Label' } }],
       relations: [
         { 'target-type': 'artist', type: 'producer', artist: { name: 'A' } },
@@ -49,7 +71,7 @@ describe('musicbrainz normalisation', () => {
         { tracks: [{ position: 1, title: 'Two', recording: { id: 'r2', length: 2000 } }] },
       ],
     };
-    expect(normalizeRelease(lookup)).toEqual({
+    expect(normalizeRelease(lookup, 'TD')).toEqual({
       mbid: 'rg-1', releaseMbid: 'rel-1', title: 'HALO', type: 'album', date: '2026-04-03', label: 'Some Label', artistCredit: 'Tiffany Day',
       credits: [{ role: 'producer', name: 'A' }],
       tracks: [
@@ -108,6 +130,7 @@ describe('corrections and catalogue', () => {
         release({ mbid: '4', slug: 'single-2', type: 'single', date: '2026-02-21', tracks: [{ ...t('other-recording'), title: 'start-over' }] }),
         release({ mbid: '2', slug: 'halo', type: 'album', date: '2026-04-03', tracks: [t('intro'), t('start-over', 2)] }),
         release({ mbid: '3', slug: 'remix', type: 'remix', date: '2026-05-01', tracks: [t('start-over-remix')] }),
+        release({ mbid: '5', slug: 'guest', type: 'guest', date: '2026-05-02', tracks: [t('wish-upon-a-star')] }),
       ],
       { overrides: {}, additions: [] },
       eras,
