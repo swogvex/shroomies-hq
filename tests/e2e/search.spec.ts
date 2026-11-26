@@ -59,6 +59,9 @@ test.describe('search dialog', () => {
     await expect(page.getByText('Nothing for “spoleto well cover”')).toBeVisible();
     await expect(page.getByRole('dialog').getByRole('button', { name: 'surprise me' })).toBeVisible();
     await expect(page.locator('[data-search-state]')).toHaveText('0 RESULTS');
+    // replacement patterns in the query stay literal
+    await box(page).fill("zzq $& $'");
+    await expect(page.locator('[data-search-empty]')).toHaveText("Nothing for “zzq $& $'”");
   });
 
   test('searches the Spanish index from Spanish pages', async ({ page }) => {

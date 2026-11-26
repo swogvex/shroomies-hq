@@ -117,7 +117,7 @@ const sparks = [['s1', fracture.s1[0]!.tip], ['s2', fracture.s2[1]!.tip]] as con
     // the address that missed, as text (never as HTML)
     const path = lost.querySelector<HTMLElement>('[data-path]')!;
     try {
-      path.textContent = decodeURIComponent(location.pathname);
+      path.textContent = decodeURIComponent(location.pathname).replace(/\p{Cf}/gu, ''); // drop invisible bidi/format marks that could spoof the path
     } catch {
       path.textContent = location.pathname;
     }

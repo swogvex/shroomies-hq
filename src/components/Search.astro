@@ -316,7 +316,7 @@ const strings = Object.fromEntries(
         state.textContent = count(n);
         say.textContent = announce(n);
         if (!n) {
-          $('[data-search-empty]').textContent = s.empty!.replace('{q}', q);
+          $('[data-search-empty]').textContent = s.empty!.replace('{q}', () => q); // a function, so $& or $' in the query stay literal
           list.replaceChildren();
           show('empty');
           input.setAttribute('aria-expanded', 'false');
