@@ -1,0 +1,28 @@
+---
+import Base from '../layouts/Base.astro';
+import { t, type Locale } from '../i18n';
+
+const locale = (Astro.currentLocale ?? 'en') as Locale;
+---
+
+<Base title={t(locale, 'home.title')} description={t(locale, 'home.description')}>
+  <div class="hello">
+    <img src="/brand/badge.svg" width="200" height="200" alt="" />
+    <h1 class="flyer">Shroomies HQ</h1>
+    <p>{t(locale, 'home.soon')}</p>
+  </div>
+</Base>
+
+<style>
+  .hello {
+    display: grid;
+    justify-items: center;
+    gap: 1.5rem;
+    width: var(--column);
+    margin-inline: auto;
+    padding-block: 3rem;
+    text-align: center;
+  }
+  h1 { padding: 0.25em 0.5em; }
+  p { max-width: 45ch; color: var(--muted); }
+</style>
