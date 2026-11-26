@@ -2,6 +2,8 @@
 import { defineCollection } from 'astro:content';
 import { glob } from 'astro/loaders';
 import { z } from 'astro/zod';
+import { eraIds } from './lib/discography.ts';
+import { releaseTypes } from './lib/musicbrainz.ts';
 
 const one = (file: string) => glob({ pattern: file, base: './src/content' });
 const many = (dir: string) => glob({ pattern: '**/*.md', base: `./src/content/${dir}` });
@@ -14,8 +16,8 @@ const url = z.url({ protocol: /^https$/ });
 const mbid = z.uuid();
 const draft = z.boolean().default(false);
 const bilingual = z.object({ en: z.string().min(1), es: z.string().min(1) });
-const era = z.enum(['covers', 'first-singles', 'projects', 'ltf', 'halo']);
-const releaseType = z.enum(['album', 'ep', 'single', 'collab', 'remix', 'guest']);
+const era = z.enum(eraIds);
+const releaseType = z.enum(releaseTypes);
 /** A MusicBrainz recording id or "release-slug#track-number". */
 const trackRef = z.string().regex(/^([0-9a-f-]{36}|[a-z0-9-]+#\d+)$/, 'use a recording id or release-slug#track-number');
 const slug = z.string().regex(/^[a-z0-9-]+$/);

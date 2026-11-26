@@ -4,7 +4,7 @@ import { getCollection, getEntry, type CollectionEntry } from 'astro:content';
 import type { ImageMetadata } from 'astro';
 import sharp from 'sharp';
 import raw from '../data/discography.json';
-import { applyCorrections, ownTracks, type EraId, type Release } from './discography.ts';
+import { applyCorrections, ownTracks, songKey, type EraId, type Release } from './discography.ts';
 import type { Links, RawRelease, Track } from './musicbrainz.ts';
 import { matches, songOfDay } from './song-of-day.ts';
 import { daysSinceEpoch, utcDateKey } from './dates.ts';
@@ -116,8 +116,8 @@ export const duration = (ms: number) => {
  * otherwise the release it is shown from.
  */
 export function listenFor(releases: readonly ShelfRelease[], song: { title: string; release: string }): Links {
-  const title = song.title.trim().toLowerCase();
-  const single = releases.find((r) => r.type === 'single' && r.listen.spotify && r.tracks.length === 1 && r.tracks[0]!.title.trim().toLowerCase() === title);
+  const title = songKey(song.title);
+  const single = releases.find((r) => r.type === 'single' && r.listen.spotify && r.tracks.length === 1 && songKey(r.tracks[0]!.title) === title);
   return (single ?? releases.find((r) => r.slug === song.release))?.listen ?? {};
 }
 
