@@ -117,3 +117,12 @@ test.describe('phone', () => {
     expect(violations).toEqual([]);
   });
 });
+
+test('choosing an era tab never scrolls the tab row and cuts the tab tops', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto('/music/');
+  for (const era of ['first-singles', 'projects', 'ltf', 'halo']) {
+    await page.locator(`#tab-${era}`).click();
+    expect(await page.locator('[data-tabs]').evaluate((e) => [e.scrollTop, e.scrollHeight - e.clientHeight])).toEqual([0, 0]);
+  }
+});
