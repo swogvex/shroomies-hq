@@ -7,8 +7,8 @@ import PlayerGate from '../components/PlayerGate.astro';
 import Cassette from '../components/Cassette.astro';
 import { localePath, t, type Locale } from '../i18n';
 import { anniversaries, formatDate } from '../lib/dates';
-import { discography, listenFor, mixtapes, published, songsOfDays, surprisePool, titleFit } from '../lib/music';
-import { lastRelease, monthlyCounts, nextShow, zonedTime } from '../lib/portal';
+import { allShows, discography, listenFor, mixtapes, published, songsOfDays, surprisePool, titleFit } from '../lib/music';
+import { lastRelease, monthlyCounts, nextShow } from '../lib/portal';
 import { seededShuffle } from '../lib/song-of-day';
 
 const locale = (Astro.currentLocale ?? 'en') as Locale;
@@ -17,7 +17,7 @@ const songs = await songsOfDays();
 const days = Object.keys(songs); // [yesterday, today, tomorrow] in UTC
 const buildDay = days[1]!;
 const site = (await getEntry('site', 'site'))!.data;
-const { shows } = (await getEntry('tours', 'tours'))!.data;
+const shows = await allShows();
 const pool = await surprisePool();
 const journal = (await getCollection('journal', (e) => e.id.startsWith(`${locale}/`) && published(e))).sort((a, b) => b.data.date.localeCompare(a.data.date));
 const tapes = await mixtapes();
@@ -53,8 +53,12 @@ const hidden = (day: string) => day !== buildDay;
               <p class="tonight" data-day={day} hidden={hidden(day)}>
                 <span class="lcd">{lcd(t(locale, 'home.tonightChip'))}</span>
                 <span>
-                  <b>{t(locale, 'home.tonight', { city: tonight.city })}</b> · {tonight.venue} ·{' '}
-                  {t(locale, 'home.startsAt')} <time datetime={zonedTime(tonight.date, tonight.timeLocal, tonight.timezone).toISOString()} data-local-time>{tonight.timeLocal}</time>
+                  <b>{t(locale, 'home.tonight', { city: tonight.city })}</b> · {tonight.venue}
+                  {tonight.startsAt && (
+                    <>
+                      {' '}· {t(locale, 'home.startsAt')} <time datetime={tonight.startsAt} data-local-time>{tonight.startsAt.slice(11, 16)} UTC</time>
+                    </>
+                  )}
                 </span>
                 <a href={tonight.source} rel="noopener">{t(locale, 'home.source')} ↗</a>
               </p>

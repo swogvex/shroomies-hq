@@ -100,15 +100,17 @@ export const collections = {
 
   tours: defineCollection({
     loader: one('tours.md'),
+    // the official feed is synced into src/data/tour.json; this file only adds shows it lacks and hides wrong ones
     schema: z.object({
       shows: z
         .array(
           z.object({
-            date, city: z.string(), country: z.string().length(2), venue: z.string(), tour: z.string(),
+            date, city: z.string(), country: z.string().length(2), venue: z.string(),
             timeLocal: z.string().regex(/^\d{2}:\d{2}$/, 'use HH:mm'), timezone, source: url,
           }),
         )
         .default([]),
+      hide: z.array(z.string()).default([]), // ids from src/data/tour.json
     }),
   }),
 
