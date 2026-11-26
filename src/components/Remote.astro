@@ -37,6 +37,13 @@ const href = (i: number) => localePath(sections[i]!.path, locale);
     <span class="visually-hidden">{t(locale, 'remote.next')}</span>
   </a>
 
+  <!-- the orange key: today's song (the card with the player gate on the home page) -->
+  <a class="rk rk-today skin" href={localePath('/', locale) + '#today'}>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5v14l12-7z" /></svg>
+    <span aria-hidden="true">{t(locale, 'remote.todayKey')}</span>
+    <span class="visually-hidden">{t(locale, 'remote.today')}</span>
+  </a>
+
   <span class="sep skin" aria-hidden="true"></span>
 
   <div class="tracklist" id="tracklist" data-tracklist>
@@ -235,15 +242,22 @@ const href = (i: number) => localePath(sections[i]!.path, locale);
       color: var(--c-ink);
       box-shadow: inset 0 -4px 0 color-mix(in srgb, var(--c-ink) 16%, transparent), 0 3px 0 var(--c-remote-edge), 0 0 18px color-mix(in srgb, var(--c-lcd-1) 45%, transparent);
     }
-    .rk-step svg { width: 18px; height: 18px; fill: currentColor; stroke: currentColor; stroke-width: 2; }
+    .rk-step svg, .rk-today svg { width: 18px; height: 18px; fill: currentColor; stroke: currentColor; stroke-width: 2; stroke-linejoin: round; }
+    /* right after next, the same place as on phones, so Tab order matches what you see */
+    :global(html[data-js]) .remote .rk-today {
+      display: flex;
+      min-width: 3.25rem;
+      background: linear-gradient(color-mix(in srgb, var(--c-aura) 80%, var(--c-flash)), var(--c-aura)); /* ink text stays above 4.5:1 */
+      color: var(--c-ink);
+    }
     :global(html[data-js]) nav ul { gap: 0.375rem; overflow: visible; }
-    :global(html[data-js]) .remote nav .rk { width: 4.75rem; }
+    :global(html[data-js]) .remote nav .rk { width: 4.375rem; }
 
     .remote-lcd {
       flex-direction: column;
       justify-content: center;
       gap: 0.25rem;
-      width: 17.5rem;
+      width: 16.5rem;
       overflow: hidden;
       height: 60px;
       padding: 0.375rem 0.75rem;
@@ -302,6 +316,7 @@ const href = (i: number) => localePath(sections[i]!.path, locale);
       :global(html[data-js]) .lcd-desk, :global(html[data-js]) .sep { display: none; }
       :global(html[data-js]) .lcd-mob { display: flex; flex: 1; width: auto; height: 52px; cursor: pointer; }
       :global(html[data-js]) .rk-step { min-width: 3rem; }
+      :global(html[data-js]) .remote .rk-today { min-width: 3rem; }
 
       /* the tracklist sheet slides up above the bar */
       :global(html[data-js]) .tracklist {
