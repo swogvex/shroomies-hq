@@ -55,7 +55,7 @@ const lcd = (text: string) => text.toUpperCase().replace(/[’‘]/g, "'").norma
         </button>
         <label class="show">
           {t(locale, 'music.show')}
-          <select class="lift" data-filter>
+          <select class="select lift" data-filter>
             {filters.map((f) => <option value={f}>{t(locale, `music.show.${f}`)}</option>)}
           </select>
         </label>
@@ -263,23 +263,11 @@ const lcd = (text: string) => text.toUpperCase().replace(/[’‘]/g, "'").norma
   :global(html[data-js]) .shelf.later { display: none; }
   .tools { flex-wrap: wrap; align-items: center; gap: 0.75rem 1rem; }
   .show { display: flex; align-items: center; gap: 0.5rem; font-weight: 700; }
-  .show select {
-    min-height: 48px;
-    padding: 0 2.25rem 0 0.75rem;
-    font: 400 1rem var(--font-body);
-    color: var(--ink);
-    background:
-      linear-gradient(45deg, transparent 50%, var(--ink) 50%) calc(100% - 1.125rem) 50% / 6px 6px no-repeat,
-      linear-gradient(-45deg, transparent 50%, var(--ink) 50%) calc(100% - 0.75rem) 50% / 6px 6px no-repeat,
-      var(--surface);
-    border: var(--border) solid var(--line);
-    appearance: none;
-    cursor: pointer;
-  }
 
   /* ---------- tabs: index cards clipped to the top of the cabinet ---------- */
   .cabinet-wrap { display: grid; }
-  .tabs { gap: 0.25rem; padding-inline: 0.75rem; overflow-x: auto; scrollbar-width: none; }
+  /* the 4 px the unselected tabs sit lower stay inside the scroller, or focusing a tab scrolls it down and cuts the tops */
+  .tabs { gap: 0.25rem; padding: 0 0.75rem 4px; margin-bottom: -4px; overflow-x: auto; scrollbar-width: none; }
   .tab {
     flex: none;
     min-height: 44px;
