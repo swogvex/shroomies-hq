@@ -150,7 +150,7 @@ const hidden = (day: string) => day !== buildDay;
           <div class="journal">
             <h2>{t(locale, 'home.journal')}</h2>
             {entries.slice(0, 2).map((e) => (
-              <a class="entry" href={localePath(`/journal/${e.slug}/`, locale)}>
+              <a class="entry lift" href={localePath(`/journal/${e.slug}/`, locale)}>
                 <span class="entry-meta">
                   {formatDate(e.data.date, locale)} · {t(locale, `journal.${e.data.type}`)}
                 </span>
@@ -326,6 +326,14 @@ const hidden = (day: string) => day !== buildDay;
   :global(html[data-slot='sunset']) .room-pic .slot-sunset,
   :global(html[data-slot='night']) .room-pic .slot-night { display: block; }
   .room:hover img { scale: 1.03; }
+  /* the room card lifts like every boxed control, keeping its era-coloured shadow; focus lifts it too (no ring) */
+  .room { transition: transform 80ms, box-shadow 80ms; }
+  .room:is(:hover, :focus-visible) { transform: translate(-1px, -2px); box-shadow: 9px 10px 0 var(--era-accent); outline: none; }
+  .room:active { transform: translate(2px, 2px); box-shadow: 4px 4px 0 var(--era-accent); }
+  html[data-calm] .room:is(:hover, :focus-visible, :active) { transform: none; }
+  @media (prefers-reduced-motion: reduce) {
+    .room:is(:hover, :focus-visible, :active) { transform: none; }
+  }
   .room-bar { display: flex; align-items: center; min-height: 3.25rem; padding: 0 1.125rem; background: var(--c-ink); font: 900 1.625rem var(--font-display); font-stretch: 140%; }
   html[data-calm] .room:hover img { scale: none; }
 
