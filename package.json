@@ -13,7 +13,8 @@
     "check": "astro check",
     "test": "vitest run --passWithNoTests",
     "test:e2e": "playwright test",
-    "lhci": "lhci autorun && lhci autorun --collect.settings.preset=desktop"
+    "lhci": "lhci autorun && lhci autorun --collect.settings.preset=desktop",
+    "check:contrast": "node scripts/check-contrast.ts"
   },
   "dependencies": {
     "@astrojs/vercel": "11.0.22",

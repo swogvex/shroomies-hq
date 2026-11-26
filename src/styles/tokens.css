@@ -60,7 +60,17 @@
     --band: #18206a; --band-ink: #ffffff; --cork: #2b2720; --cork-ink: #ededea;
   }
 
-  /* era skins: accent only (HALO and Projects approved; the rest are proposals) */
-  [data-era="halo"]     { --era-accent: #2335f0; }
-  [data-era="projects"] { --era-accent: #ff4a1c; }
+  /* era skins: accent only, approved by the owner. --era-accent fills, --on-era-accent text on those fills,
+     --era-accent-text is the AA-safe text version on the page background (checked by npm run check:contrast). */
+  :root,
+  [data-era="halo"]          { --era-accent: #2335f0; --on-era-accent: #ffffff; --era-accent-text: #2335f0; }
+  [data-era="projects"]      { --era-accent: #ff4a1c; --on-era-accent: #121216; --era-accent-text: #c23815; }
+  [data-era="ltf"]           { --era-accent: #3f9a3a; --on-era-accent: #121216; --era-accent-text: #31782d; --era-accent-2: #ff8fc7; }
+  [data-era="first-singles"] { --era-accent: #9aa6ff; --on-era-accent: #121216; --era-accent-text: #5e659c; }
+  [data-era="covers"]        { --era-accent: #d9b04a; --on-era-accent: #121216; --era-accent-text: #7e662b; }
+  [data-theme="dark"]:is(:not([data-era]), [data-era="halo"]) { --era-accent-text: #a9b2ff; }
+  [data-theme="dark"][data-era="projects"]      { --era-accent-text: #ff4a1c; }
+  [data-theme="dark"][data-era="ltf"]           { --era-accent-text: #3f9a3a; }
+  [data-theme="dark"][data-era="first-singles"] { --era-accent-text: #9aa6ff; }
+  [data-theme="dark"][data-era="covers"]        { --era-accent-text: #d9b04a; }
 }
