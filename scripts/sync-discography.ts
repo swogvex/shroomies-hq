@@ -1,7 +1,7 @@
 // Refreshes src/data/discography.json from MusicBrainz (runs as npm prebuild).
 // Never fails the build: if MusicBrainz is down or slow, the committed snapshot stays as it is.
 // The owner's corrections (src/content/discography-corrections.md) are applied at build time, so they work offline too.
-import { readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { assignSlugs, byDate, normalizeRelease, pickRelease, type MbRelease, type RawRelease } from '../src/lib/musicbrainz.ts';
 
 const ARTIST = 'c9e3089c-a7bc-4df5-80f9-9161eaa74a02'; // Tiffany Day, verified with the owner 2026-11-26
@@ -32,10 +32,13 @@ async function get<T>(path: string): Promise<T> {
 
 async function sync() {
   const all: MbRelease[] = [];
-  for (let offset = 0; ; offset += 100) {
-    const page = await get<{ releases: MbRelease[]; 'release-count': number }>(`release?artist=${ARTIST}&inc=release-groups&limit=100&offset=${offset}`);
-    all.push(...page.releases);
-    if (all.length >= page['release-count'] || !page.releases.length) break;
+  // her releases, then releases by others where she is on a track (guest features)
+  for (const by of ['artist', 'track_artist']) {
+    for (let offset = 0, count = 1; offset < count; offset += 100) {
+      const page = await get<{ releases: MbRelease[]; 'release-count': number }>(`release?${by}=${ARTIST}&inc=release-groups&limit=100&offset=${offset}`);
+      all.push(...page.releases);
+      count = page.releases.length ? page['release-count'] : 0;
+    }
   }
   const groups = Map.groupBy(all, (r) => r['release-group'].id);
   const found: Omit<RawRelease, 'slug'>[] = [];
@@ -44,7 +47,7 @@ async function sync() {
     const pick = pickRelease(releases);
     if (!pick) continue;
     const full = await get<MbRelease>(`release/${pick.id}?inc=recordings+artist-credits+labels+release-groups+artist-rels+recording-level-rels`);
-    const release = normalizeRelease(full);
+    const release = normalizeRelease(full, ARTIST);
     if (release) found.push(release);
     else skipped.push(`${full.date ?? '?'} ${full['release-group'].title} (${[full['release-group']['primary-type'], ...(full['release-group']['secondary-types'] ?? [])].join(' + ')})`);
   }
@@ -55,7 +58,31 @@ async function sync() {
   const releases = assignSlugs(found, previous).sort(byDate);
   writeFileSync(OUT, JSON.stringify(releases, null, 2) + '\n');
   console.log(`[discography] ${releases.length} releases, ${releases.reduce((n, r) => n + r.tracks.length, 0)} tracks.`);
-  if (skipped.length) console.log(`[discography] Not her own releases, skipped (add them in discography-corrections.md if wanted):\n  ${skipped.join('\n  ')}`);
+  if (skipped.length) console.log(`[discography] Live, DJ mix or compilation, skipped (add them in discography-corrections.md if wanted):\n  ${skipped.join('\n  ')}`);
+}
+
+/**
+ * Front covers from the Cover Art Archive, self-hosted in src/assets/covers/<release-group mbid>.<ext> (no hotlinking).
+ * Named by mbid so a slug changed in the corrections keeps its cover. Only missing ones are fetched.
+ */
+async function covers() {
+  const dir = new URL('../src/assets/covers/', import.meta.url);
+  mkdirSync(dir, { recursive: true });
+  const have = new Set(readdirSync(dir).map((f) => f.replace(/\.\w+$/, '')));
+  const missing: string[] = [];
+  for (const r of JSON.parse(readFileSync(OUT, 'utf8')) as RawRelease[]) {
+    if (have.has(r.mbid)) continue;
+    try {
+      const res = await fetch(`https://coverartarchive.org/release-group/${r.mbid}/front-1200`, { headers: { 'User-Agent': USER_AGENT }, signal: AbortSignal.timeout(30_000) });
+      const ext = ({ 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' } as Record<string, string>)[res.headers.get('content-type') ?? ''];
+      if (!res.ok || !ext) throw new Error(String(res.status));
+      writeFileSync(new URL(`${r.mbid}.${ext}`, dir), Buffer.from(await res.arrayBuffer()));
+    } catch {
+      missing.push(r.slug); // the shelf uses the typographic cover instead
+    }
+  }
+  if (missing.length) console.log(`[discography] No cover found for: ${missing.join(', ')}`);
 }
 
 await sync().catch((e) => console.warn(`[discography] MusicBrainz unavailable, keeping the committed snapshot: ${e.message}`));
+await covers().catch((e) => console.warn(`[discography] Covers skipped: ${e.message}`));

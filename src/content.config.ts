@@ -15,7 +15,7 @@ const mbid = z.uuid();
 const draft = z.boolean().default(false);
 const bilingual = z.object({ en: z.string().min(1), es: z.string().min(1) });
 const era = z.enum(['covers', 'first-singles', 'projects', 'ltf', 'halo']);
-const releaseType = z.enum(['album', 'ep', 'single', 'collab', 'remix']);
+const releaseType = z.enum(['album', 'ep', 'single', 'collab', 'remix', 'guest']);
 /** A MusicBrainz recording id or "release-slug#track-number". */
 const trackRef = z.string().regex(/^([0-9a-f-]{36}|[a-z0-9-]+#\d+)$/, 'use a recording id or release-slug#track-number');
 const slug = z.string().regex(/^[a-z0-9-]+$/);
