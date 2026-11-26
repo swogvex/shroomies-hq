@@ -254,7 +254,8 @@ const axis = [
   .tile .n { font: 900 clamp(3.25rem, 2.5rem + 2.5vw, 4.5rem) / 0.85 var(--font-display); font-stretch: 55%; }
   .tile p:last-child { margin-top: auto; font-size: var(--fs-small); }
   .tile a { color: inherit; font-weight: 700; }
-  .tile.ink { background: var(--inverse); color: var(--inverse-ink); }
+  /* a dark block never casts an ink shadow (it would vanish): it casts the blue one, like the remote and the waveform */
+  .tile.ink { background: var(--inverse); color: var(--inverse-ink); box-shadow: 3px 3px 0 var(--c-strobe); }
   .tile.hot { background: var(--hot); color: var(--on-hot); }
 
   /* ---------- waveform: an ink panel in every theme, like the remote ---------- */
@@ -305,7 +306,7 @@ const axis = [
   .card.day { background: var(--surface); color: var(--ink); }
   .card.blue { background: var(--band); color: var(--band-ink); }
   .card.blue a { color: inherit; }
-  .card.note { background: #fff36b; color: var(--c-ink); rotate: 0.6deg; font-family: var(--font-hand); }
+  .card.note { background: var(--c-lemon); color: var(--c-ink); rotate: 0.6deg; font-family: var(--font-hand); }
   .card.note h2 { font-family: var(--font-display); }
   .count b { font: 900 2.5rem/1 var(--font-display); font-stretch: 55%; }
   .sold { font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
