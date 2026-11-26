@@ -1,4 +1,4 @@
-// Build-time music data for the pages: the corrected discography, covers, mixtapes and song of the day.
+// Build-time music data for the pages: the corrected discography, covers, mixtapes, song of the day and shows.
 // Wrong references in mixtapes or song-of-day.md fail the build with the file and the reference to fix.
 import { getCollection, getEntry, type CollectionEntry } from 'astro:content';
 import type { ImageMetadata } from 'astro';
@@ -8,6 +8,8 @@ import { applyCorrections, ownTracks, songKey, type EraId, type Release } from '
 import type { Links, RawRelease, Track } from './musicbrainz.ts';
 import { matches, songOfDay } from './song-of-day.ts';
 import { daysSinceEpoch, utcDateKey } from './dates.ts';
+import tour from '../data/tour.json';
+import { mergeShows, type Show } from './tour.ts';
 
 /** Drafts show everywhere except the production site, so previews and local builds can review them. */
 export const published = (e: { data: { draft?: boolean } }) => !e.data.draft || process.env.VERCEL_ENV !== 'production';
@@ -126,4 +128,10 @@ export function titleFit(title: string): 0 | 1 | 2 | 3 {
   const longest = Math.max(...title.split(/\s+/).map((w) => w.length));
   const step = (longest <= 5 ? 0 : longest <= 8 ? 1 : longest <= 11 ? 2 : 3) + (title.length > 30 ? 2 : title.length > 18 ? 1 : 0);
   return Math.min(step, 3) as 0 | 1 | 2 | 3;
+}
+
+/** Every show: the synced official feed (src/data/tour.json) fixed by the owner's tours.md. */
+export async function allShows(): Promise<Show[]> {
+  const { shows: manual, hide } = (await getEntry('tours', 'tours'))!.data;
+  return mergeShows(tour as Show[], manual, hide);
 }

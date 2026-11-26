@@ -1,0 +1,407 @@
+[
+  {
+    "id": "3584498d-2c9a-449f-9ac8-9d52307951e0",
+    "date": "2026-11-26",
+    "startsAt": "2026-11-26T18:00:00.000Z",
+    "city": "Warsaw, Poland",
+    "venue": "Oczki",
+    "soldOut": true,
+    "source": "https://www.tiffdidwhat.com/tour"
+  },
+  {
+    "id": "4f4ea0e7-60d5-4c49-bb4f-e9ddb2b5c54c",
+    "date": "2026-11-27",
+    "startsAt": "2026-11-27T18:00:00.000Z",
+    "city": "Prague",
+    "venue": "MeetFactory",
+    "soldOut": true,
+    "source": "https://www.tiffdidwhat.com/tour"
+  },
+  {
+    "id": "213ab165-a713-475c-a570-a1280c4d15c0",
+    "date": "2026-11-29",
+    "startsAt": "2026-11-29T18:00:00.000Z",
+    "city": "Berlin, Germany",
+    "venue": "Gretchen",
+    "soldOut": true,
+    "source": "https://www.tiffdidwhat.com/tour"
+  },
+  {
+    "id": "eb5f9695-6afe-4c0a-88f6-77051fd42330",
+    "date": "2026-11-30",
+    "startsAt": "2026-11-30T18:00:00.000Z",
+    "city": "Cologne, North Rhine-Westphalia",
+    "venue": "Die Kantine",
+    "soldOut": true,
+    "source": "https://www.tiffdidwhat.com/tour"
+  },
+  {
+    "id": "4b85c1a9-1bce-4225-befb-4e66365e2080",
+    "date": "2026-12-01",
+    "startsAt": "2026-12-01T18:00:00.000Z",
+    "city": "Paris, France",
+    "venue": "Le Trabendo",
+    "soldOut": true,
+    "source": "https://www.tiffdidwhat.com/tour"
+  },
+  {
+    "id": "f02985e9-ae44-44f4-9d38-2897f7430c7b",
+    "date": "2026-12-03",
+    "startsAt": "2026-12-03T18:00:00.000Z",
+    "city": "Antwerp, Flanders",
+    "venue": "Kavka Zappa",
+    "soldOut": false,
+    "source": "https://www.tiffdidwhat.com/tour"
+  },
+  {
+    "id": "4d75837a-ac24-4b4a-9fe3-670b1d661711",
+    "date": "2026-12-04",
+    "startsAt": "2026-12-04T18:00:00.000Z",
+    "city": "Amsterdam, Netherlands",
+    "venue": "Melkweg (De Overkant)",
+    "soldOut": true,
+    "source": "https://www.tiffdidwhat.com/tour"
+  },
+  {
+    "id": "b68c1b36-eae9-4360-9363-263637af2978",
+    "date": "2026-12-06",
+    "startsAt": "2026-12-06T19:00:00.000Z",
+    "city": "London, UK",
+    "venue": "Electric Brixton",
+    "soldOut": true,
+    "source": "https://www.tiffdidwhat.com/tour"
+  },
+  {
+    "id": "1541b73b-a2b7-486f-ab27-fd1d8b1cdd1a",
+    "date": "2026-12-07",
+    "startsAt": "2026-12-07T19:00:00.000Z",
+    "city": "Manchester, England",
+    "venue": "New Century Hall",
+    "soldOut": true,
+    "source": "https://www.tiffdidwhat.com/tour"
+  },
+  {
+    "id": "b03f0a8b-ee48-437c-853f-8113181cbf75",
+    "date": "2026-12-08",
+    "startsAt": "2026-12-08T19:00:00.000Z",
+    "city": "Glasgow, UK",
+    "venue": "The Garage",
+    "soldOut": true,
+    "source": "https://www.tiffdidwhat.com/tour"
+  },
+  {
+    "id": "d77ae5fc-0408-434f-99b2-7d7320944f09",
+    "date": "2026-12-10",
+    "startsAt": "2026-12-10T19:00:00.000Z",
+    "city": "Dublin, Ireland",
+    "venue": "The Academy",
+    "soldOut": true,
+    "source": "https://www.tiffdidwhat.com/tour"
+  },
+  {
+    "id": "0bc1e157-4c4c-422b-b71a-caad20a97bf0",
+    "date": "2026-12-11",
+    "startsAt": "2026-12-11T19:00:00.000Z",
+    "city": "London, England",
+    "venue": "EartH",
+    "soldOut": true,
+    "source": "https://www.tiffdidwhat.com/tour"
+  },
+  {
+    "id": "145b8b02-4a0a-40af-877b-be506aab8af8",
+    "date": "2026-12-30",
+    "startsAt": "2026-12-31T03:00:00.000Z",
+    "city": "San Diego, CA",
+    "venue": "Petco Park",
+    "soldOut": false,
+    "source": "https://www.tiffdidwhat.com/tour"
+  },
+  {
+    "id": "4e01ffbf-c928-46b4-9b92-0657f4a6189e",
+    "date": "2027-02-03",
+    "startsAt": "2027-02-03T10:00:00.000Z",
+    "city": "Seoul, South Korea",
+    "venue": "Musinsa Garage",
+    "soldOut": false,
+    "source": "https://www.tiffdidwhat.com/tour"
+  },
+  {
+    "id": "305eb967-ebfb-4afb-9020-2fdaa014db17",
+    "date": "2027-02-04",
+    "startsAt": "2027-02-04T10:00:00.000Z",
+    "city": "Tokyo, Japan",
+    "venue": "Circus Tokyo",
+    "soldOut": false,
+    "source": "https://www.tiffdidwhat.com/tour"
+  },
+  {
+    "id": "f7220fb9-6c83-4578-862d-c02e875d154c",
+    "date": "2027-02-05",
+    "startsAt": "2027-02-05T10:00:00.000Z",
+    "city": "Tokyo, Japan",
+    "venue": "Circus Tokyo",
+    "soldOut": true,
+    "source": "https://www.tiffdidwhat.com/tour"
+  },
+  {
+    "id": "08c446f5-c63b-40e8-a209-3e7327cab8bf",
+    "date": "2027-02-12",
+    "startsAt": "2027-02-12T08:00:00.000Z",
+    "city": "Sydney, Australia",
+    "venue": "Laneway Festival",
+    "soldOut": false,
+    "source": "https://www.tiffdidwhat.com/tour"
+  },
+  {
+    "id": "1dcd5a3f-4fc6-47aa-b1d1-ba25ebbe8e8e",
+    "date": "2027-02-13",
+    "startsAt": "2027-02-13T09:00:00.000Z",
+    "city": "Brisbane, Australia",
+    "venue": "Laneway Festival",
+    "soldOut": false,
+    "source": "https://www.tiffdidwhat.com/tour"
+  },
+  {
+    "id": "7989f2e2-6816-40e9-ba52-9ec234b1d308",
+    "date": "2027-02-15",
+    "startsAt": "2027-02-15T08:00:00.000Z",
+    "city": "Sydney, Australia",
+    "venue": "The Metro Theatre",
+    "soldOut": true,
+    "source": "https://www.tiffdidwhat.com/tour"
+  },
+  {
+    "id": "b730cab3-5601-4274-8918-bf7770586941",
+    "date": "2027-02-16",
+    "startsAt": "2027-02-16T11:00:00.000Z",
+    "city": "Perth, WA",
+    "venue": "The Rechabite",
+    "soldOut": true,
+    "source": "https://www.tiffdidwhat.com/tour"
+  },
+  {
+    "id": "e33e3aca-cb88-4e86-b28c-a2b5e9250c67",
+    "date": "2027-02-18",
+    "startsAt": "2027-02-18T08:00:00.000Z",
+    "city": "Melbourne, VIC",
+    "venue": "170 Russell",
+    "soldOut": true,
+    "source": "https://www.tiffdidwhat.com/tour"
+  },
+  {
+    "id": "2fd86176-9dd7-4932-b9fd-dd501c9c3c98",
+    "date": "2027-02-19",
+    "startsAt": "2027-02-19T08:00:00.000Z",
+    "city": "Melbourne, Australia",
+    "venue": "Laneway Festival Melbourne",
+    "soldOut": false,
+    "source": "https://www.tiffdidwhat.com/tour"
+  },
+  {
+    "id": "6195d1a3-917e-4e32-8214-9f0c5cd6f9c8",
+    "date": "2027-02-21",
+    "startsAt": "2027-02-21T06:00:00.000Z",
+    "city": "Auckland, New Zealand",
+    "venue": "Laneway Festival",
+    "soldOut": false,
+    "source": "https://www.tiffdidwhat.com/tour"
+  },
+  {
+    "id": "f8f38cd9-eed6-49c8-8c90-8e9d52ff46f8",
+    "date": "2027-03-04",
+    "startsAt": "2027-03-05T01:00:00.000Z",
+    "city": "Austin, TX",
+    "venue": "The Concourse Project",
+    "soldOut": false,
+    "source": "https://www.tiffdidwhat.com/tour"
+  },
+  {
+    "id": "0cb782aa-70f9-4909-aac0-6bd0747bbe68",
+    "date": "2027-03-06",
+    "startsAt": "2027-03-07T01:00:00.000Z",
+    "city": "Dallas, TX",
+    "venue": "Studio at the Bomb Factory",
+    "soldOut": false,
+    "source": "https://www.tiffdidwhat.com/tour"
+  },
+  {
+    "id": "e905819c-72d4-434d-991c-59c4928967db",
+    "date": "2027-03-07",
+    "startsAt": "2027-03-08T01:00:00.000Z",
+    "city": "Dallas, TX",
+    "venue": "Studio at the Bomb Factory",
+    "soldOut": false,
+    "source": "https://www.tiffdidwhat.com/tour"
+  },
+  {
+    "id": "5b393557-0420-4590-afb1-1baf2e3def09",
+    "date": "2027-03-09",
+    "startsAt": "2027-03-10T00:00:00.000Z",
+    "city": "Atlanta, GA",
+    "venue": "The Eastern",
+    "soldOut": false,
+    "source": "https://www.tiffdidwhat.com/tour"
+  },
+  {
+    "id": "b4fc045b-1b56-4bef-b474-7ddedf3e4a18",
+    "date": "2027-03-10",
+    "startsAt": "2027-03-11T01:00:00.000Z",
+    "city": "Nashville, TN",
+    "venue": "Marathon Music Works",
+    "soldOut": false,
+    "source": "https://www.tiffdidwhat.com/tour"
+  },
+  {
+    "id": "187f3464-8424-4757-9e5d-5daa303b011a",
+    "date": "2027-03-12",
+    "startsAt": "2027-03-13T00:00:00.000Z",
+    "city": "Washington, DC",
+    "venue": "BERHTA",
+    "soldOut": false,
+    "source": "https://www.tiffdidwhat.com/tour"
+  },
+  {
+    "id": "8dd6dba3-1b51-4e5c-a900-fd6ca7cca655",
+    "date": "2027-03-13",
+    "startsAt": "2027-03-14T00:00:00.000Z",
+    "city": "Charlotte, NC",
+    "venue": "The Fillmore Charlotte",
+    "soldOut": false,
+    "source": "https://www.tiffdidwhat.com/tour"
+  },
+  {
+    "id": "bf1b3d8a-175f-4f8e-a982-6e7cbe4980d9",
+    "date": "2027-03-14",
+    "startsAt": "2027-03-14T23:00:00.000Z",
+    "city": "Charlotte, NC",
+    "venue": "The Fillmore Charlotte",
+    "soldOut": false,
+    "source": "https://www.tiffdidwhat.com/tour"
+  },
+  {
+    "id": "8cdc0e4f-5b68-4731-b97b-2d493fabba3b",
+    "date": "2027-03-18",
+    "startsAt": "2027-03-18T23:00:00.000Z",
+    "city": "Toronto, ON",
+    "venue": "The Danforth Music Hall",
+    "soldOut": false,
+    "source": "https://www.tiffdidwhat.com/tour"
+  },
+  {
+    "id": "dd095d60-e994-4b6e-90d6-1ff6a9e722f8",
+    "date": "2027-03-19",
+    "startsAt": "2027-03-19T23:00:00.000Z",
+    "city": "Toronto, ON",
+    "venue": "The Danforth Music Hall",
+    "soldOut": false,
+    "source": "https://www.tiffdidwhat.com/tour"
+  },
+  {
+    "id": "2a89ff1c-c5cf-496c-a939-1d33d00ef8af",
+    "date": "2027-03-21",
+    "startsAt": "2027-03-21T23:00:00.000Z",
+    "city": "Montreal, QC",
+    "venue": "Club Soda",
+    "soldOut": false,
+    "source": "https://www.tiffdidwhat.com/tour"
+  },
+  {
+    "id": "2701b059-8221-43ab-aaa3-3502d2661d30",
+    "date": "2027-03-24",
+    "startsAt": "2027-03-24T23:00:00.000Z",
+    "city": "Boston, MA",
+    "venue": "Roadrunner",
+    "soldOut": false,
+    "source": "https://www.tiffdidwhat.com/tour"
+  },
+  {
+    "id": "37f0e921-e0c1-4125-9f1d-e969d5ac7e3b",
+    "date": "2027-03-25",
+    "startsAt": "2027-03-25T23:00:00.000Z",
+    "city": "Philadelphia, PA",
+    "venue": "The Fillmore Philadelphia",
+    "soldOut": false,
+    "source": "https://www.tiffdidwhat.com/tour"
+  },
+  {
+    "id": "3da8fde7-3e02-49e5-8548-a2fd1f1a64ab",
+    "date": "2027-03-26",
+    "startsAt": "2027-03-26T23:00:00.000Z",
+    "city": "Miami, FL",
+    "venue": "Ultra Music Festival",
+    "soldOut": false,
+    "source": "https://www.tiffdidwhat.com/tour"
+  },
+  {
+    "id": "2285bdf4-07d3-40de-a320-cc00b1d6e12a",
+    "date": "2027-03-27",
+    "startsAt": "2027-03-27T23:00:00.000Z",
+    "city": "Detroit, MI",
+    "venue": "Royal Oak Music Hall",
+    "soldOut": false,
+    "source": "https://www.tiffdidwhat.com/tour"
+  },
+  {
+    "id": "c3153ae2-8fa3-4bd2-8c7b-18779f52e839",
+    "date": "2027-03-30",
+    "startsAt": "2027-03-30T23:00:00.000Z",
+    "city": "Columbus, OH",
+    "venue": "Newport Music Hall",
+    "soldOut": false,
+    "source": "https://www.tiffdidwhat.com/tour"
+  },
+  {
+    "id": "934ffc24-298c-4794-b3df-a2fb6de98c9c",
+    "date": "2027-04-01",
+    "startsAt": "2027-04-02T00:00:00.000Z",
+    "city": "Minneapolis, MN",
+    "venue": "First Avenue",
+    "soldOut": false,
+    "source": "https://www.tiffdidwhat.com/tour"
+  },
+  {
+    "id": "e6877b40-a655-417e-b378-a44896d6c5cb",
+    "date": "2027-04-03",
+    "startsAt": "2027-04-04T01:00:00.000Z",
+    "city": "Denver, CO",
+    "venue": "The Mission Ballroom",
+    "soldOut": false,
+    "source": "https://www.tiffdidwhat.com/tour"
+  },
+  {
+    "id": "dccb4b8f-ef9b-42fe-a3ce-9d812092a231",
+    "date": "2027-04-10",
+    "startsAt": "2027-04-11T02:00:00.000Z",
+    "city": "Indio, CA",
+    "venue": "Coachella Music and Arts Festival",
+    "soldOut": false,
+    "source": "https://www.tiffdidwhat.com/tour"
+  },
+  {
+    "id": "e62f9d93-8c61-402c-90a1-1f2f3e713466",
+    "date": "2027-04-17",
+    "startsAt": "2027-04-18T02:00:00.000Z",
+    "city": "Indio, CA",
+    "venue": "Coachella Music and Arts Festival",
+    "soldOut": false,
+    "source": "https://www.tiffdidwhat.com/tour"
+  },
+  {
+    "id": "063114de-36ce-458c-b24f-5aa40416af31",
+    "date": "2027-05-14",
+    "startsAt": "2027-05-15T01:00:00.000Z",
+    "city": "Salt Lake City, UT",
+    "venue": "Kilby Block Party Festival",
+    "soldOut": false,
+    "source": "https://www.tiffdidwhat.com/tour"
+  },
+  {
+    "id": "032e014f-af5d-4ac5-8fce-947bb4d07e2f",
+    "date": "2027-07-30",
+    "startsAt": "2027-07-30T17:00:00.000Z",
+    "city": "Saint Charles, IA",
+    "venue": "Hinterland Music Festival",
+    "soldOut": false,
+    "source": "https://www.tiffdidwhat.com/tour"
+  }
+]
