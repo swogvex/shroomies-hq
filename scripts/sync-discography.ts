@@ -25,10 +25,10 @@ async function get<T>(path: string): Promise<T> {
     if (Date.now() > deadline) throw new Error('took longer than 3 minutes');
     await wait(Math.max(0, last + 1100 - Date.now())); // MusicBrainz allows 1 request per second
     last = Date.now();
-    const res = await fetch(API + path + '&fmt=json', { headers: { 'User-Agent': USER_AGENT }, signal: AbortSignal.timeout(15_000) });
-    if (res.ok) return (await res.json()) as T;
-    if (res.status !== 503 || attempt === 4) throw new Error(`${res.status} on ${path}`);
-    await wait(2000 * 2 ** attempt); // 503 = busy or rate limited
+    const res = await fetch(API + path + '&fmt=json', { headers: { 'User-Agent': USER_AGENT }, signal: AbortSignal.timeout(15_000) }).catch(() => null);
+    if (res?.ok) return (await res.json()) as T;
+    if (res && res.status !== 503) throw new Error(`${res.status} on ${path}`);
+    await wait(Math.min(2000 * 2 ** attempt, 10_000)); // 503, timeout or network error = busy: keep trying until the deadline
   }
 }
 
