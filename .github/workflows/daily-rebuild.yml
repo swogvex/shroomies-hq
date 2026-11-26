@@ -1,0 +1,26 @@
+name: Daily rebuild
+
+# Redeploys the current main with fresh data (discography, tour dates, tracker numbers, song of the day).
+# Never ships new code: the Vercel deploy hook builds whatever is on main.
+on:
+  schedule:
+    - cron: '10 4 * * *' # 04:10 UTC
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: daily-rebuild
+  cancel-in-progress: false
+
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Trigger the production deploy hook
+        env:
+          HOOK: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}
+        run: |
+          if [ -z "$HOOK" ]; then echo "::error::VERCEL_DEPLOY_HOOK_URL secret is missing"; exit 1; fi
+          curl --fail --silent --show-error --max-time 30 -X POST "$HOOK" > /dev/null
