@@ -83,6 +83,37 @@ const href = (i: number) => localePath(sections[i]!.path, locale);
     const calm = remote.querySelector<HTMLButtonElement>('[data-calm-switch]')!;
     const { calmOn, calmOff, mode } = remote.dataset as Record<string, string>;
 
+    // Phone LCD has a fixed width: a line too long for it glides to its end and back instead of stretching the remote.
+    // Calm mode and reduced motion keep it still (ellipsis).
+    const still = matchMedia('(prefers-reduced-motion: reduce)');
+    const lines = remote.querySelectorAll<HTMLElement>('.lcd-mob .lcd-track, .lcd-mob [data-lcd-mode]');
+    const glide = () => {
+      for (const el of lines) {
+        el.getAnimations().forEach((a) => a.cancel());
+        const d = el.scrollWidth - el.clientWidth;
+        const run = d > 0 && !still.matches && !root.hasAttribute('data-calm');
+        el.classList.toggle('lcd-run', run);
+        if (!run) continue;
+        const hold = 1500;
+        const move = d * 40; // 25 px per second
+        const total = 2 * (hold + move);
+        el.animate(
+          [
+            { textIndent: '0px', offset: 0 },
+            { textIndent: '0px', offset: hold / total, easing: 'ease-in-out' },
+            { textIndent: `-${d}px`, offset: (hold + move) / total },
+            { textIndent: `-${d}px`, offset: (2 * hold + move) / total, easing: 'ease-in-out' },
+            { textIndent: '0px', offset: 1 },
+          ],
+          { duration: total, iterations: Infinity },
+        );
+      }
+    };
+    glide();
+    document.fonts?.ready.then(glide);
+    addEventListener('resize', glide);
+    still.addEventListener('change', glide);
+
     // Calm mode: the switch, the LCD line and the stored choice stay in sync.
     const paintCalm = () => {
       const on = root.hasAttribute('data-calm');
@@ -90,6 +121,7 @@ const href = (i: number) => localePath(sections[i]!.path, locale);
       for (const el of remote.querySelectorAll('[data-lcd-mode]')) {
         el.textContent = on ? calmOn! : el.closest('.lcd-desk') ? `▶ ${mode}` : 'SHROOMIES FM';
       }
+      glide();
     };
     calm.addEventListener('click', () => {
       const on = !root.hasAttribute('data-calm');
@@ -324,6 +356,8 @@ const href = (i: number) => localePath(sections[i]!.path, locale);
         .lcd-mob { padding-inline: 0.5rem; }
         .lcd-mob .lcd-track { font-size: 1.125rem; }
       }
+      /* a gliding line shows its real end, not an ellipsis */
+      .lcd-mob .lcd-run { text-overflow: clip; }
       /* below 360 px "SHROOMIES FM" would cut to "SH…": keep only the LIST cue */
       @media (max-width: 22.49rem) {
         .lcd-mob [data-lcd-mode] { display: none; }

@@ -99,6 +99,36 @@ for (const width of [320, 375, 393]) {
   });
 }
 
+test.describe('phone LCD with a line too long for it', () => {
+  test.use({ viewport: { width: 320, height: 760 } });
+  const longLine = async (page: import('@playwright/test').Page) => {
+    await page.goto('/');
+    const before = (await page.locator('[data-remote]').boundingBox())!.width;
+    const state = await page.evaluate(() => {
+      const el = document.querySelector<HTMLElement>('.lcd-mob .lcd-track')!;
+      el.textContent = '03 A VERY LONG TRACK NAME';
+      dispatchEvent(new Event('resize'));
+      return { running: el.getAnimations().length, clipped: el.classList.contains('lcd-run') };
+    });
+    expect((await page.locator('[data-remote]').boundingBox())!.width).toBe(before);
+    return state;
+  };
+
+  test('glides to its end and back, and the remote keeps its width', async ({ page }) => {
+    expect(await longLine(page)).toEqual({ running: 1, clipped: true });
+  });
+
+  test('stays still with reduced motion', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    expect(await longLine(page)).toEqual({ running: 0, clipped: false });
+  });
+
+  test('stays still in calm mode', async ({ page }) => {
+    await page.addInitScript(() => localStorage.setItem('shq:calm', 'on'));
+    expect(await longLine(page)).toEqual({ running: 0, clipped: false });
+  });
+});
+
 test.describe('without JavaScript', () => {
   test.use({ javaScriptEnabled: false });
   test('the plain dock list is the navigation', async ({ page }) => {
