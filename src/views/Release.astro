@@ -18,6 +18,11 @@ const next = releases[i + 1];
 const site = (await getEntry('site', 'site'))!.data;
 const Note = r.note && (await render(r.note)).Content;
 const year = r.date.slice(0, 4);
+// the title is set as big as its longest word allows, so a single word never breaks
+const longest = Math.max(...r.title.split(/\s+/).map((w) => w.length));
+const tiers = ['fit-s', 'fit-m', 'fit-l', 'fit-xl'] as const;
+const tier = (longest <= 5 ? 0 : longest <= 8 ? 1 : longest <= 11 ? 2 : 3) + (r.title.length > 30 ? 2 : r.title.length > 18 ? 1 : 0);
+const fit = tiers[Math.min(tier, 3)];
 
 // song of the day on this release for yesterday, today and tomorrow (UTC); the script picks the visitor's local date
 const days = await songsOfDays();
@@ -56,7 +61,7 @@ const jsonLd = {
     <div class="layout">
       <div class="head">
         <p class="meta"><span class="lcd">{t(locale, `type.${r.type}`).toUpperCase()}</span> {meta.join(' · ')}</p>
-        <h1>{r.title}</h1>
+        <h1 class={fit}>{r.title}</h1>
       </div>
       <div class="side">
         <figure class="case">
@@ -132,7 +137,7 @@ const jsonLd = {
     gap: 1.25rem 2.25rem;
     align-items: start;
   }
-  .head { grid-area: head; display: grid; gap: 1rem; min-width: 0; }
+  .head { grid-area: head; display: grid; gap: 1rem; min-width: 0; container-type: inline-size; }
   .side { grid-area: side; }
   .main { grid-area: main; }
   .side, .main { display: grid; gap: 1.25rem; min-width: 0; }
@@ -151,7 +156,11 @@ const jsonLd = {
 
   .meta { font-size: 0.9375rem; }
   .meta .lcd { font-size: 1.0625rem; padding-block: 0; margin-inline-end: 0.25rem; }
-  h1 { font-size: clamp(2.75rem, 1.5rem + 6vw, 7.5rem); font-stretch: 150%; letter-spacing: -0.025em; line-height: 0.92; overflow-wrap: anywhere; }
+  h1 { font-stretch: 150%; letter-spacing: -0.025em; line-height: 0.92; overflow-wrap: anywhere; text-wrap: balance; }
+  .fit-s { font-size: min(7.5rem, 17cqi); }
+  .fit-m { font-size: min(7.5rem, 11cqi); }
+  .fit-l { font-size: min(7.5rem, 8.2cqi); }
+  .fit-xl { font-size: min(7.5rem, 6.4cqi); }
 
   /* the fan note is a yellow paper slip: same in every theme */
   .fan-note { padding: 1rem 1.125rem; background: #fff36b; color: var(--c-ink); rotate: -0.8deg; box-shadow: 3px 5px 0 color-mix(in srgb, var(--c-ink) 25%, transparent); }
@@ -176,8 +185,9 @@ const jsonLd = {
   .dur { flex: none; min-width: 2.75rem; text-align: end; font: 400 1.25rem var(--font-lcd); color: #9a9cab; }
   .note { font-size: var(--fs-small); color: var(--muted); }
 
-  .pager { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.75rem; }
-  .pager .next { margin-inline-start: auto; }
+  .pager { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: 0.75rem; }
+  .pager .btn { justify-self: start; padding-block: 0.5rem; text-align: start; }
+  .pager .next { grid-column: 2; justify-self: end; text-align: end; }
 
   @media (max-width: 52rem) {
     .layout { grid-template: 'head' 'side' 'main' / minmax(0, 1fr); }
