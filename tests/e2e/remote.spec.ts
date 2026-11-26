@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
+import { sections } from '../../src/lib/sections';
 
 const main = (page: import('@playwright/test').Page) => page.getByRole('navigation', { name: 'Main' });
 
@@ -70,6 +71,33 @@ test.describe('phone remote', () => {
     await expect(toggle).toBeFocused();
   });
 });
+
+// every key, the orange one included, stays inside the screen on small phones in both languages
+for (const width of [320, 375, 393]) {
+  test.describe(`phone remote at ${width}px`, () => {
+    test.use({ viewport: { width, height: 760 } });
+    for (const path of ['/', '/es/']) {
+      test(`fits the screen on ${path}`, async ({ page }) => {
+        await page.goto(path);
+        const box = (await page.locator('[data-remote]').boundingBox())!;
+        expect(box.x).toBeGreaterThanOrEqual(0);
+        expect(box.x + box.width).toBeLessThanOrEqual(width);
+        const today = (await page.locator('.rk-today').boundingBox())!;
+        expect(today.x + today.width).toBeLessThanOrEqual(box.x + box.width);
+        // no track name or top line is cut with an ellipsis
+        await page.evaluate(() => document.fonts.ready);
+        const cut = await page.evaluate((names) => {
+          const lcd = document.querySelector('.lcd-mob')!;
+          const track = lcd.querySelector<HTMLElement>('.lcd-track')!;
+          const over = (el: HTMLElement) => el.offsetWidth > 0 && el.scrollWidth > el.clientWidth;
+          const bad = names.filter((n) => ((track.textContent = n), over(track)));
+          return over(lcd.querySelector<HTMLElement>('[data-lcd-mode]')!) ? [...bad, 'mode'] : bad;
+        }, sections.map((s) => `${s.n} ${s.lcd}`));
+        expect(cut).toEqual([]);
+      });
+    }
+  });
+}
 
 test.describe('without JavaScript', () => {
   test.use({ javaScriptEnabled: false });
