@@ -17,7 +17,8 @@
       }
     ],
     "credits": [],
-    "slug": "bubble"
+    "slug": "bubble",
+    "cover": "bubble.jpg"
   },
   {
     "mbid": "4139cddf-3d20-4198-b884-fd9c5f809482",
@@ -37,7 +38,8 @@
       }
     ],
     "credits": [],
-    "slug": "crush"
+    "slug": "crush",
+    "cover": "crush.jpg"
   },
   {
     "mbid": "21c23120-89fc-4347-b560-13019d765204",
@@ -57,7 +59,8 @@
       }
     ],
     "credits": [],
-    "slug": "i-want-my-money-back"
+    "slug": "i-want-my-money-back",
+    "cover": "i-want-my-money-back.jpg"
   },
   {
     "mbid": "d8539e45-6f88-4ca1-a939-89428dd40f47",
@@ -77,7 +80,8 @@
       }
     ],
     "credits": [],
-    "slug": "clout-chaser"
+    "slug": "clout-chaser",
+    "cover": "clout-chaser.jpg"
   },
   {
     "mbid": "7c61ee66-ce3c-45c0-b800-8dbf8f0c15a0",
@@ -97,7 +101,8 @@
       }
     ],
     "credits": [],
-    "slug": "flowers"
+    "slug": "flowers",
+    "cover": "flowers.jpg"
   },
   {
     "mbid": "5e2ef43e-493a-4e2c-96c6-1c243877a1e5",
@@ -138,7 +143,8 @@
       }
     ],
     "credits": [],
-    "slug": "im-alive"
+    "slug": "im-alive",
+    "cover": "im-alive.jpg"
   },
   {
     "mbid": "fd402eee-ef58-43bc-a523-136bb47af0ac",
@@ -158,7 +164,8 @@
       }
     ],
     "credits": [],
-    "slug": "twfno"
+    "slug": "twfno",
+    "cover": "twfno.jpg"
   },
   {
     "mbid": "bc6385a8-4ff5-4acf-87a8-3500d06baee8",
@@ -178,7 +185,8 @@
       }
     ],
     "credits": [],
-    "slug": "im-sorry"
+    "slug": "im-sorry",
+    "cover": "im-sorry.jpg"
   },
   {
     "mbid": "b0f00ebf-8a2d-4c01-a94a-0ad682debf9d",
@@ -198,7 +206,8 @@
       }
     ],
     "credits": [],
-    "slug": "autopilot"
+    "slug": "autopilot",
+    "cover": "autopilot.jpg"
   },
   {
     "mbid": "d324c614-ae2d-44ff-9bb2-811e5f9c89a9",
@@ -225,7 +234,8 @@
       }
     ],
     "credits": [],
-    "slug": "limelight"
+    "slug": "limelight",
+    "cover": "limelight.jpg"
   },
   {
     "mbid": "ca11d0b6-dfb1-4a9f-a915-6cb1149fc282",
@@ -245,7 +255,8 @@
       }
     ],
     "credits": [],
-    "slug": "gonna-be-okay"
+    "slug": "gonna-be-okay",
+    "cover": "gonna-be-okay.jpg"
   },
   {
     "mbid": "06f178ae-150b-4eb8-a992-a1935ced1555",
@@ -279,7 +290,8 @@
       }
     ],
     "credits": [],
-    "slug": "overdramatic"
+    "slug": "overdramatic",
+    "cover": "overdramatic.jpg"
   },
   {
     "mbid": "68448228-7795-46ce-8321-27a75da3d663",
@@ -299,7 +311,8 @@
       }
     ],
     "credits": [],
-    "slug": "feel-alright"
+    "slug": "feel-alright",
+    "cover": "feel-alright.jpg"
   },
   {
     "mbid": "d7814f48-df34-4ef6-83bc-da49eb48c917",
@@ -319,7 +332,8 @@
       }
     ],
     "credits": [],
-    "slug": "pretend"
+    "slug": "pretend",
+    "cover": "pretend.jpg"
   },
   {
     "mbid": "c3df2851-a333-4460-ad15-bd3c805cfb8a",
@@ -367,7 +381,8 @@
       }
     ],
     "credits": [],
-    "slug": "the-recovery-project"
+    "slug": "the-recovery-project",
+    "cover": "the-recovery-project.jpg"
   },
   {
     "mbid": "7b2a26d1-5006-48d8-9658-a1107882229a",
@@ -387,7 +402,8 @@
       }
     ],
     "credits": [],
-    "slug": "calone"
+    "slug": "calone",
+    "cover": "calone.jpg"
   },
   {
     "mbid": "75730c24-9d23-460d-a297-b72740ad2aae",
@@ -407,7 +423,8 @@
       }
     ],
     "credits": [],
-    "slug": "if-i-dont-text-you-first"
+    "slug": "if-i-dont-text-you-first",
+    "cover": "if-i-dont-text-you-first.jpg"
   },
   {
     "mbid": "fbbb7dd0-d5d9-44c9-b9c3-9f9c9c307f03",
@@ -455,7 +472,8 @@
       }
     ],
     "credits": [],
-    "slug": "the-dependency-project"
+    "slug": "the-dependency-project",
+    "cover": "the-dependency-project.jpg"
   },
   {
     "mbid": "9035e95d-f44f-45d3-9219-d8fa8f1622f2",
@@ -475,7 +493,8 @@
       }
     ],
     "credits": [],
-    "slug": "someday"
+    "slug": "someday",
+    "cover": "someday.jpg"
   },
   {
     "mbid": "3d090f66-69d6-4fcb-ad84-08eeac7d4dfa",
@@ -495,7 +514,8 @@
       }
     ],
     "credits": [],
-    "slug": "spoiled-bitch"
+    "slug": "spoiled-bitch",
+    "cover": "spoiled-bitch.jpg"
   },
   {
     "mbid": "aab78d17-e622-42de-aa3a-89e39963eb79",
@@ -515,7 +535,8 @@
       }
     ],
     "credits": [],
-    "slug": "clouds"
+    "slug": "clouds",
+    "cover": "clouds.jpg"
   },
   {
     "mbid": "a5067196-d3de-4820-8c03-0083229df9d6",
@@ -563,7 +584,8 @@
       }
     ],
     "credits": [],
-    "slug": "the-renewal-project"
+    "slug": "the-renewal-project",
+    "cover": "the-renewal-project.jpg"
   },
   {
     "mbid": "9949b446-883f-430a-8117-56e8e6c439ed",
@@ -583,7 +605,8 @@
       }
     ],
     "credits": [],
-    "slug": "party-w-out-me"
+    "slug": "party-w-out-me",
+    "cover": "party-w-out-me.jpg"
   },
   {
     "mbid": "7a5af5d0-d3a8-4b11-941c-25a7867e44a4",
@@ -603,7 +626,8 @@
       }
     ],
     "credits": [],
-    "slug": "in-the-midst-of-our-growth"
+    "slug": "in-the-midst-of-our-growth",
+    "cover": null
   },
   {
     "mbid": "0341329b-5a2d-4004-b5c8-255311745f58",
@@ -623,7 +647,8 @@
       }
     ],
     "credits": [],
-    "slug": "san-francisco-sidewalk"
+    "slug": "san-francisco-sidewalk",
+    "cover": "san-francisco-sidewalk.jpg"
   },
   {
     "mbid": "f512dfb5-6bab-4023-84d2-ba9f36fe6976",
@@ -643,7 +668,8 @@
       }
     ],
     "credits": [],
-    "slug": "dreams-abt-optimism"
+    "slug": "dreams-abt-optimism",
+    "cover": "dreams-abt-optimism.jpg"
   },
   {
     "mbid": "c1184dbc-a870-4d96-8489-f406f49244eb",
@@ -691,7 +717,8 @@
       }
     ],
     "credits": [],
-    "slug": "the-gratitude-project"
+    "slug": "the-gratitude-project",
+    "cover": "the-gratitude-project.jpg"
   },
   {
     "mbid": "06e99d25-b44b-46f8-9d3c-e9b241b2b145",
@@ -711,7 +738,8 @@
       }
     ],
     "credits": [],
-    "slug": "apeshit"
+    "slug": "apeshit",
+    "cover": "apeshit.jpg"
   },
   {
     "mbid": "ef08c72f-2881-4176-b812-7a746e61fed9",
@@ -731,7 +759,8 @@
       }
     ],
     "credits": [],
-    "slug": "hella-boy-crazy"
+    "slug": "hella-boy-crazy",
+    "cover": "hella-boy-crazy.jpg"
   },
   {
     "mbid": "8103b5ae-ec65-4ffe-839f-64efb1f5c57e",
@@ -758,7 +787,8 @@
       }
     ],
     "credits": [],
-    "slug": "kansas"
+    "slug": "kansas",
+    "cover": "kansas.jpg"
   },
   {
     "mbid": "777415d4-4581-4307-9fef-b056321c64a8",
@@ -792,7 +822,8 @@
       }
     ],
     "credits": [],
-    "slug": "far-away"
+    "slug": "far-away",
+    "cover": "far-away.jpg"
   },
   {
     "mbid": "00b1d114-ab48-4a5f-96dc-445426446eab",
@@ -875,7 +906,8 @@
       }
     ],
     "credits": [],
-    "slug": "lover-tofu-fruit"
+    "slug": "lover-tofu-fruit",
+    "cover": "lover-tofu-fruit.jpg"
   },
   {
     "mbid": "e0a4a5e7-5550-4be5-9873-9943c6f1ceef",
@@ -895,7 +927,8 @@
       }
     ],
     "credits": [],
-    "slug": "flash-memory"
+    "slug": "flash-memory",
+    "cover": "flash-memory.jpg"
   },
   {
     "mbid": "d729530e-89d3-41aa-8fca-253cda1ede38",
@@ -944,7 +977,8 @@
       }
     ],
     "credits": [],
-    "slug": "lover-tofu-fruit-monolid-flips"
+    "slug": "lover-tofu-fruit-monolid-flips",
+    "cover": "lover-tofu-fruit-monolid-flips.jpg"
   },
   {
     "mbid": "3ba0574d-1969-4d91-8be0-390d0c423712",
@@ -964,7 +998,8 @@
       }
     ],
     "credits": [],
-    "slug": "noise-pollution"
+    "slug": "noise-pollution",
+    "cover": "noise-pollution.jpg"
   },
   {
     "mbid": "cbabf170-79c2-4bd3-bcf8-6ede2be79b70",
@@ -984,7 +1019,8 @@
       }
     ],
     "credits": [],
-    "slug": "aura-park"
+    "slug": "aura-park",
+    "cover": "aura-park.jpg"
   },
   {
     "mbid": "d513a2cd-7286-46f0-8e15-1faa6a5079c9",
@@ -1004,7 +1040,8 @@
       }
     ],
     "credits": [],
-    "slug": "pretty4u"
+    "slug": "pretty4u",
+    "cover": "pretty4u.jpg"
   },
   {
     "mbid": "2c2cad8c-a05c-45d4-8bdb-2da2985a0f27",
@@ -1033,7 +1070,8 @@
       }
     ],
     "credits": [],
-    "slug": "summers-gone-skybreak-half-blood-remix"
+    "slug": "summers-gone-skybreak-half-blood-remix",
+    "cover": "summers-gone-skybreak-half-blood-remix.jpg"
   },
   {
     "mbid": "693ff0b1-5fb2-416c-a9c9-6add5bd850b9",
@@ -1062,7 +1100,8 @@
       }
     ],
     "credits": [],
-    "slug": "aura-park-remixes"
+    "slug": "aura-park-remixes",
+    "cover": "summers-gone-skybreak-half-blood-remix.jpg"
   },
   {
     "mbid": "5df5a8af-3a58-43fe-a422-1880dfb0aa58",
@@ -1089,7 +1128,8 @@
       }
     ],
     "credits": [],
-    "slug": "american-girl"
+    "slug": "american-girl",
+    "cover": "american-girl.jpg"
   },
   {
     "mbid": "eeed434c-869f-446e-bc1d-c1d2893c60fd",
@@ -1109,7 +1149,8 @@
       }
     ],
     "credits": [],
-    "slug": "breakup"
+    "slug": "breakup",
+    "cover": "breakup.jpg"
   },
   {
     "mbid": "5da0b759-25fe-4ece-b240-8d9a62c21023",
@@ -1129,7 +1170,8 @@
       }
     ],
     "credits": [],
-    "slug": "tell-me-what-i-did"
+    "slug": "tell-me-what-i-did",
+    "cover": "tell-me-what-i-did.jpg"
   },
   {
     "mbid": "9ced5dfe-5c0b-4a97-aa76-811a9322dd48",
@@ -1149,7 +1191,8 @@
       }
     ],
     "credits": [],
-    "slug": "start-over"
+    "slug": "start-over",
+    "cover": "halo.jpg"
   },
   {
     "mbid": "a86141e7-6420-4977-8763-aeffca4d9d5e",
@@ -1169,7 +1212,8 @@
       }
     ],
     "credits": [],
-    "slug": "same-la"
+    "slug": "same-la",
+    "cover": "halo.jpg"
   },
   {
     "mbid": "811ce8bf-30b5-478d-abbc-185acd6d3e0c",
@@ -1273,7 +1317,8 @@
       }
     ],
     "credits": [],
-    "slug": "halo"
+    "slug": "halo",
+    "cover": "halo.jpg"
   },
   {
     "mbid": "65714c7e-7b09-4d49-a8d0-e085d447cf3e",
@@ -1318,7 +1363,8 @@
       }
     ],
     "credits": [],
-    "slug": "constantly"
+    "slug": "constantly",
+    "cover": "constantly.jpg"
   },
   {
     "mbid": "642da4fa-a8e8-4ea0-8707-b60721e3cc5c",
@@ -1338,7 +1384,8 @@
       }
     ],
     "credits": [],
-    "slug": "meant-to-be"
+    "slug": "meant-to-be",
+    "cover": "meant-to-be.jpg"
   },
   {
     "mbid": "e63c210b-f04b-43cf-b645-1f8006c08b34",
@@ -1363,6 +1410,7 @@
       }
     ],
     "credits": [],
-    "slug": "constantly-guest"
+    "slug": "constantly-guest",
+    "cover": "constantly-guest.jpg"
   }
 ]

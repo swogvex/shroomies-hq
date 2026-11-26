@@ -1,7 +1,9 @@
 // Refreshes src/data/discography.json from MusicBrainz (runs as npm prebuild).
 // Never fails the build: if MusicBrainz is down or slow, the committed snapshot stays as it is.
 // The owner's corrections (src/content/discography-corrections.md) are applied at build time, so they work offline too.
-import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
+import sharp from 'sharp';
+import { coverNames, sameArtwork } from '../src/lib/covers.ts';
 import { assignSlugs, byDate, normalizeRelease, pickRelease, type MbRelease, type RawRelease } from '../src/lib/musicbrainz.ts';
 
 const ARTIST = 'c9e3089c-a7bc-4df5-80f9-9161eaa74a02'; // Tiffany Day, verified with the owner 2026-11-26
@@ -41,7 +43,7 @@ async function sync() {
     }
   }
   const groups = Map.groupBy(all, (r) => r['release-group'].id);
-  const found: Omit<RawRelease, 'slug'>[] = [];
+  const found: Omit<RawRelease, 'slug' | 'cover'>[] = [];
   const skipped: string[] = [];
   for (const releases of groups.values()) {
     const pick = pickRelease(releases);
@@ -62,25 +64,41 @@ async function sync() {
 }
 
 /**
- * Front covers from the Cover Art Archive, self-hosted in src/assets/covers/<release-group mbid>.<ext> (no hotlinking).
- * Named by mbid so a slug changed in the corrections keeps its cover. Only missing ones are fetched.
+ * Front covers from the Cover Art Archive, self-hosted in src/assets/covers/ (no hotlinking).
+ * One file per artwork: a single that reuses the album art points to the album's file. Files are named after the
+ * main release using them (halo.jpg). Only releases without a cover are fetched; the snapshot records each release's file.
  */
 async function covers() {
   const dir = new URL('../src/assets/covers/', import.meta.url);
   mkdirSync(dir, { recursive: true });
-  const have = new Set(readdirSync(dir).map((f) => f.replace(/\.\w+$/, '')));
+  const thumb = (img: Buffer) => sharp(img).resize(16, 16, { fit: 'fill' }).removeAlpha().raw().toBuffer();
+  const known = new Map<string, Buffer>();
+  for (const file of readdirSync(dir)) known.set(file, await thumb(readFileSync(new URL(file, dir))));
+  const releases = JSON.parse(readFileSync(OUT, 'utf8')) as RawRelease[];
   const missing: string[] = [];
-  for (const r of JSON.parse(readFileSync(OUT, 'utf8')) as RawRelease[]) {
-    if (have.has(r.mbid)) continue;
+  for (const r of releases) {
+    if (r.cover && known.has(r.cover)) continue;
     try {
       const res = await fetch(`https://coverartarchive.org/release-group/${r.mbid}/front-1200`, { headers: { 'User-Agent': USER_AGENT }, signal: AbortSignal.timeout(30_000) });
       const ext = ({ 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' } as Record<string, string>)[res.headers.get('content-type') ?? ''];
       if (!res.ok || !ext) throw new Error(String(res.status));
-      writeFileSync(new URL(`${r.mbid}.${ext}`, dir), Buffer.from(await res.arrayBuffer()));
+      const img = Buffer.from(await res.arrayBuffer());
+      const t = await thumb(img);
+      r.cover = [...known].find(([, k]) => sameArtwork(k, t))?.[0] ?? `${r.slug}.${ext}`;
+      if (!known.has(r.cover)) {
+        writeFileSync(new URL(r.cover, dir), img);
+        known.set(r.cover, t);
+      }
     } catch {
-      missing.push(r.slug); // the shelf uses the typographic cover instead
+      r.cover = null; // the shelf uses the typographic cover instead
+      missing.push(r.slug);
     }
   }
+  for (const [from, to] of coverNames(releases)) {
+    renameSync(new URL(from, dir), new URL(to, dir));
+    for (const r of releases) if (r.cover === from) r.cover = to;
+  }
+  writeFileSync(OUT, JSON.stringify(releases, null, 2) + '\n');
   if (missing.length) console.log(`[discography] No cover found for: ${missing.join(', ')}`);
 }
 

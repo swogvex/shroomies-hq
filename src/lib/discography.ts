@@ -4,7 +4,7 @@ import { byDate, type Credit, type RawRelease, type ReleaseType, type Track } fr
 export type EraId = 'covers' | 'first-singles' | 'projects' | 'ltf' | 'halo';
 export type Release = RawRelease & { era: EraId };
 export type Override = Partial<{ title: string; date: string; type: ReleaseType; era: EraId; hidden: boolean; slug: string }>;
-export type Addition = Omit<RawRelease, 'releaseMbid' | 'label' | 'artistCredit' | 'tracks' | 'credits'> &
+export type Addition = Omit<RawRelease, 'releaseMbid' | 'label' | 'artistCredit' | 'tracks' | 'credits' | 'cover'> &
   Partial<{ label: string | null; artistCredit: string; tracks: Track[]; credits: Credit[]; era: EraId }>;
 export type Corrections = { overrides: Record<string, Override>; additions: Addition[] };
 export type EraStart = { id: EraId; startsOn: string };
@@ -21,7 +21,7 @@ export function applyCorrections(raw: readonly RawRelease[], { overrides, additi
     .filter((r) => !r.hidden)
     .map(({ hidden, era, ...r }) => ({ ...r, era: era ?? eraFor(r.date, eras) }));
   const added = additions.map((a) => ({
-    releaseMbid: a.mbid, label: null, artistCredit: 'Tiffany Day', tracks: [], credits: [], ...a, era: a.era ?? eraFor(a.date, eras),
+    releaseMbid: a.mbid, label: null, artistCredit: 'Tiffany Day', tracks: [], credits: [], cover: null, ...a, era: a.era ?? eraFor(a.date, eras),
   }));
   const all = [...fixed, ...added].sort(byDate);
   const dup = all.find((r, i) => all.findIndex((o) => o.slug === r.slug) !== i);

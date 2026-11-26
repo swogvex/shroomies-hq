@@ -89,14 +89,14 @@ describe('musicbrainz normalisation', () => {
         { ...base, mbid: 'b', title: 'Lover Tofu Fruit', type: 'single', date: '2024-08-01' },
         { ...base, mbid: 'c', title: 'Renamed', type: 'single', date: '2020-01-01' },
       ],
-      [{ mbid: 'c', slug: 'old-name' }],
+      [{ mbid: 'c', slug: 'old-name', cover: 'old-name.jpg' }],
     );
-    expect(out.map((r) => r.slug)).toEqual(['lover-tofu-fruit', 'lover-tofu-fruit-single', 'old-name']);
+    expect(out.map((r) => [r.slug, r.cover])).toEqual([['lover-tofu-fruit', null], ['lover-tofu-fruit-single', null], ['old-name', 'old-name.jpg']]);
   });
 });
 
 const release = (over: Partial<RawRelease>): RawRelease => ({
-  mbid: 'x', releaseMbid: 'x', slug: 'x', title: 'X', type: 'single', date: '2020-01-01', label: null, artistCredit: 'Tiffany Day', tracks: [], credits: [], ...over,
+  mbid: 'x', releaseMbid: 'x', slug: 'x', title: 'X', type: 'single', date: '2020-01-01', label: null, artistCredit: 'Tiffany Day', tracks: [], credits: [], cover: null, ...over,
 });
 
 describe('corrections and catalogue', () => {
