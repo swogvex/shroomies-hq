@@ -55,7 +55,7 @@ const lcd = (text: string) => text.toUpperCase().replace(/[’‘]/g, "'").norma
         </button>
         <label class="show">
           {t(locale, 'music.show')}
-          <select data-filter>
+          <select class="lift" data-filter>
             {filters.map((f) => <option value={f}>{t(locale, `music.show.${f}`)}</option>)}
           </select>
         </label>
@@ -99,13 +99,13 @@ const lcd = (text: string) => text.toUpperCase().replace(/[’‘]/g, "'").norma
                         <ul class="cds" aria-label={g === 1 ? t(locale, 'music.featuring') : undefined}>
                           {list.map((r) => (
                             <li class:list={['cd', `cd-${r.type}`]} data-show={showGroup[r.type]}>
-                              <a href={href(r)} data-lcd={`${code[r.type]} ${lcd(r.title)} '${r.date.slice(2, 4)}`}>
-                                <span class:list={['spine', `spine-${r.spine}`]} aria-hidden="true">
+                              <a class={`tone-${r.spine}`} href={href(r)} data-lcd={`${code[r.type]} ${lcd(r.title)} '${r.date.slice(2, 4)}`}>
+                                <span class="spine" aria-hidden="true">
                                   <span class="spine-code">{code[r.type]}</span>
                                   <span class="spine-title">{r.title}</span>
                                   <span class="spine-year">’{r.date.slice(2, 4)}</span>
                                 </span>
-                                <span class="disc" aria-hidden="true" />
+                                <span class={`disc print-${r.era}`} data-print={`${code[r.type]} '${r.date.slice(2, 4)}`} aria-hidden="true" />
                                 <span class="front">
                                   <Cover image={r.image} title={r.title} alt="" widths={[112, 384]} sizes="(min-width: 64rem) 192px, 56px" class="cd-cover" />
                                   <span class="info">
@@ -273,7 +273,6 @@ const lcd = (text: string) => text.toUpperCase().replace(/[’‘]/g, "'").norma
       linear-gradient(-45deg, transparent 50%, var(--ink) 50%) calc(100% - 0.75rem) 50% / 6px 6px no-repeat,
       var(--surface);
     border: var(--border) solid var(--line);
-    box-shadow: var(--shadow-sm);
     appearance: none;
     cursor: pointer;
   }
@@ -420,14 +419,16 @@ const lcd = (text: string) => text.toUpperCase().replace(/[’‘]/g, "'").norma
   }
   .cd-album .spine-title { font-size: 0.9375rem; font-stretch: 95%; }
   .spine-year { flex: none; font: 400 1rem / 1 var(--font-lcd); }
-  .spine-flash { background-color: #ffffff; }
-  .spine-night { background-color: #3a3c48; color: #ffffff; }
-  .spine-plush { background-color: #ff8fc7; }
-  .spine-aura { background-color: #ff4a1c; }
-  .spine-peri { background-color: #9aa6ff; }
-  .spine-lemon { background-color: #fff36b; }
-  .spine-strobe { background-color: #2335f0; color: #ffffff; }
-  .spine-grass { background-color: #3f9a3a; }
+  /* one colour per release (the board colour nearest its cover): spine, case insert and printed disc all use it */
+  .spine { background-color: var(--tone); color: var(--on-tone, var(--c-ink)); }
+  .tone-flash { --tone: var(--c-flash); }
+  .tone-night { --tone: #3a3c48; --on-tone: #ffffff; }
+  .tone-plush { --tone: var(--c-plush); }
+  .tone-aura { --tone: var(--c-aura); }
+  .tone-peri { --tone: #9aa6ff; }
+  .tone-lemon { --tone: var(--c-lemon); }
+  .tone-strobe { --tone: var(--c-strobe); --on-tone: #ffffff; }
+  .tone-grass { --tone: #3f9a3a; }
 
   /* the disc: silver with a rainbow sheen, hidden inside the case until it is pulled out */
   .disc {
@@ -446,6 +447,31 @@ const lcd = (text: string) => text.toUpperCase().replace(/[’‘]/g, "'").norma
     pointer-events: none;
     transition: translate 420ms cubic-bezier(0.2, 0.8, 0.2, 1) 80ms, opacity 120ms ease, scale 0ms 420ms;
   }
+  /* each disc is printed for its release: a band in its colour with its era's pattern, and its code and year */
+  .disc::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: var(--print, none), var(--tone);
+    mask: radial-gradient(circle, transparent 0 17.5%, #000 18% 45%, transparent 45.5%);
+  }
+  .disc::after {
+    content: attr(data-print);
+    position: absolute;
+    top: 50%;
+    right: 6%;
+    width: 27%;
+    translate: 0 -50%;
+    text-align: center;
+    font: 400 1rem / 1 var(--font-lcd); /* on the half that peeks out of the case */
+    color: var(--on-tone, var(--c-ink));
+  }
+  .print-halo { --print: repeating-radial-gradient(circle, transparent 0 5px, rgb(255 255 255 / 0.32) 5px 6px); }
+  .print-ltf { --print: radial-gradient(rgb(255 255 255 / 0.5) 0 2px, transparent 2.5px) 0 0 / 11px 11px; }
+  .print-projects { --print: repeating-conic-gradient(rgb(0 0 0 / 0.13) 0 7deg, transparent 7deg 20deg); }
+  .print-first-singles { --print: linear-gradient(135deg, rgb(255 255 255 / 0.4), transparent 55%); }
+  .print-covers { --print: repeating-linear-gradient(45deg, rgb(0 0 0 / 0.1) 0 3px, transparent 3px 9px); }
   .front {
     position: absolute;
     inset: 0;
@@ -453,8 +479,11 @@ const lcd = (text: string) => text.toUpperCase().replace(/[’‘]/g, "'").norma
     align-content: start;
     gap: 0.5rem;
     padding: 0.5rem 0.75rem 0.5rem 0.5rem;
-    background: linear-gradient(135deg, rgb(255 255 255 / 0.16), transparent 40%), var(--c-remote-lo);
-    color: var(--c-flash);
+    /* a clear plastic case over an insert tinted with the release's colour */
+    background:
+      linear-gradient(125deg, rgb(255 255 255 / 0.75) 0 18%, rgb(255 255 255 / 0.15) 18.5% 40%, transparent 40.5%),
+      color-mix(in srgb, var(--tone) 30%, #f4f5f8);
+    color: var(--c-ink);
     border: var(--border) solid var(--c-ink);
     opacity: 0;
     pointer-events: none;
