@@ -18,6 +18,18 @@
     -webkit-text-size-adjust: 100%;
   }
   html[data-theme="dark"] { color-scheme: dark; }
+  /* scrollbars in the site style: the era colour (its AA text tone, so ≥ 3:1 on the page) on the page background;
+     follows the era skin and the theme. Inherited by every scroller. */
+  :root {
+    --scrollbar-thumb: var(--era-accent-text);
+    --scrollbar-track: var(--bg);
+    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+  }
+  @supports not (scrollbar-color: auto) {
+    ::-webkit-scrollbar { width: 12px; height: 12px; }
+    ::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border: 3px solid var(--scrollbar-track); border-radius: 6px; }
+    ::-webkit-scrollbar-track { background: var(--scrollbar-track); }
+  }
   body {
     min-height: 100dvh;
     font-family: var(--font-body);

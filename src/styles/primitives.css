@@ -18,10 +18,47 @@
   :is(.btn, .lift) { transition: transform 80ms, box-shadow 80ms; }
   :is(.btn, .lift):hover { transform: translate(-1px, -2px); box-shadow: 5px 6px 0 var(--shadow); }
   :is(.btn, .lift):active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--shadow); }
+  /* focus: no outline ring on boxed controls (owner); they lift with a blue shadow instead, still clear for keyboard users */
+  :is(.btn, .lift):focus-visible { outline: none; transform: translate(-1px, -2px); box-shadow: 5px 6px 0 var(--accent); }
   .btn-primary { background: var(--accent); color: var(--on-accent); }
   .btn-secondary { background: var(--surface); color: var(--ink); }
   .btn-hot { background: var(--hot); color: var(--on-hot); }
   .btn-sm { min-height: 44px; padding: 0 0.75rem; font-size: 0.875rem; box-shadow: var(--shadow-sm); }
+
+  /* select: a boxed control in the site style; where the browser allows it (appearance: base-select) the open list
+     is styled too, otherwise the native list opens from the styled box */
+  .select {
+    min-height: 48px;
+    min-width: 10rem;
+    padding: 0 2.25rem 0 0.75rem;
+    font: 400 1rem var(--font-body);
+    color: var(--ink);
+    background:
+      linear-gradient(45deg, transparent 50%, var(--ink) 50%) calc(100% - 1.125rem) 50% / 6px 6px no-repeat,
+      linear-gradient(-45deg, transparent 50%, var(--ink) 50%) calc(100% - 0.75rem) 50% / 6px 6px no-repeat,
+      var(--surface);
+    border: var(--border) solid var(--line);
+    border-radius: 0;
+    appearance: none;
+  }
+  @supports (appearance: base-select) {
+    .select, .select::picker(select) { appearance: base-select; }
+    .select { display: inline-flex; align-items: center; gap: 0.75rem; padding-inline-end: 0.75rem; background: var(--surface); }
+    .select::picker-icon { color: var(--ink); transition: rotate 120ms; }
+    .select:open::picker-icon { rotate: 180deg; }
+    .select::picker(select) {
+      margin-top: 6px;
+      padding: 0.25rem;
+      background: var(--surface);
+      color: var(--ink);
+      border: var(--border) solid var(--line);
+      box-shadow: var(--shadow-md);
+    }
+    .select option { min-height: 44px; padding: 0 0.75rem; font: 400 1rem var(--font-body); }
+    .select option:is(:hover, :focus-visible) { background: var(--accent); color: var(--on-accent); outline: none; }
+    .select option:checked { font-weight: 700; }
+    .select option::checkmark { color: currentColor; }
+  }
 
   /* LCD green is an object on the board: identical in every theme */
   /* page heading: small era-coloured kicker over a huge stretched title (music, tracker, journal) */
@@ -79,7 +116,7 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    :is(.btn, .lift):is(:hover, :active) { transform: none; }
+    :is(.btn, .lift):is(:hover, :active, :focus-visible) { transform: none; }
   }
-  html[data-calm] :is(.btn, .lift):is(:hover, :active) { transform: none; }
+  html[data-calm] :is(.btn, .lift):is(:hover, :active, :focus-visible) { transform: none; }
 }

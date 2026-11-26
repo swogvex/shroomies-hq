@@ -263,7 +263,7 @@ const axis = [
   .wave-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5rem 1rem; }
   .wave-head h2 { font-size: 1.125rem; font-weight: 400; }
   .hint { font-size: var(--fs-small); color: var(--c-remote-label); }
-  .scroller { position: relative; overflow-x: auto; padding-top: 2.75rem; }
+  .scroller { position: relative; overflow-x: auto; padding-top: 2.75rem; scrollbar-color: var(--c-lcd-1) var(--c-ink); } /* the page scrollbar would be light on this ink panel */
   .scroller svg { display: block; width: 100%; min-width: 40rem; height: auto; overflow: visible; }
   .hush rect { fill: color-mix(in srgb, var(--c-flash) 26%, transparent); }
   .peak .hit { fill: transparent; }
