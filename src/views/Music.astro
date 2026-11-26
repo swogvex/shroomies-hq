@@ -47,7 +47,7 @@ const lcd = (text: string) => text.toUpperCase().replace(/[’‘]/g, "'").norma
     <header class="music-head">
       <div>
         <p class="kicker">{t(locale, 'music.kicker')}</p>
-        <h1>{t(locale, 'music.heading')}</h1>
+        <h1 class="page-title">{t(locale, 'music.heading')}</h1>
       </div>
       <div class="tools" data-tools>
         <button type="button" class="btn btn-primary" data-surprise data-pool={JSON.stringify(pool)} data-base={localePath('/music/', locale)}>
@@ -256,8 +256,6 @@ const lcd = (text: string) => text.toUpperCase().replace(/[’‘]/g, "'").norma
   .music { width: var(--column); margin-inline: auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: 2.5rem; padding-block: 0.5rem 1rem; }
 
   .music-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 1rem 1.25rem; }
-  .kicker { margin-bottom: 0.375rem; font-size: var(--fs-small); font-weight: 700; color: var(--era-accent-text); }
-  h1 { font-size: clamp(1.875rem, 0.25rem + 7.5vw, 5rem); font-stretch: 150%; letter-spacing: -0.02em; line-height: 0.92; overflow-wrap: break-word; }
   /* JS-only controls show from first paint when init.js has set html[data-js], so nothing jumps when the script runs */
   .tools, .tabs, .hint-touch { display: none; }
   :global(html[data-js]) .tools { display: flex; }

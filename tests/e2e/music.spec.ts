@@ -1,16 +1,8 @@
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect } from '@playwright/test';
+import { watch } from './helpers';
 import AxeBuilder from '@axe-core/playwright';
 import releases from '../../src/data/discography.json' with { type: 'json' };
 
-/** Records requests that leave our own origin. */
-function watchForeign(page: Page, origin: string) {
-  const foreign: string[] = [];
-  page.on('request', (r) => {
-    const url = new URL(r.url());
-    if (url.protocol.startsWith('http') && url.origin !== origin) foreign.push(r.url());
-  });
-  return foreign;
-}
 
 test('every shelf link opens a release page, in EN and ES', async ({ page, request }) => {
   for (const base of ['/music/', '/es/music/']) {
@@ -75,9 +67,7 @@ test('Surprise me opens a song not opened before and remembers it', async ({ pag
 });
 
 test('release pages make no third-party request before a click', async ({ page, baseURL }) => {
-  const foreign = watchForeign(page, new URL(baseURL!).origin);
-  const errors: string[] = [];
-  page.on('console', (m) => m.type() === 'error' && errors.push(m.text()));
+  const { foreign, errors } = watch(page, new URL(baseURL!).origin);
   for (const path of ['/music/', '/music/halo/', '/es/music/lover-tofu-fruit/', '/music/mixtapes/when-the-drop-hits/']) {
     await page.goto(path, { waitUntil: 'networkidle' });
     await expect(page.locator('iframe')).toHaveCount(0);
