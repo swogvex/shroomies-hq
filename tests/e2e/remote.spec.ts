@@ -15,7 +15,7 @@ test.describe('desktop remote', () => {
       names.push((await page.evaluate(() => document.activeElement?.textContent?.trim() ?? '')).replace(/\s+/g, ' '));
       await page.keyboard.press('Tab');
     }
-    expect(names.join(' | ')).toMatch(/prev.*next.*today.*01.*07.*Calm mode/);
+    expect(names.join(' | ')).toMatch(/back.*skip.*play.*01.*07.*calm mode/i);
   });
 
   test('arrow keys on the remote and number keys walk the tracklist', async ({ page }) => {
