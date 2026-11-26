@@ -110,3 +110,20 @@ export const duration = (ms: number) => {
   const s = Math.round(ms / 1000);
   return s >= 3600 ? `${Math.floor(s / 3600)}:${String(Math.floor(s / 60) % 60).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}` : `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 };
+
+/**
+ * Where a song can be played: the single of that song when it has a Spotify link (its embed starts on the song),
+ * otherwise the release it is shown from.
+ */
+export function listenFor(releases: readonly ShelfRelease[], song: { title: string; release: string }): Links {
+  const title = song.title.trim().toLowerCase();
+  const single = releases.find((r) => r.type === 'single' && r.listen.spotify && r.tracks.length === 1 && r.tracks[0]!.title.trim().toLowerCase() === title);
+  return (single ?? releases.find((r) => r.slug === song.release))?.listen ?? {};
+}
+
+/** Size step (0 = biggest … 3) for a huge display title, so its longest word never breaks and long titles stay short. */
+export function titleFit(title: string): 0 | 1 | 2 | 3 {
+  const longest = Math.max(...title.split(/\s+/).map((w) => w.length));
+  const step = (longest <= 5 ? 0 : longest <= 8 ? 1 : longest <= 11 ? 2 : 3) + (title.length > 30 ? 2 : title.length > 18 ? 1 : 0);
+  return Math.min(step, 3) as 0 | 1 | 2 | 3;
+}
