@@ -1,26 +1,35 @@
 ---
-// /music/ — The Shelf (08-spec-music). One shelf per era; each release is a CD spine that slides out on hover or focus.
-// Without JS: every shelf and link works; the filter and Surprise me (both need JS) stay hidden.
-import { getCollection } from 'astro:content';
+// /music/ — The Shelf (08-spec-music, B2-Music board). One era shelf at a time behind tabs; each release is a CD in its
+// jewel case that slides out on hover or focus, turns to show the cover and lets the disc peek out.
+// Without JS: every era shelf shows, stacked, and every link works; tabs, the Show select and Surprise me stay hidden.
+import { getCollection, render } from 'astro:content';
 import Base from '../layouts/Base.astro';
 import Cover from '../components/Cover.astro';
 import { localePath, t, type Locale } from '../i18n';
 import { formatDate } from '../lib/dates';
-import { discography, mixtapes, published, showGroup, surprisePool, type ShelfRelease } from '../lib/music';
+import { discography, mixtapes, showGroup, surprisePool, type ShelfRelease } from '../lib/music';
+import type { ReleaseType } from '../lib/musicbrainz';
 
 const locale = (Astro.currentLocale ?? 'en') as Locale;
 const releases = await discography();
-const eras = (await getCollection('eras', published)).sort((a, b) => a.data.order - b.data.order);
-const shelves = eras
-  .map((era) => ({
-    era,
-    own: releases.filter((r) => r.era === era.id && r.type !== 'guest'),
-    guests: releases.filter((r) => r.era === era.id && r.type === 'guest'),
-  }))
-  .filter((s) => s.own.length + s.guests.length > 0);
+// every era groups the shelf; only a draft's intro text stays out of production
+const eras = (await getCollection('eras')).sort((a, b) => a.data.order - b.data.order);
+const shelves = await Promise.all(
+  eras
+    .map((era) => ({
+      era,
+      own: releases.filter((r) => r.era === era.id && r.type !== 'guest'),
+      guests: releases.filter((r) => r.era === era.id && r.type === 'guest'),
+    }))
+    .filter((s) => s.own.length + s.guests.length > 0)
+    .map(async (s) => ({ ...s, Intro: !s.era.data.draft || process.env.VERCEL_ENV !== 'production' ? (await render(s.era)).Content : undefined })),
+);
+const current = shelves.at(-1)!.era.id; // the newest era opens first
 const tapes = await mixtapes();
 const pool = await surprisePool();
 const filters = ['all', 'albums', 'eps', 'singles', 'collabs'] as const;
+const code: Record<ReleaseType, string> = { album: 'LP', ep: 'EP', single: 'SG', collab: 'CO', remix: 'RX', guest: 'FT' };
+const short = (years: string) => years.replace(/\b(19|20)(\d\d)\b/g, '’$2');
 const href = (r: ShelfRelease) => localePath(`/music/${r.slug}/`, locale);
 const meta = (r: ShelfRelease) =>
   [
@@ -28,6 +37,10 @@ const meta = (r: ShelfRelease) =>
     formatDate(r.date, locale),
     r.type === 'guest' ? r.artistCredit : r.tracks.length === 1 ? t(locale, 'release.track') : t(locale, 'release.tracks', { n: String(r.tracks.length) }),
   ].join(' · ');
+/** Cassette length printed on the label: the smallest standard tape the songs fit on. */
+/** The shelf LCD has only ASCII glyphs (VT323 subset). */
+const lcd = (text: string) => text.toUpperCase().replace(/[’‘]/g, "'").normalize('NFKD').replace(/[^\x20-\x7e]/g, '');
+const cassette = (ms: number) => `C-${[30, 46, 60, 90, 120].find((c) => c * 60_000 >= ms) ?? 120}`;
 ---
 
 <Base title={t(locale, 'music.title')} description={t(locale, 'music.description')}>
@@ -37,61 +50,83 @@ const meta = (r: ShelfRelease) =>
         <p class="kicker">{t(locale, 'music.kicker')}</p>
         <h1>{t(locale, 'music.heading')}</h1>
       </div>
-      <button type="button" class="btn btn-primary" hidden data-surprise data-pool={JSON.stringify(pool)} data-base={localePath('/music/', locale)}>
-        <span aria-hidden="true">⚄</span> {t(locale, 'music.surprise')}
-      </button>
+      <div class="tools" hidden data-tools>
+        <button type="button" class="btn btn-primary" data-surprise data-pool={JSON.stringify(pool)} data-base={localePath('/music/', locale)}>
+          <span aria-hidden="true">⚄</span> {t(locale, 'music.surprise')}
+        </button>
+        <label class="show">
+          {t(locale, 'music.show')}
+          <select data-filter>
+            {filters.map((f) => <option value={f}>{t(locale, `music.show.${f}`)}</option>)}
+          </select>
+        </label>
+        <span class="visually-hidden" role="status" data-count data-label={t(locale, 'music.count')}></span>
+      </div>
     </header>
 
-    <div class="filters" role="group" aria-labelledby="show-label" hidden data-filters>
-      <span id="show-label" class="filters-label">{t(locale, 'music.show')}</span>
-      {filters.map((f) => <button type="button" class="chip" aria-pressed={f === 'all' ? 'true' : 'false'} data-filter={f}>{t(locale, `music.show.${f}`)}</button>)}
-      <span class="visually-hidden" role="status" data-count data-label={t(locale, 'music.count')}></span>
-    </div>
-
-    <nav class="era-jump" aria-label={t(locale, 'music.eras')}>
-      {shelves.map(({ era }) => <a href={`#era-${era.id}`}>{era.data.title}</a>)}
-    </nav>
-
-    <div class="cabinet">
-      <p class="hint">{t(locale, 'music.shelfHint')}</p>
-      {
-        shelves.map(({ era, own, guests }) => (
-          <section class="shelf" id={`era-${era.id}`} aria-labelledby={`era-${era.id}-title`} data-shelf>
-            <h2 id={`era-${era.id}-title`}>
-              {era.data.title} <span class="years">{era.data.years}</span>
-            </h2>
-            <div class="rack">
-              {[own, guests].map(
-                (list, g) =>
-                  list.length > 0 && (
-                    <div class:list={['group', { guests: g === 1 }]} data-group>
-                      {g === 1 && <p class="guests-label">{t(locale, 'music.featuring')}</p>}
-                      <ul class="cds" aria-label={g === 1 ? t(locale, 'music.featuring') : undefined}>
-                        {list.map((r) => (
-                          <li class="cd" data-show={showGroup[r.type]}>
-                            <a href={href(r)}>
-                              <span class:list={['spine', `spine-${r.spine}`]} aria-hidden="true">
-                                <span class="spine-title">{r.title}</span>
-                                <span class="spine-year">&nbsp;· {r.date.slice(0, 4)}</span>
-                              </span>
-                              <Cover image={r.image} title={r.title} alt="" widths={[112, 384]} sizes="(min-width: 64rem) 192px, 56px" class="cd-cover" />
-                              <span class="info">
-                                <b>{r.title}</b>
-                                <span class="meta">{meta(r)}</span>
-                              </span>
-                            </a>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ),
-              )}
-            </div>
-            <div class="plank" aria-hidden="true" />
-          </section>
-        ))
-      }
-    </div>
+    <section class="cabinet-wrap" aria-label={t(locale, 'music.heading')}>
+      <div class="tabs" role="tablist" aria-label={t(locale, 'music.eras')} hidden data-tabs>
+        {
+          shelves.map(({ era }) => (
+            <button type="button" role="tab" class="tab" id={`tab-${era.id}`} data-era={era.id} aria-controls={`era-${era.id}`}
+              aria-selected={era.id === current ? 'true' : 'false'} tabindex={era.id === current ? 0 : -1}>
+              {era.data.title} <span class="tab-years">{short(era.data.years)}</span>
+            </button>
+          ))
+        }
+      </div>
+      <div class="cabinet" data-era={current} data-cabinet>
+        {
+          shelves.map(({ era, own, guests, Intro }) => (
+            <section class="shelf" id={`era-${era.id}`} data-era={era.id} aria-labelledby={`era-${era.id}-title`} data-shelf>
+              <div class="shelf-head">
+                <h2 id={`era-${era.id}-title`}>
+                  {era.data.title} <span class="years">{era.data.years}</span>
+                </h2>
+                {Intro && <div class="intro"><Intro /></div>}
+                <p class="hint">{t(locale, 'music.shelfHint')}</p>
+                <div class="deck" aria-hidden="true">
+                  <span class="deck-top"><span>&#9654; {lcd(era.data.title)}</span><span>{own.length + guests.length} CD</span></span>
+                  <span class="deck-line" data-deck>{lcd(t(locale, 'music.pick'))}</span>
+                </div>
+              </div>
+              <div class="rack">
+                {[own, guests].map(
+                  (list, g) =>
+                    list.length > 0 && (
+                      <div class:list={['group', { guests: g === 1 }]} data-group>
+                        {g === 1 && <p class="guests-label">{t(locale, 'music.featuring')}</p>}
+                        <ul class="cds" aria-label={g === 1 ? t(locale, 'music.featuring') : undefined}>
+                          {list.map((r) => (
+                            <li class:list={['cd', `cd-${r.type}`]} data-show={showGroup[r.type]}>
+                              <a href={href(r)} data-lcd={`${code[r.type]} ${lcd(r.title)} '${r.date.slice(2, 4)}`}>
+                                <span class:list={['spine', `spine-${r.spine}`]} aria-hidden="true">
+                                  <span class="spine-code">{code[r.type]}</span>
+                                  <span class="spine-title">{r.title}</span>
+                                  <span class="spine-year">’{r.date.slice(2, 4)}</span>
+                                </span>
+                                <span class="disc" aria-hidden="true" />
+                                <span class="front">
+                                  <Cover image={r.image} title={r.title} alt="" widths={[112, 384]} sizes="(min-width: 64rem) 192px, 56px" class="cd-cover" />
+                                  <span class="info">
+                                    <b>{r.title}</b>
+                                    <span class="meta">{meta(r)}</span>
+                                  </span>
+                                </span>
+                              </a>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ),
+                )}
+              </div>
+              <div class="plank" aria-hidden="true" />
+            </section>
+          ))
+        }
+      </div>
+    </section>
 
     {
       tapes.length > 0 && (
@@ -101,12 +136,25 @@ const meta = (r: ShelfRelease) =>
             <p>{t(locale, 'music.mixtapesNote')}</p>
           </div>
           <ul>
-            {tapes.map((m) => (
+            {tapes.map((m, i) => (
               <li>
-                <a class="tape-card" href={localePath(`/music/mixtapes/${m.id}/`, locale)}>
-                  <span class="reels" aria-hidden="true"><span /><span /></span>
-                  <b>{m.data.title}</b>
-                  <span>{t(locale, 'music.songs', { n: String(m.tracks.length) })}</span>
+                <a class:list={['cassette', `cassette-${(i % 4) + 1}`]} href={localePath(`/music/mixtapes/${m.id}/`, locale)}>
+                  <span class="label">
+                    <span class="label-top" aria-hidden="true">
+                      <span class="side">A</span>
+                      <span class="len">{cassette(m.tracks.reduce((s, tr) => s + (tr.durationMs ?? 0), 0))}</span>
+                    </span>
+                    <b class="tape-title">{m.data.title}</b>
+                    <span class="window" aria-hidden="true">
+                      <span class="reel reel-full" />
+                      <span class="ribbon" />
+                      <span class="reel" />
+                    </span>
+                    <span class="tape-sub">
+                      {m.data.subtitle} · {t(locale, 'music.songs', { n: String(m.tracks.length) })}
+                    </span>
+                  </span>
+                  <span class="foot" aria-hidden="true" />
                 </a>
               </li>
             ))}
@@ -122,30 +170,84 @@ const meta = (r: ShelfRelease) =>
 <script>
   import { readJSON, writeJSON } from '../lib/storage';
 
-  const filters = document.querySelector<HTMLElement>('[data-filters]')!;
-  const buttons = [...filters.querySelectorAll<HTMLButtonElement>('[data-filter]')];
-  const count = filters.querySelector<HTMLElement>('[data-count]')!;
-  const kinds = ['all', 'albums', 'eps', 'singles', 'collabs'];
+  const root = document.documentElement;
+  const cabinet = document.querySelector<HTMLElement>('[data-cabinet]')!;
+  const tablist = document.querySelector<HTMLElement>('[data-tabs]')!;
+  const tabs = [...tablist.querySelectorAll<HTMLButtonElement>('[role="tab"]')];
+  const panels = [...document.querySelectorAll<HTMLElement>('[data-shelf]')];
+  const select = document.querySelector<HTMLSelectElement>('[data-filter]')!;
+  const count = document.querySelector<HTMLElement>('[data-count]')!;
 
+  // Tabs (WAI-ARIA tabs pattern): one era shelf at a time, arrow keys move between eras.
+  for (const panel of panels) {
+    panel.setAttribute('role', 'tabpanel');
+    panel.setAttribute('aria-labelledby', `tab-${panel.dataset.era}`);
+  }
+  // remember = put the era in the URL; not on load, or the browser would scroll to it
+  const open = (tab: HTMLButtonElement, focus = false, remember = true) => {
+    for (const t of tabs) {
+      const on = t === tab;
+      t.setAttribute('aria-selected', String(on));
+      t.tabIndex = on ? 0 : -1;
+      document.getElementById(t.getAttribute('aria-controls')!)!.hidden = !on;
+    }
+    cabinet.dataset.era = tab.dataset.era;
+    tablist.scrollLeft = tab.offsetLeft - tablist.offsetLeft - 16; // phones: keep the open tab in sight
+    if (focus) tab.focus();
+    if (remember) history.replaceState(null, '', `${location.pathname}${location.search}#era-${tab.dataset.era}`);
+  };
+  const visible = () => tabs.filter((t) => !t.hidden);
+  for (const tab of tabs) {
+    tab.addEventListener('click', () => open(tab));
+    tab.addEventListener('keydown', (e) => {
+      const list = visible();
+      const i = list.indexOf(tab);
+      const to = { ArrowRight: i + 1, ArrowLeft: i - 1, Home: 0, End: list.length - 1 }[e.key];
+      if (to === undefined) return;
+      e.preventDefault();
+      open(list[(to + list.length) % list.length]!, true);
+    });
+  }
+
+  // Show select: hides the other kinds, and the eras (tabs) left empty; keeps the choice in ?show=.
   const show = (kind: string, announce = true) => {
-    for (const b of buttons) b.setAttribute('aria-pressed', String(b.dataset.filter === kind));
     let n = 0;
     for (const cd of document.querySelectorAll<HTMLElement>('.cd')) {
       cd.hidden = kind !== 'all' && cd.dataset.show !== kind;
       if (!cd.hidden) n++;
     }
-    // hide what would be left empty: a featuring group, or a whole era
-    for (const box of document.querySelectorAll<HTMLElement>('[data-group], [data-shelf]')) box.hidden = !box.querySelector('.cd:not([hidden])');
+    for (const group of document.querySelectorAll<HTMLElement>('[data-group]')) group.hidden = !group.querySelector('.cd:not([hidden])');
+    for (const tab of tabs) tab.hidden = !document.getElementById(tab.getAttribute('aria-controls')!)!.querySelector('.cd:not([hidden])');
+    const selected = tabs.find((t) => t.getAttribute('aria-selected') === 'true');
+    if (!selected || selected.hidden) open(visible().at(-1)!, false, announce);
     if (announce) count.textContent = count.dataset.label!.replace('{n}', String(n));
     const url = new URL(location.href);
     if (kind === 'all') url.searchParams.delete('show');
     else url.searchParams.set('show', kind);
     history.replaceState(null, '', url);
   };
-  for (const b of buttons) b.addEventListener('click', () => show(b.dataset.filter!));
+  select.addEventListener('change', () => show(select.value));
+
   const asked = new URLSearchParams(location.search).get('show') ?? 'all';
-  show(kinds.includes(asked) ? asked : 'all', false);
-  filters.hidden = false;
+  select.value = [...select.options].some((o) => o.value === asked) ? asked : 'all';
+  const fromHash = tabs.find((t) => `#era-${t.dataset.era}` === location.hash);
+  open(fromHash ?? tabs.find((t) => t.getAttribute('aria-selected') === 'true')!, false, false);
+  show(select.value, false);
+  root.dataset.shelfTabs = '';
+  tablist.hidden = false;
+  const selectedTab = tabs.find((t) => t.getAttribute('aria-selected') === 'true')!;
+  tablist.scrollLeft = selectedTab.offsetLeft - tablist.offsetLeft - 16;
+
+  // The shelf LCD names the CD being pulled out.
+  for (const deck of document.querySelectorAll<HTMLElement>('[data-deck]')) {
+    const idle = deck.textContent!;
+    const shelf = deck.closest('[data-shelf]')!;
+    const say = (e: Event) => {
+      const a = (e.target as Element).closest<HTMLElement>('[data-lcd]');
+      deck.textContent = a && (e.type === 'pointerover' || e.type === 'focusin') ? a.dataset.lcd! : idle;
+    };
+    for (const type of ['pointerover', 'pointerout', 'focusin', 'focusout']) shelf.addEventListener(type, say);
+  }
 
   // Surprise me: a song this visitor hasn't been sent to yet; when all have been, start over.
   const surprise = document.querySelector<HTMLButtonElement>('[data-surprise]')!;
@@ -159,7 +261,7 @@ const meta = (r: ShelfRelease) =>
     const [slug, n] = pick.split('#');
     location.assign(`${surprise.dataset.base}${slug}/#t${n}`);
   });
-  surprise.hidden = false;
+  document.querySelector<HTMLElement>('[data-tools]')!.hidden = false;
 </script>
 
 <style>
@@ -167,81 +269,165 @@ const meta = (r: ShelfRelease) =>
 
   .music-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 1rem 1.25rem; }
   .kicker { margin-bottom: 0.375rem; font-size: var(--fs-small); font-weight: 700; color: var(--era-accent-text); }
-  h1 { font-size: clamp(1.875rem, 0.25rem + 7.5vw, 5rem); overflow-wrap: break-word; font-stretch: 150%; letter-spacing: -0.02em; line-height: 0.92; }
+  h1 { font-size: clamp(1.875rem, 0.25rem + 7.5vw, 5rem); font-stretch: 150%; letter-spacing: -0.02em; line-height: 0.92; overflow-wrap: break-word; }
+  .tools { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem 1rem; }
+  .show { display: flex; align-items: center; gap: 0.5rem; font-weight: 700; }
+  .show select {
+    min-height: 48px;
+    padding: 0 2.25rem 0 0.75rem;
+    font: 400 1rem var(--font-body);
+    color: var(--ink);
+    background:
+      linear-gradient(45deg, transparent 50%, var(--ink) 50%) calc(100% - 1.125rem) 50% / 6px 6px no-repeat,
+      linear-gradient(-45deg, transparent 50%, var(--ink) 50%) calc(100% - 0.75rem) 50% / 6px 6px no-repeat,
+      var(--surface);
+    border: var(--border) solid var(--line);
+    box-shadow: var(--shadow-sm);
+    appearance: none;
+    cursor: pointer;
+  }
 
-  .filters { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin-top: -1.25rem; }
-  .filters-label { font-weight: 700; margin-inline-end: 0.25rem; }
-  .chip {
+  /* ---------- tabs: index cards clipped to the top of the cabinet ---------- */
+  .cabinet-wrap { display: grid; }
+  .tabs { display: flex; gap: 0.25rem; padding-inline: 0.75rem; overflow-x: auto; scrollbar-width: none; }
+  .tab {
+    flex: none;
     min-height: 44px;
     padding: 0 1rem;
     font-weight: 700;
-    background: var(--surface);
+    font-size: 0.9375rem;
     color: var(--ink);
+    background: color-mix(in srgb, var(--surface) 70%, var(--bg));
     border: var(--border) solid var(--line);
-    border-radius: 999px;
+    border-bottom: 0;
+    border-radius: 10px 10px 0 0;
     cursor: pointer;
+    translate: 0 4px;
+    transition: translate 120ms ease, background-color 120ms ease;
   }
-  .chip[aria-pressed='true'] { background: var(--ink); color: var(--bg); }
+  .tab:hover { translate: 0 1px; }
+  .tab[aria-selected='true'] { translate: 0 0; background: var(--era-accent); color: var(--on-era-accent); border-color: var(--c-ink); }
+  .tab-years { font: 400 1.125rem var(--font-lcd); }
+  .tab:focus-visible { outline-offset: -5px; }
 
-  .era-jump { display: none; }
-
-  /* the cabinet is an object on the board: the same dark wood-and-ink in every theme */
+  /* ---------- the cabinet: an object on the board, dark wood-and-ink in every theme ---------- */
   .cabinet {
+    position: relative;
+    min-width: 0;
     display: grid;
     gap: 2rem;
-    padding: 1.75rem 1.75rem 0;
-    background: linear-gradient(180deg, var(--c-remote-hi), var(--c-remote-lo));
+    padding: 1.5rem 1.75rem 0;
+    background:
+      radial-gradient(color-mix(in srgb, var(--era-accent) 30%, transparent) 1px, transparent 1.6px) 0 0 / 8px 8px,
+      linear-gradient(180deg, var(--c-remote-hi), var(--c-remote-lo));
     color: var(--c-flash);
     border: var(--border) solid var(--c-ink);
     box-shadow: 8px 8px 0 var(--era-accent);
+    transition: box-shadow 200ms ease;
   }
-  .hint { color: var(--c-remote-label); font-size: 0.875rem; }
-  .shelf h2 { font-size: var(--fs-h3); font-stretch: 125%; margin-bottom: 1rem; }
+  .shelf-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 2rem; row-gap: 0.375rem; margin-bottom: 0.5rem; }
+  .shelf-head > :not(.deck) { grid-column: 1; max-width: 46rem; }
+  .shelf h2 { font-size: var(--fs-h3); font-stretch: 125%; }
   .years { font: 400 1.25rem var(--font-lcd); color: var(--c-lcd-1); margin-inline-start: 0.375rem; }
-  .rack { display: flex; align-items: flex-end; gap: 0.375rem; min-height: 17rem; }
-  .group { display: flex; align-items: flex-end; gap: 0.375rem; }
-  .guests { margin-inline-start: 0.75rem; padding-inline-start: 0.75rem; border-inline-start: 2px dashed var(--c-remote-label); }
-  .guests-label {
-    writing-mode: vertical-rl;
-    rotate: 180deg;
-    align-self: stretch;
-    text-align: end;
-    font-size: var(--fs-small);
-    color: var(--c-remote-label);
-  }
-  .cds { display: flex; align-items: flex-end; gap: 0.375rem; padding: 0; list-style: none; }
-  .plank { height: 1.375rem; margin-inline: -1.75rem; background: linear-gradient(#b98b5f, #7b4f2e); border-top: var(--border) solid var(--c-ink); }
+  .intro, .hint { font-size: 0.875rem; color: var(--c-remote-label); }
+  .intro :global(p) { margin: 0; }
+  /* with tabs, the tab already names the era */
+  :global(html[data-shelf-tabs]) .shelf h2 { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
+  .rack { display: flex; align-items: flex-end; gap: 0.375rem; min-height: 18rem; padding-top: 1.25rem; }
+  .group, .cds { display: flex; align-items: flex-end; gap: 0.3125rem; }
+  .cds { padding: 0; list-style: none; }
+  .guests { margin-inline-start: 0.75rem; padding-inline-start: 0.75rem; border-inline-start: 2px dashed var(--c-remote-label); }
+  .guests-label { writing-mode: vertical-rl; rotate: 180deg; align-self: stretch; text-align: end; font-size: var(--fs-small); color: var(--c-remote-label); }
+  /* the shelf LCD: the remote's display, standing at the end of the shelf */
+  .deck {
+    display: grid;
+    gap: 0.25rem;
+    grid-column: 2;
+    grid-row: 1 / span 3;
+    align-self: start;
+    width: 14rem;
+    margin: 0.25rem 0.25rem 0 0;
+    padding: 0.5rem 0.75rem;
+    font-family: var(--font-lcd);
+    line-height: 1;
+    color: var(--c-lcd-ink);
+    background: linear-gradient(180deg, var(--c-lcd-1), var(--c-lcd-2));
+    border: 3px solid var(--c-remote-edge);
+    border-radius: 8px;
+    box-shadow: inset 0 2px 6px rgb(0 0 0 / 0.45), 0 0 0 4px var(--c-remote-mid), 4px 6px 0 6px rgb(0 0 0 / 0.35);
+  }
+  .deck-top { display: flex; justify-content: space-between; gap: 0.5rem; font-size: 0.9375rem; white-space: nowrap; }
+  .deck-line { font-size: 1.375rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* the plank: wood grain, a lit front edge and the shadow the cases cast */
+  .plank {
+    position: relative;
+    height: 1.5rem;
+    margin-inline: -1.75rem;
+    background:
+      linear-gradient(180deg, rgb(255 255 255 / 0.28) 0 2px, transparent 2px),
+      repeating-linear-gradient(92deg, rgb(70 38 16 / 0.18) 0 3px, transparent 3px 11px, rgb(255 230 190 / 0.1) 11px 13px, transparent 13px 29px),
+      linear-gradient(#b98b5f, #7b4f2e);
+    border-top: var(--border) solid var(--c-ink);
+    box-shadow: inset 0 -5px 0 rgb(0 0 0 / 0.22);
+  }
+  .plank::before { content: ''; position: absolute; inset: -0.875rem 0 auto; height: 0.75rem; background: linear-gradient(transparent, rgb(0 0 0 / 0.35)); pointer-events: none; }
+
+  /* ---------- a CD in its jewel case ---------- */
+  .cd { --w: 2.25rem; position: relative; }
+  .cd-ep { --w: 2.625rem; }
+  .cd-album { --w: 3.125rem; }
   .cd a {
     position: relative;
     display: block;
-    width: 2.5rem;
+    width: var(--w);
     height: 16rem;
     color: var(--c-ink);
     text-decoration: none;
-    border: var(--border) solid var(--c-ink);
-    box-shadow: 3px 0 0 color-mix(in srgb, var(--c-ink) 25%, transparent);
-    transition: width 220ms ease, translate 220ms ease, rotate 220ms ease;
+    transform-origin: 50% 100%;
+    transition: width 320ms cubic-bezier(0.2, 0.8, 0.2, 1), translate 320ms cubic-bezier(0.2, 0.8, 0.2, 1), rotate 320ms ease;
   }
   .spine {
     position: absolute;
     inset: 0;
     display: flex;
+    flex-direction: column;
     align-items: center;
-    justify-content: center;
+    gap: 0.375rem;
+    padding: 0.625rem 0 0.5rem;
+    overflow: hidden;
+    border: var(--border) solid var(--c-ink);
+    box-shadow: 3px 0 0 color-mix(in srgb, var(--c-ink) 30%, transparent);
+    /* plastic: a lit left edge, hinge ridges top and bottom, a soft shadow on the right */
+    background-image:
+      linear-gradient(90deg, rgb(255 255 255 / 0.6) 0 3px, rgb(255 255 255 / 0.12) 3px 7px, transparent 7px calc(100% - 5px), rgb(0 0 0 / 0.22) calc(100% - 5px)),
+      linear-gradient(180deg, transparent 5px, rgb(0 0 0 / 0.25) 5px 6px, transparent 6px calc(100% - 6px), rgb(0 0 0 / 0.25) calc(100% - 6px) calc(100% - 5px), transparent calc(100% - 5px));
+    transition: opacity 140ms ease;
+  }
+  .spine-code {
+    flex: none;
+    padding: 0.125rem 0.1875rem 0;
+    font: 400 0.9375rem / 1 var(--font-lcd);
+    color: var(--c-lcd-1);
+    background: var(--c-ink);
+    border-radius: 2px;
+  }
+  .spine-title {
+    flex: 1;
+    min-height: 0;
     writing-mode: vertical-rl;
     rotate: 180deg;
     overflow: hidden;
-    padding-block: 0.5rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-align: center;
     font: 800 0.8125rem / 1 var(--font-display);
     font-stretch: 80%;
-    white-space: nowrap;
     text-transform: uppercase;
-    /* the shine and shadow of a jewel case edge */
-    background-image: linear-gradient(90deg, rgb(255 255 255 / 0.55) 0 3px, transparent 3px calc(100% - 4px), rgb(0 0 0 / 0.2) calc(100% - 4px));
   }
-  .spine-title { min-height: 0; overflow: hidden; text-overflow: ellipsis; }
-  .spine-year { flex: none; }
+  .cd-album .spine-title { font-size: 0.9375rem; font-stretch: 95%; }
+  .spine-year { flex: none; font: 400 1rem / 1 var(--font-lcd); }
   .spine-flash { background-color: #ffffff; }
   .spine-night { background-color: #3a3c48; color: #ffffff; }
   .spine-plush { background-color: #ff8fc7; }
@@ -251,111 +437,192 @@ const meta = (r: ShelfRelease) =>
   .spine-strobe { background-color: #2335f0; color: #ffffff; }
   .spine-grass { background-color: #3f9a3a; }
 
-  /* closed: only the spine shows; the name stays for screen readers */
-  .cd :global(.cd-cover) { display: none; }
-  .info {
+  /* the disc: silver with a rainbow sheen, hidden inside the case until it is pulled out */
+  .disc {
     position: absolute;
-    width: 1px; height: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-    white-space: nowrap;
+    top: 0.75rem;
+    left: 0.5rem;
+    width: 11rem;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    border: var(--border) solid var(--c-ink);
+    background:
+      radial-gradient(circle, var(--c-remote-lo) 0 8%, #e9eaf0 8.5% 15%, rgb(0 0 0 / 0.25) 15.5% 16.5%, transparent 17%),
+      conic-gradient(from 20deg, #d6d8e2, #ffffff, #c8d2ff, #ffd3ec, #f4f9d6, #d6d8e2, #ffffff, #bfe7ff, #ffd3ec, #d6d8e2);
+    opacity: 0;
+    scale: 0.4;
+    pointer-events: none;
+    transition: translate 420ms cubic-bezier(0.2, 0.8, 0.2, 1) 80ms, opacity 120ms ease, scale 0ms 420ms;
   }
-  /* pulled out: the case turns to show the cover */
-  .cd a:hover, .cd a:focus-visible {
-    z-index: 1;
-    width: 12rem;
-    translate: 0 -1rem;
-    rotate: -2deg;
-    background: var(--c-remote-lo);
-    color: var(--c-flash);
-    box-shadow: 10px 14px 20px rgb(0 0 0 / 0.5);
-  }
-  .cd a:is(:hover, :focus-visible) .spine { display: none; }
-  .cd a:is(:hover, :focus-visible) :global(.cd-cover) { display: block; }
-  .cd a:is(:hover, :focus-visible) .info {
+  .front {
     position: absolute;
-    inset: auto 0.625rem 0.5rem;
-    width: auto; height: auto;
-    clip-path: none;
-    white-space: normal;
+    inset: 0;
     display: grid;
-    line-height: 1.15;
+    align-content: start;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem 0.5rem 0.5rem;
+    background: linear-gradient(135deg, rgb(255 255 255 / 0.16), transparent 40%), var(--c-remote-lo);
+    color: var(--c-flash);
+    border: var(--border) solid var(--c-ink);
+    opacity: 0;
+    pointer-events: none;
   }
+  /* the case hinge, on the right of the front */
+  .front::after { content: ''; position: absolute; inset: 0 0 0 auto; width: 0.375rem; background: var(--c-ink); }
+  .cd :global(.cd-cover) { display: none; border: 1px solid var(--c-ink); }
+  /* closed: the name stays for screen readers only */
+  .info { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
   .info b { font: 900 1rem / 1 var(--font-display); font-stretch: 125%; overflow-wrap: anywhere; }
-  .meta { font-size: var(--fs-small); }
-  html[data-calm] .cd a:is(:hover, :focus-visible) { rotate: none; translate: none; }
+  .meta { font-size: var(--fs-small); line-height: 1.25; }
+
+  /* pulled out: the case slides up and turns, the cover swings round, the disc peeks out of the side */
+  .cd a:is(:hover, :focus-visible) { z-index: 2; width: 12.5rem; translate: 0 -1.25rem; rotate: -2deg; }
+  .cd a:is(:hover, :focus-visible) .spine { opacity: 0; }
+  .cd a:is(:hover, :focus-visible) .front { opacity: 1; box-shadow: 10px 14px 22px rgb(0 0 0 / 0.55); }
+  .cd a:is(:hover, :focus-visible) :global(.cd-cover) { display: block; animation: swing 380ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+  .cd a:is(:hover, :focus-visible) .disc { opacity: 1; scale: 1; translate: 5.5rem -0.25rem; transition: translate 460ms cubic-bezier(0.2, 0.8, 0.2, 1) 120ms, opacity 80ms ease 120ms, scale 0ms 120ms; animation: spin 6s linear 580ms infinite; }
+  .cd a:is(:hover, :focus-visible) .info { position: static; width: auto; height: auto; clip-path: none; white-space: normal; display: grid; gap: 0.125rem; line-height: 1.15; }
+  .cd a:focus-visible { outline: none; }
+  .cd a:focus-visible .front { outline: var(--focus); outline-offset: 3px; }
+  @keyframes swing {
+    from { transform: perspective(600px) rotateY(-75deg); opacity: 0.2; }
+    to { transform: none; opacity: 1; }
+  }
+  @keyframes spin { to { rotate: 360deg; } }
+  /* calm mode and reduced motion: no slide, no turn, no spin; the cover just appears */
+  html[data-calm] .cd a:is(:hover, :focus-visible) { translate: none; rotate: none; }
+  html[data-calm] .cd a:is(:hover, :focus-visible) .disc { animation: none; }
   @media (prefers-reduced-motion: reduce) {
-    .cd a:is(:hover, :focus-visible) { rotate: none; translate: none; }
+    .cd a:is(:hover, :focus-visible) { translate: none; rotate: none; }
+    .cd a:is(:hover, :focus-visible) .disc { animation: none; }
   }
 
-  .tapes { display: grid; gap: 1rem; }
+  /* ---------- mixtapes: cassettes with a handwritten label ---------- */
+  .tapes { display: grid; gap: 1.25rem; }
   .tapes-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 0.25rem 1rem; }
   .tapes-head p, .data-note { font-size: var(--fs-small); color: var(--muted); }
-  .tapes ul { display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); gap: 1.25rem; padding: 0; list-style: none; }
-  /* tape cards are paper on the board: light in every theme */
-  .tape-card {
+  .tapes ul { display: grid; grid-template-columns: repeat(auto-fill, minmax(14.5rem, 1fr)); gap: 1.75rem 1.5rem; padding: 0.5rem 0 0; list-style: none; }
+  .cassette {
+    --paper: #ffffff;
+    --stripe: var(--c-strobe);
+    --tilt: -1.5deg;
+    position: relative;
     display: grid;
-    gap: 0.25rem;
-    height: 100%;
-    padding-bottom: 0.875rem;
+    padding: 0.625rem 0.625rem 0;
     color: var(--c-ink);
     text-decoration: none;
-    background: #ffffff;
+    /* the shell: smoky plastic with four screws */
+    background:
+      radial-gradient(circle at 0.625rem 0.625rem, #9a9cab 0 2px, var(--c-ink) 2.5px 3px, transparent 3.5px),
+      radial-gradient(circle at calc(100% - 0.625rem) 0.625rem, #9a9cab 0 2px, var(--c-ink) 2.5px 3px, transparent 3.5px),
+      radial-gradient(circle at 0.625rem calc(100% - 0.625rem), #9a9cab 0 2px, var(--c-ink) 2.5px 3px, transparent 3.5px),
+      radial-gradient(circle at calc(100% - 0.625rem) calc(100% - 0.625rem), #9a9cab 0 2px, var(--c-ink) 2.5px 3px, transparent 3.5px),
+      linear-gradient(160deg, rgb(255 255 255 / 0.14), transparent 35%),
+      var(--c-remote-hi);
     border: var(--border) solid var(--c-ink);
-    box-shadow: 5px 5px 0 var(--shadow);
-    rotate: -1.5deg;
-    transition: translate 80ms, box-shadow 80ms;
+    border-radius: 12px;
+    box-shadow: 5px 6px 0 var(--shadow);
+    rotate: var(--tilt);
+    transition: rotate 200ms ease, translate 200ms ease, box-shadow 200ms ease;
   }
-  .tapes li:nth-child(4n + 2) .tape-card { background: #fff36b; rotate: 1deg; }
-  .tapes li:nth-child(4n + 3) .tape-card { background: #ffd1ea; rotate: -1deg; }
-  .tapes li:nth-child(4n + 4) .tape-card { background: #dfe3ff; rotate: 1.5deg; }
-  .tape-card:hover { translate: -1px -2px; box-shadow: 6px 7px 0 var(--shadow); }
-  .tape-card b { padding-inline: 0.875rem; padding-top: 0.75rem; font: 400 1.1875rem / 1.15 var(--font-hand); }
-  .tape-card > span:last-child { padding-inline: 0.875rem; font-size: var(--fs-small); }
-  .reels { display: flex; justify-content: center; gap: 1.625rem; padding-block: 1.375rem; background: var(--c-remote-hi); border-bottom: var(--border) solid var(--c-ink); }
-  .reels span { width: 2.125rem; aspect-ratio: 1; border-radius: 50%; border: var(--border) solid var(--c-ink); background: radial-gradient(#fff 0 22%, #c9ccda 24% 60%, #5d6174 62%); }
-  html[data-calm] .tape-card { rotate: none; }
+  .cassette-2 { --paper: #fff36b; --stripe: var(--c-aura); --tilt: 1deg; }
+  .cassette-3 { --paper: #ffd1ea; --stripe: var(--c-ink); --tilt: -1deg; }
+  .cassette-4 { --paper: #dfe3ff; --stripe: #3f9a3a; --tilt: 1.5deg; }
+  .label {
+    display: grid;
+    gap: 0.375rem;
+    padding: 0.5rem 0.75rem 0.625rem;
+    background:
+      linear-gradient(var(--stripe), var(--stripe)) 0 calc(100% - 1.75rem) / 100% 0.3125rem no-repeat,
+      repeating-linear-gradient(transparent 0 1.3rem, rgb(18 18 22 / 0.12) 1.3rem calc(1.3rem + 1px)),
+      var(--paper);
+    border: var(--border) solid var(--c-ink);
+    border-radius: 6px;
+  }
+  .label-top { display: flex; justify-content: space-between; align-items: center; font: 400 1.125rem / 1 var(--font-lcd); }
+  .side { display: grid; place-items: center; width: 1.375rem; aspect-ratio: 1; color: var(--paper); background: var(--c-ink); border-radius: 3px; }
+  .tape-title { font: 400 1.25rem / 1.1 var(--font-hand); min-height: 2.2em; }
+  /* the window: two reels, the left one full of tape, joined by the ribbon */
+  .window {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 3.5rem;
+    padding-inline: 0.875rem;
+    background: linear-gradient(180deg, #2a2b35, #121216);
+    border: var(--border) solid var(--c-ink);
+    border-radius: 2rem;
+  }
+  .ribbon { position: absolute; inset: auto 2.75rem 0.625rem; height: 0.3125rem; background: #5a3a24; border-radius: 2px; }
+  .reel {
+    position: relative;
+    z-index: 1;
+    width: 2.25rem;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    /* hub with six teeth, then a ring of brown tape */
+    background:
+      radial-gradient(circle, transparent 0 22%, #ffffff 23% 44%, transparent 45%),
+      repeating-conic-gradient(#ffffff 0 18deg, transparent 18deg 60deg),
+      radial-gradient(circle, #ffffff 0 46%, #6b4429 47% 100%);
+    -webkit-mask: radial-gradient(circle, transparent 0 21%, #000 22%);
+    mask: radial-gradient(circle, transparent 0 21%, #000 22%);
+    box-shadow: 0 0 0 2px var(--c-ink);
+  }
+  .reel-full { width: 2.75rem; }
+  .tape-sub { font-size: var(--fs-small); font-weight: 700; padding-top: 0.25rem; }
+  /* the bottom edge of the shell with its two capstan holes */
+  .foot {
+    height: 1.5rem;
+    margin: 0.5rem 1.75rem 0;
+    background:
+      radial-gradient(circle at 30% 55%, var(--c-ink) 0 0.25rem, transparent 0.3rem),
+      radial-gradient(circle at 70% 55%, var(--c-ink) 0 0.25rem, transparent 0.3rem),
+      #23242c;
+    border: var(--border) solid var(--c-ink);
+    border-bottom: 0;
+    clip-path: polygon(8% 0, 92% 0, 100% 100%, 0 100%);
+  }
+  .cassette:hover, .cassette:focus-visible { rotate: 0deg; translate: 0 -4px; box-shadow: 8px 10px 0 var(--shadow); }
+  .cassette:is(:hover, :focus-visible) .reel { animation: spin 1.6s linear infinite; }
+  html[data-calm] .cassette { rotate: none; }
+  html[data-calm] .cassette .reel { animation: none; }
+  @media (prefers-reduced-motion: reduce) {
+    .cassette { rotate: none; }
+    .cassette:is(:hover, :focus-visible) { translate: none; }
+    .cassette .reel { animation: none !important; }
+  }
 
-  /* phones and tablets: a compact list with era links instead of the shelf */
+  /* ---------- phones and tablets: a compact list under the era tabs ---------- */
   @media (max-width: 63.99rem) {
-    .era-jump { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: -1.25rem; }
-    .era-jump a {
-      display: inline-flex;
-      align-items: center;
-      min-height: 44px;
-      padding: 0 0.75rem;
-      font-size: 0.875rem;
-      font-weight: 700;
-      color: var(--ink);
-      text-decoration: none;
-      border: var(--border) solid var(--line);
-      border-radius: 999px;
-      background: var(--surface);
-    }
-    .chip { padding: 0 0.75rem; font-size: 0.875rem; }
-    .cabinet { padding: 0; background: none; color: var(--ink); border: 0; box-shadow: none; gap: 2rem; }
-    .hint, .plank, .spine { display: none; }
-    .guests-label { writing-mode: horizontal-tb; rotate: none; text-align: start; color: var(--muted); }
-    .shelf { scroll-margin-top: 1rem; }
+    .tabs { padding-inline: 0; }
+    .tab { padding: 0 0.75rem; font-size: 0.875rem; }
+    .cabinet { padding: 1rem; gap: 1.5rem; background: var(--surface); color: var(--ink); border-color: var(--line); box-shadow: var(--shadow-md); }
+    .shelf-head { margin-bottom: 0.75rem; }
     .years { color: var(--era-accent-text); font-size: 1.125rem; }
-    .rack, .group, .cds { display: grid; min-height: 0; gap: 0.625rem; }
+    .intro { color: var(--muted); }
+    .hint, .plank, .spine, .disc, .deck { display: none; }
+    .guests-label { writing-mode: horizontal-tb; rotate: none; text-align: start; color: var(--muted); }
+    .rack, .group, .cds { display: grid; min-height: 0; gap: 0.625rem; padding: 0; }
     .guests { margin: 0.625rem 0 0; padding: 0.625rem 0 0; border: 0; border-top: 2px dashed var(--line); }
-    .cd a, .cd a:hover, .cd a:focus-visible {
-      display: grid;
+    .cd a, .cd a:hover, .cd a:focus-visible { width: auto; height: auto; translate: none; rotate: none; }
+    .front, .cd a:is(:hover, :focus-visible) .front {
+      position: static;
+      opacity: 1;
+      pointer-events: auto;
       grid-template-columns: 3.5rem 1fr;
       align-items: center;
       gap: 0.875rem;
-      width: auto;
-      height: auto;
       padding: 0.5rem;
-      translate: none;
-      rotate: none;
       background: var(--surface);
       color: var(--ink);
       border-color: var(--line);
       box-shadow: var(--shadow-sm);
     }
-    .cd :global(.cd-cover), .cd a:is(:hover, :focus-visible) :global(.cd-cover) { display: block; border: 1px solid var(--line); }
+    .front::after { display: none; }
+    .cd a:hover .front { background: color-mix(in srgb, var(--era-accent) 10%, var(--surface)); }
+    .cd :global(.cd-cover), .cd a:is(:hover, :focus-visible) :global(.cd-cover) { display: block; animation: none; border-color: var(--line); }
     .info, .cd a:is(:hover, :focus-visible) .info { position: static; display: grid; width: auto; height: auto; clip-path: none; white-space: normal; line-height: 1.2; }
     .meta { color: var(--muted); }
   }

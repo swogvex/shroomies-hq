@@ -92,5 +92,6 @@
   "mixtape.description": "{title}: a themed list of Tiffany Day songs by Shroomies HQ, with official links.",
   "mixtape.from": "from {release} ({year})",
   "mixtape.back": "All music",
-  "release.producers": "Producers"
+  "release.producers": "Producers",
+  "music.pick": "Pick a CD"
 }
