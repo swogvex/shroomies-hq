@@ -67,7 +67,8 @@
 
   .lcd {
     display: inline-block;
-    padding: 0.125rem 0.5rem;
+    /* VT323's capitals sit a hair high in Chromium and dead centre in WebKit: split the difference */
+    padding: calc(0.125rem + 0.025em) 0.5rem calc(0.125rem - 0.025em);
     font-family: var(--font-lcd);
     font-size: 1.25rem;
     line-height: 1.2;
@@ -77,12 +78,9 @@
     box-shadow: inset 0 2px 6px color-mix(in srgb, var(--c-ink) 45%, transparent);
     border-radius: 4px;
   }
-  /* LCD text sits in the middle of its screen: the box is trimmed to the capitals (VT323 is all caps here), so the
-     padding is the same above and below them. Symbols VT323 lacks (▶ – →) come from a fallback font with taller metrics
-     and used to push the letters up; the trim ignores them. Browsers without text-box keep the old padding. */
-  @supports (text-box: trim-both cap alphabetic) {
-    .lcd { text-box: trim-both cap alphabetic; padding-block: 0.42em; }
-  }
+  /* LCD text sits in the middle of its screen: VT323 centres its capitals in the line box, so equal padding is enough.
+     The ▶ is drawn (.lcd-play) because the font lacks it and the fallback glyph sat high. No text-box trim: it would
+     measure the fallback font first and change the chip's height when VT323 arrives (layout shift). */
   /* the ▶ of the LCDs, drawn: exactly cap height, on the baseline (the font has no ▶; the fallback glyph sat high) */
   .lcd-play::before {
     content: '';
@@ -92,6 +90,7 @@
     margin-inline-end: 0.4em;
     background: currentColor;
     clip-path: polygon(0 0, 100% 50%, 0 100%);
+    overflow: hidden; /* an empty inline-block would take its baseline from an invisible line and lift the text */
   }
 
   .flyer {
