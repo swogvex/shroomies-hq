@@ -135,7 +135,7 @@ const jsonLd = {
       if (document.documentElement.hasAttribute('data-calm') || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
       const r = jewel.getBoundingClientRect();
       jewel.dataset.follow = '';
-      jewel.style.setProperty('--gx', `${Math.round((((e.clientX - r.left) / r.width) - 0.5) * 36)}%`); // CSSOM, allowed by the CSP
+      jewel.style.setProperty('--gx', `${((((e.clientX - r.left) / r.width) - 0.5) * 18).toFixed(1)}%`); // gentle: half the drift's range // CSSOM, allowed by the CSP
     });
     const glint = jewel.querySelector<HTMLElement>('.glint')!;
     jewel.addEventListener('pointerleave', () => {
@@ -239,7 +239,7 @@ const jsonLd = {
     animation: glint-drift 7s ease-in-out infinite alternate;
   }
   @keyframes glint-drift { from { transform: translateX(-18%); } to { transform: translateX(18%); } }
-  .case[data-follow] .glint::before { animation: none; transform: translateX(var(--gx, 0%)); transition: transform 180ms ease-out; }
+  .case[data-follow] .glint::before { animation: none; transform: translateX(var(--gx, 0%)); transition: transform 1.1s cubic-bezier(0.2, 0.7, 0.2, 1); } /* a slow, damped glide behind the pointer */
   .case[data-drift] .glint::before { animation: none; } /* the script carries the drift on from where the pointer left it */
   :global(html[data-calm]) .glint::before { animation: none; }
   @media (prefers-reduced-motion: reduce) { .glint::before { animation: none; } }
