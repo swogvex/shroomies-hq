@@ -138,15 +138,17 @@ const jsonLd = {
   .main { grid-area: main; }
   .side, .main { display: grid; gap: 1.25rem; min-width: 0; }
 
-  /* jewel case: cover with the dark hinge on the right */
+  /* jewel case: the dark hinge sits on the LEFT, like a real case, so it never merges with the bottom-right shadow;
+     the shadow is the shared large one and the margin keeps it inside the column on phones */
   .case {
     position: relative;
-    padding: 0.875rem 1.875rem 0.875rem 0.875rem;
+    margin-inline-end: 8px;
+    padding: 0.875rem 0.875rem 0.875rem 1.875rem;
     background: linear-gradient(135deg, rgb(255 255 255 / 0.55), rgb(255 255 255 / 0.08) 45%, rgb(255 255 255 / 0.3)), var(--surface);
     border: var(--border) solid var(--line);
-    box-shadow: 12px 14px 0 var(--shadow);
+    box-shadow: var(--shadow-lg);
   }
-  .case::after { content: ''; position: absolute; inset: 0 0 0 auto; width: 1.125rem; background: var(--c-ink); }
+  .case::after { content: ''; position: absolute; inset: 0 auto 0 0; width: 1.125rem; background: repeating-linear-gradient(180deg, var(--c-ink) 0 6px, color-mix(in srgb, var(--c-ink) 82%, var(--c-paper)) 6px 7px); }
   .case :global(.cover) { border: 1px solid var(--line); }
   figcaption { margin-top: 0.5rem; font-size: var(--fs-small); color: var(--muted); }
 
