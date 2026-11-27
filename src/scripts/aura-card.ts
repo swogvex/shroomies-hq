@@ -2,16 +2,9 @@
 // the aura polaroid, the fan line and the address: no answers, no names. Wide 1200×630 and story 1080×1350.
 export type CardFormat = 'wide' | 'story';
 type Era = { name: string; years: string; tag: string } | null;
-type Card = { era: Era; aura: string; song: string; caption: string; s: Record<string, string> };
+/** colours: the aura's --a1, --a2 and --a-bg, read from the page (src/styles/aura-skins.css) */
+type Card = { era: Era; colours: [string, string, string]; song: string; caption: string; s: Record<string, string> };
 
-// the same pairs as the page (Aura.astro, [data-aura-skin])
-const skins: Record<string, [string, string, string]> = {
-  'first-singles': ['#9aa6ff', '#ffd6ea', '#241f4a'],
-  projects: ['#ff4a1c', '#ffb347', '#3a1208'],
-  ltf: ['#3f9a3a', '#ff8fc7', '#0f2618'],
-  halo: ['#2335f0', '#ffffff', '#070a2a'],
-  solo: ['#f4f4f7', '#c9cbd6', '#2a2c36'],
-};
 const INK = '#121216';
 const PAPER = '#ededea';
 const LCD = ['#c7f26a', '#a9dc45', '#1d2a08'];
@@ -60,8 +53,7 @@ function grain(ctx: CanvasRenderingContext2D, w: number, h: number, colour: stri
   for (let y = 0; y < h; y += step) for (let x = (y / step) % 2 ? step / 2 : 0; x < w; x += step) ctx.fillRect(x, y, 1.2, 1.2);
 }
 
-async function polaroid(ctx: CanvasRenderingContext2D, x: number, y: number, size: number, tilt: number, aura: string, caption: string) {
-  const [a1, a2, bg] = skins[aura] ?? skins.solo!;
+async function polaroid(ctx: CanvasRenderingContext2D, x: number, y: number, size: number, tilt: number, [a1, a2, bg]: [string, string, string], caption: string) {
   const pad = size * 0.05;
   const h = size + pad + size * 0.2;
   ctx.save();
@@ -133,7 +125,7 @@ export async function drawCard(canvas: HTMLCanvasElement, format: CardFormat, ca
   const ctx = canvas.getContext('2d')!;
   const W = canvas.width;
   const H = canvas.height;
-  const [, , bg] = skins[card.aura] ?? skins.solo!;
+  const [, , bg] = card.colours;
   const big = card.era ? card.era.name : card.song;
   const meta = card.era ? `${card.era.years} · ${card.era.tag}` : card.caption;
 
@@ -141,7 +133,7 @@ export async function drawCard(canvas: HTMLCanvasElement, format: CardFormat, ca
     ctx.fillStyle = PAPER;
     ctx.fillRect(0, 0, W, H);
     grain(ctx, W, H, 'rgba(18,18,22,0.08)');
-    await polaroid(ctx, 70, 52, 390, -3, card.aura, card.caption);
+    await polaroid(ctx, 70, 52, 390, -3, card.colours, card.caption);
     const x = 560;
     const width = W - x - 70;
     chip(ctx, card.s.myAura!, x, 64, 30);
@@ -187,7 +179,7 @@ export async function drawCard(canvas: HTMLCanvasElement, format: CardFormat, ca
     ctx.strokeStyle = '#2335f0';
     ctx.strokeRect(9, 9, W - 18, H - 18);
     chip(ctx, card.s.myAura!, W / 2, 90, 40, 'center');
-    await polaroid(ctx, W / 2 - 260, 180, 520, -3, card.aura, card.caption);
+    await polaroid(ctx, W / 2 - 260, 180, 520, -3, card.colours, card.caption);
     ctx.textAlign = 'center';
     ctx.textBaseline = 'alphabetic';
     const name = fit(ctx, big, W - 140, 2, 120, 56);

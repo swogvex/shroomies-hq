@@ -120,7 +120,7 @@ const axis = [
         <table>
           <caption class="visually-hidden">{t(locale, 'tracker.tableCaption')}</caption>
           <thead>
-            <tr><th scope="col">{t(locale, 'tracker.colRelease')}</th><th scope="col">{t(locale, 'tracker.colDate')}</th><th scope="col">{t(locale, 'tracker.colType')}</th><th scope="col">{t(locale, 'tracker.colTracks')}</th></tr>
+            <tr><th scope="col">{t(locale, 'tracker.colRelease')}</th><th scope="col">{t(locale, 'tracker.colDate')}</th><th scope="col">{t(locale, 'tracker.colType')}</th><th scope="col"><span class="long">{t(locale, 'tracker.colTracks')}</span><span class="short" aria-hidden="true">#</span></th></tr>
           </thead>
           <tbody>
             {
@@ -299,6 +299,16 @@ const axis = [
   .as-table table { width: 100%; margin-top: 0.5rem; border-collapse: collapse; font-size: var(--fs-small); }
   .as-table :is(th, td) { padding: 0.5rem 0.75rem 0.5rem 0; text-align: start; border-bottom: 1px solid var(--c-remote-line); }
   .as-table thead th { color: var(--c-remote-label); font-weight: 400; }
+  .as-table .short { display: none; }
+  @media (max-width: 30rem) { .as-table .short { display: inline; } }
+  @media (max-width: 30rem) {
+    /* 320 px: tighter cells; cells wrap between words (a date as "17 nov / 2026"), only a release title may break inside a word */
+    .as-table table { font-size: 0.75rem; }
+    .as-table :is(th, td) { padding-inline-end: 0.5rem; }
+    /* the track count's header shrinks to "#"; readers still get the full word */
+    .as-table .long { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+    .as-table td:first-child { overflow-wrap: anywhere; }
+  }
   .as-table a { color: var(--c-flash); }
 
   /* ---------- three cards ---------- */

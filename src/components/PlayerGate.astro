@@ -92,6 +92,7 @@ const others = (
       frame.src = gate.dataset.gate!;
       frame.title = gate.dataset.frameTitle!;
       frame.loading = 'lazy';
+      frame.referrerPolicy = 'strict-origin-when-cross-origin';
       frame.allow = 'autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture';
       frame.height = 'tall' in gate.dataset ? '352' : '152';
       // A blocked or offline embed never fires load: after a while, say so and offer the link.

@@ -68,6 +68,10 @@ test('keyboard: picks never jump pages, 1–4 pick, Enter goes on, Backspace goe
   await page.keyboard.press('Enter');
   await expect(page.locator('#aura-q0')).toBeFocused();
   await expect(page.locator('[data-progress-text]')).toHaveText('Question 1 of 8');
+  // what a screen reader gets: the question tells its place, each answer is named once with its line as description
+  await expect(page.locator('#aura-q0')).toHaveAttribute('aria-describedby', 'aura-progress');
+  await expect(page.getByRole('radio', { name: 'Under the covers', exact: true })).toHaveAccessibleDescription('writing lyrics in my notes app');
+  expect(await page.locator('.q[data-q="0"] [role="radiogroup"]').ariaSnapshot()).not.toContain('text:');
   await page.keyboard.press('2');
   await expect(page.locator('.q[data-q="0"] input').nth(1)).toBeChecked();
   await page.keyboard.press('ArrowDown'); // native radios: the arrow moves the pick, the page stays
@@ -176,5 +180,32 @@ test.describe('phone', () => {
     await expect(page.locator('[data-stage="result"]')).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(360);
     await axe(page);
+  });
+
+  test('every era name and song title fits its card at 320 px without breaking a word', async ({ page }) => {
+    await page.setViewportSize({ width: 320, height: 780 });
+    await page.goto('/es/aura/');
+    await page.locator('[data-start]').tap();
+    for (let i = 0; i < 8; i++) await page.locator(`.q[data-q="${i}"] .opt`).nth(1).tap();
+    await expect(page.locator('[data-stage="result"]')).toBeVisible();
+    await page.evaluate(() => document.fonts.ready);
+    const broken = await page.evaluate(() => {
+      const d = JSON.parse(document.querySelector('[data-aura-data]')!.textContent!);
+      document.querySelector<HTMLElement>('[data-era-block]')!.hidden = false;
+      const bad: string[] = [];
+      const fits = (box: HTMLElement, cls: string, set: () => void, text: string) => {
+        set();
+        box.className = cls;
+        box.style.overflowWrap = 'normal'; // a word that only fits by breaking would overflow now
+        if (box.scrollWidth > box.clientWidth + 1) bad.push(text);
+        box.style.overflowWrap = '';
+      };
+      const era = document.querySelector<HTMLElement>('[data-era-name]')!;
+      for (const e of d.eras) fits(era, `era-name fit-${e.fit}`, () => (era.textContent = e.name), e.name);
+      const song = document.querySelector<HTMLElement>('[data-song-title]')!;
+      for (const s of d.deck) fits(song.parentElement!, `song-title fit-${s.fit}`, () => (song.textContent = s.title), s.title);
+      return bad;
+    });
+    expect(broken).toEqual([]);
   });
 });

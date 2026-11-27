@@ -66,6 +66,15 @@ test('Surprise me opens a song not opened before and remembers it', async ({ pag
   await expect(page.locator('.tracks li:target')).toHaveCount(1);
 });
 
+test('Surprise me still works when its stored list is damaged', async ({ page }) => {
+  for (const bad of ['5', '{}', '"x"', 'not json']) {
+    await page.goto('/music/');
+    await page.evaluate((v) => localStorage.setItem('shq:opened-songs', v), bad);
+    await page.getByRole('button', { name: 'Surprise me' }).click();
+    await expect(page, bad).toHaveURL(/\/music\/[a-z0-9-]+\/#t\d+$/);
+  }
+});
+
 test('release pages make no third-party request before a click', async ({ page, baseURL }) => {
   const { foreign, errors } = watch(page, new URL(baseURL!).origin);
   for (const path of ['/music/', '/music/halo/', '/es/music/lover-tofu-fruit/', '/music/mixtapes/when-the-drop-hits/']) {

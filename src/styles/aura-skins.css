@@ -1,0 +1,12 @@
+/* Aura colours of the aura reading (25-spec): one pair + night per era, from the approved era skins, and the
+   standalone white light. One place for the page, the B1 teaser and the share card (which reads them back). */
+@layer components {
+  [data-aura-skin] { --a1: #c9cbd6; --a2: #8f91a3; --a-bg: #2a2c36; }
+  [data-aura-skin='first-singles'] { --a1: #9aa6ff; --a2: #ffd6ea; --a-bg: #241f4a; }
+  [data-aura-skin='projects'] { --a1: #ff4a1c; --a2: #ffb347; --a-bg: #3a1208; }
+  [data-aura-skin='ltf'] { --a1: #3f9a3a; --a2: #ff8fc7; --a-bg: #0f2618; }
+  [data-aura-skin='halo'] { --a1: #2335f0; --a2: #ffffff; --a-bg: #070a2a; }
+  [data-aura-skin='solo'] { --a1: #f4f4f7; --a2: #c9cbd6; --a-bg: #2a2c36; }
+  /* the four auras mixing (intro polaroid, teaser): each blob carries its own era skin */
+  [data-aura-skin='all'] { --a-bg: #14163a; }
+}
