@@ -7,6 +7,7 @@ import PlayerGate from '../components/PlayerGate.astro';
 import Cassette from '../components/Cassette.astro';
 import AuraTeaser from '../components/AuraTeaser.astro';
 import { localePath, t, type Locale } from '../i18n';
+import { lcdText } from '../lib/lcd';
 import { anniversaries, formatDate } from '../lib/dates';
 import { allShows, discography, journal, listenFor, mixtapes, songsOfDays, surprisePool, titleFit } from '../lib/music';
 import { lastRelease, monthlyCounts, nextShow } from '../lib/portal';
@@ -29,7 +30,7 @@ const own = releases.filter(countsAsRelease);
 const counts = monthlyCounts(own, buildDay);
 const peak = Math.max(2, ...counts.map((c) => c.count)); // one release a month is a half bar
 
-const lcd = (text: string) => text.toUpperCase().normalize('NFKD').replace(/[^\x20-\x7e]/g, '');
+const lcd = lcdText; // the LCD font is an ASCII subset
 const dayLabel = (d: string) => lcd(formatDate(d, locale, { weekday: 'short', day: 'numeric', month: 'short' }).replace(/[.,]/g, ''));
 const fits = ['fit-s', 'fit-m', 'fit-l', 'fit-xl'] as const;
 const perDay = days.map((day) => {

@@ -8,6 +8,7 @@ import Cover from '../components/Cover.astro';
 import Cassette from '../components/Cassette.astro';
 import AuraTeaser from '../components/AuraTeaser.astro';
 import { localePath, t, type Locale } from '../i18n';
+import { lcdText } from '../lib/lcd';
 import { formatDate } from '../lib/dates';
 import { discography, mixtapes, showGroup, surprisePool, type ShelfRelease } from '../lib/music';
 import type { ReleaseType } from '../lib/musicbrainz';
@@ -39,8 +40,7 @@ const meta = (r: ShelfRelease) =>
     formatDate(r.date, locale),
     r.type === 'guest' ? r.artistCredit : r.tracks.length === 1 ? t(locale, 'release.track') : t(locale, 'release.tracks', { n: String(r.tracks.length) }),
   ].join(' · ');
-/** The shelf LCD has only ASCII glyphs (VT323 subset). */
-const lcd = (text: string) => text.toUpperCase().replace(/[’‘]/g, "'").normalize('NFKD').replace(/[^\x20-\x7e]/g, '');
+const lcd = lcdText; // the LCD font is an ASCII subset
 ---
 
 <Base title={t(locale, 'music.title')} description={t(locale, 'music.description')}>
@@ -531,7 +531,7 @@ const lcd = (text: string) => text.toUpperCase().replace(/[’‘]/g, "'").norma
     .tools { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: end; width: 100%; }
     .tools .btn { width: 100%; padding-inline: 0.75rem; }
     .show { display: grid; gap: 0.25rem; font-size: var(--fs-small); }
-    .show select { width: 100%; }
+    .show select { width: 100%; min-width: 0; } /* the primitive's 10rem floor overflowed 320 px phones */
     :global(html[data-js]) .tabs { display: grid; }
     .tabs {
       position: sticky;

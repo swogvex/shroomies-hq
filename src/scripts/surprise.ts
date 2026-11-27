@@ -5,7 +5,8 @@ import { readJSON, writeJSON } from '../lib/storage';
 for (const button of document.querySelectorAll<HTMLButtonElement>('[data-surprise]')) {
   button.addEventListener('click', () => {
     const pool: string[] = JSON.parse(button.dataset.pool!);
-    const opened = new Set(readJSON<string[]>('opened-songs', []));
+    const stored = readJSON<unknown>('opened-songs', []);
+    const opened = new Set(Array.isArray(stored) ? stored : []); // a damaged value starts over instead of breaking the button
     const fresh = pool.filter((s) => !opened.has(s));
     const choices = fresh.length ? fresh : pool;
     const pick = choices[Math.floor(Math.random() * choices.length)]!;

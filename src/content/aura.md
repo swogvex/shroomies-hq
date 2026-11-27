@@ -1,6 +1,6 @@
 ---
-# The aura reading (/aura/). The owner edits this file. Spanish strings are Claude's draft until reviewed.
-reviewed: false
+# The aura reading (/aura/). The owner edits this file. Spanish reviewed by the owner 2026-11-27.
+reviewed: true
 
 # Feelings, in tie-break order. id = what questions and songs use; label = shown on the page; why = "Because <why>, and <why>."
 feelings:

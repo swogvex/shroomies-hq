@@ -2,6 +2,8 @@
 // The small flyer that sends to B1 · the aura reading (25-spec, "Teasers"): Home and Music. A mini polaroid with the
 // four auras mixing, the question and the call. No script: the whole card is one link.
 import { localePath, t, type Locale } from '../i18n';
+import { auraEras } from '../lib/aura';
+import '../styles/aura-skins.css';
 
 interface Props {
   locale: Locale;
@@ -11,8 +13,8 @@ const { locale, class: cls } = Astro.props;
 ---
 
 <a class:list={['aura-teaser', 'lift', cls]} href={localePath('/aura/', locale)}>
-  <span class="mini" aria-hidden="true">
-    <span class="b b1"></span><span class="b b2"></span><span class="b b3"></span><span class="b b4"></span>
+  <span class="mini" data-aura-skin="all" aria-hidden="true">
+    {auraEras.map((e, i) => <span class={`b b${i + 1}`} data-aura-skin={e}></span>)}
     <img src="/stickers/halo-shroom.svg" alt="" width="248" height="248" loading="lazy" decoding="async" />
   </span>
   <span class="words">
@@ -41,7 +43,7 @@ const { locale, class: cls } = Astro.props;
     aspect-ratio: 1;
     overflow: hidden;
     isolation: isolate;
-    background: #14163a;
+    background: var(--a-bg);
     border: var(--border) solid var(--c-ink);
     outline: 0.25rem solid #fbfaf6;
     outline-offset: 0;
@@ -49,11 +51,11 @@ const { locale, class: cls } = Astro.props;
     margin: 0.375rem;
     rotate: 4deg;
   }
-  .b { position: absolute; width: 70%; aspect-ratio: 1; border-radius: 50%; filter: blur(8px); mix-blend-mode: screen; }
-  .b1 { left: -20%; top: -20%; background: #9aa6ff; }
-  .b2 { right: -25%; top: 10%; background: #ff4a1c; }
-  .b3 { left: 0; bottom: -30%; background: #3f9a3a; }
-  .b4 { right: -10%; bottom: -25%; background: #2335f0; }
+  .b { position: absolute; width: 70%; aspect-ratio: 1; border-radius: 50%; filter: blur(8px); mix-blend-mode: screen; background: var(--a1); }
+  .b1 { left: -20%; top: -20%; }
+  .b2 { right: -25%; top: 10%; }
+  .b3 { left: 0; bottom: -30%; }
+  .b4 { right: -10%; bottom: -25%; }
   .mini img { position: absolute; inset: 14%; z-index: 1; width: 72%; height: auto; }
   .words { display: grid; gap: 0.125rem; min-width: 0; }
   .kicker-line { font: 1rem/1 var(--font-lcd); color: var(--muted); text-transform: uppercase; }
