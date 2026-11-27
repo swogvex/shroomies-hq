@@ -33,8 +33,6 @@ if (root) {
   const devBlobs = [...root.querySelectorAll<HTMLElement>('[data-dev]')];
   const next = $<HTMLButtonElement>('[data-next]');
   const start = $<HTMLButtonElement>('[data-start]');
-  $('[data-nojs]').hidden = true;
-  start.hidden = false;
 
   const answers: (number | undefined)[] = Array(questions.length).fill(undefined);
   let step = -1; // -1 intro, 0–7 questions, 8 result
