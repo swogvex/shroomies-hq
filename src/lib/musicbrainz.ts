@@ -3,6 +3,8 @@
 
 /** guest = she is featured on someone else's release (shown after a divider on the shelf). */
 export const releaseTypes = ['album', 'ep', 'single', 'collab', 'remix', 'guest'] as const;
+/** The two-letter code printed on spines and discs (LP, EP, SG…). */
+export const typeCode = { album: 'LP', ep: 'EP', single: 'SG', collab: 'CO', remix: 'RX', guest: 'FT' } as const;
 export type ReleaseType = (typeof releaseTypes)[number];
 export type Credit = { role: string; name: string };
 export type Track = { mbid: string; n: number; title: string; durationMs: number | null; credits: Credit[] };

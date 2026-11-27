@@ -1,0 +1,47 @@
+/* A CD printed for its release (Music shelf, release case): silver with a rainbow sheen, a band in the release's
+   colour (--tone, one per release) with its era's pattern (--print), and its code and year in LCD type.
+   Placement and motion belong to each page. */
+@layer components {
+  .tone-flash { --tone: var(--c-flash); }
+  .tone-night { --tone: #3a3c48; --on-tone: #ffffff; }
+  .tone-plush { --tone: var(--c-plush); }
+  .tone-aura { --tone: var(--c-aura); }
+  .tone-peri { --tone: #9aa6ff; }
+  .tone-lemon { --tone: var(--c-lemon); }
+  .tone-strobe { --tone: var(--c-strobe); --on-tone: #ffffff; }
+  .tone-grass { --tone: #3f9a3a; }
+
+  .print-halo { --print: repeating-radial-gradient(circle, transparent 0 5px, rgb(255 255 255 / 0.32) 5px 6px); }
+  .print-ltf { --print: radial-gradient(rgb(255 255 255 / 0.5) 0 2px, transparent 2.5px) 0 0 / 11px 11px; }
+  .print-projects { --print: repeating-conic-gradient(rgb(0 0 0 / 0.13) 0 7deg, transparent 7deg 20deg); }
+  .print-first-singles { --print: linear-gradient(135deg, rgb(255 255 255 / 0.4), transparent 55%); }
+  .print-covers { --print: repeating-linear-gradient(45deg, rgb(0 0 0 / 0.1) 0 3px, transparent 3px 9px); }
+
+  .cd-disc {
+    aspect-ratio: 1;
+    border-radius: 50%;
+    border: var(--border) solid var(--c-ink);
+    background:
+      radial-gradient(circle, var(--c-remote-lo) 0 8%, #e9eaf0 8.5% 15%, rgb(0 0 0 / 0.25) 15.5% 16.5%, transparent 17%),
+      conic-gradient(from 20deg, #d6d8e2, #ffffff, #c8d2ff, #ffd3ec, #f4f9d6, #d6d8e2, #ffffff, #bfe7ff, #ffd3ec, #d6d8e2);
+  }
+  .cd-disc::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: var(--print, none), var(--tone);
+    mask: radial-gradient(circle, transparent 0 17.5%, #000 18% 45%, transparent 45.5%);
+  }
+  .cd-disc::after {
+    content: attr(data-print);
+    position: absolute;
+    top: 50%;
+    right: 6%;
+    width: 27%;
+    translate: 0 -50%;
+    text-align: center;
+    font: 400 1rem / 1 var(--font-lcd); /* on the half that peeks out of the case */
+    color: var(--on-tone, var(--c-ink));
+  }
+}
