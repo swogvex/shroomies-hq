@@ -140,18 +140,24 @@ const jsonLd = {
     const glint = jewel.querySelector<HTMLElement>('.glint')!;
     jewel.addEventListener('pointerleave', () => {
       if (!('follow' in jewel.dataset)) return;
-      const from = parseFloat(jewel.style.getPropertyValue('--gx')) || 0;
-      delete jewel.dataset.follow;
+      // where the band really is right now (mid-glide), not where it was heading: no jump when the pointer leaves
+      const cs = getComputedStyle(glint, '::before');
+      const tx = new DOMMatrixReadOnly(cs.transform === 'none' ? undefined : cs.transform).m41;
+      const from = (tx / parseFloat(cs.width)) * 100;
       jewel.dataset.drift = '';
-      // from where the pointer left the band, glide on to one end, then back and forth as before
-      const to = from > 0 ? 18 : -18;
-      const leg = glint.animate([{ transform: `translateX(${from}%)` }, { transform: `translateX(${to}%)` }], { duration: 3500 * (Math.abs(to - from) / 36) + 300, easing: 'ease-in-out', pseudoElement: '::before', fill: 'forwards' });
+      delete jewel.dataset.follow;
+      // carry on from there at the drift's own speed (36 % in 7 s), to one end, then back and forth as before
+      const to = from >= 0 ? 18 : -18;
+      const leg = glint.animate([{ transform: `translateX(${from}%)` }, { transform: `translateX(${to}%)` }], { duration: Math.max(300, (Math.abs(to - from) / 36) * 7000), easing: 'ease-out', pseudoElement: '::before', fill: 'forwards' });
       leg.onfinish = () => {
         if (!('drift' in jewel.dataset)) return;
         glint.animate([{ transform: `translateX(${to}%)` }, { transform: `translateX(${-to}%)` }], { duration: 7000, easing: 'ease-in-out', iterations: Infinity, direction: 'alternate', pseudoElement: '::before' });
       };
     });
     jewel.addEventListener('pointerenter', () => {
+      const cs = getComputedStyle(glint, '::before');
+      const tx = new DOMMatrixReadOnly(cs.transform === 'none' ? undefined : cs.transform).m41;
+      jewel.style.setProperty('--gx', `${((tx / parseFloat(cs.width)) * 100).toFixed(1)}%`); // start from where it is
       jewel.getAnimations({ subtree: true }).forEach((a) => a.cancel());
       delete jewel.dataset.drift;
     });
