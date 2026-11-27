@@ -3,7 +3,7 @@
 export type CardFormat = 'wide' | 'story';
 type Era = { name: string; years: string; tag: string } | null;
 /** colours: the aura's --a1, --a2 and --a-bg, read from the page (src/styles/aura-skins.css) */
-type Card = { era: Era; colours: [string, string, string]; song: string; caption: string; s: Record<string, string> };
+type Card = { era: Era; colours: [string, string, string]; song: string; sticker: string; caption: string; s: Record<string, string> };
 
 const INK = '#121216';
 const PAPER = '#ededea';
@@ -53,7 +53,7 @@ function grain(ctx: CanvasRenderingContext2D, w: number, h: number, colour: stri
   for (let y = 0; y < h; y += step) for (let x = (y / step) % 2 ? step / 2 : 0; x < w; x += step) ctx.fillRect(x, y, 1.2, 1.2);
 }
 
-async function polaroid(ctx: CanvasRenderingContext2D, x: number, y: number, size: number, tilt: number, [a1, a2, bg]: [string, string, string], caption: string) {
+async function polaroid(ctx: CanvasRenderingContext2D, x: number, y: number, size: number, tilt: number, [a1, a2, bg]: [string, string, string], caption: string, sticker: string) {
   const pad = size * 0.05;
   const h = size + pad + size * 0.2;
   ctx.save();
@@ -83,7 +83,7 @@ async function polaroid(ctx: CanvasRenderingContext2D, x: number, y: number, siz
     ctx.fillRect(pad, pad, size, size);
   }
   ctx.globalCompositeOperation = 'source-over';
-  const shroom = await image('/stickers/halo-shroom.svg');
+  const shroom = await image(sticker);
   ctx.drawImage(shroom, pad + size * 0.18, pad + size * 0.14, size * 0.64, size * 0.64);
   ctx.translate(pad, pad);
   grain(ctx, size, size, 'rgba(0,0,0,0.22)', 5);
@@ -113,8 +113,8 @@ function chip(ctx: CanvasRenderingContext2D, text: string, x: number, y: number,
   ctx.fillRect(left, y, w, px * 1.3);
   ctx.fillStyle = LCD[2]!;
   ctx.textAlign = 'left';
-  ctx.textBaseline = 'middle';
-  ctx.fillText(text, left + px * 0.4, y + px * 0.68);
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillText(text, left + px * 0.4, y + px * 0.65 + px * 0.28); // capitals (0.56 em tall) centred in the 1.3 em chip
 }
 
 export async function drawCard(canvas: HTMLCanvasElement, format: CardFormat, card: Card) {
@@ -133,7 +133,7 @@ export async function drawCard(canvas: HTMLCanvasElement, format: CardFormat, ca
     ctx.fillStyle = PAPER;
     ctx.fillRect(0, 0, W, H);
     grain(ctx, W, H, 'rgba(18,18,22,0.08)');
-    await polaroid(ctx, 70, 52, 390, -3, card.colours, card.caption);
+    await polaroid(ctx, 70, 52, 390, -3, card.colours, card.caption, card.sticker);
     const x = 560;
     const width = W - x - 70;
     chip(ctx, card.s.myAura!, x, 64, 30);
@@ -179,7 +179,7 @@ export async function drawCard(canvas: HTMLCanvasElement, format: CardFormat, ca
     ctx.strokeStyle = '#2335f0';
     ctx.strokeRect(9, 9, W - 18, H - 18);
     chip(ctx, card.s.myAura!, W / 2, 90, 40, 'center');
-    await polaroid(ctx, W / 2 - 260, 180, 520, -3, card.colours, card.caption);
+    await polaroid(ctx, W / 2 - 260, 180, 520, -3, card.colours, card.caption, card.sticker);
     ctx.textAlign = 'center';
     ctx.textBaseline = 'alphabetic';
     const name = fit(ctx, big, W - 140, 2, 120, 56);

@@ -7,7 +7,7 @@ import PlayerGate from '../components/PlayerGate.astro';
 import { localePath, t, type Locale } from '../i18n';
 import { auraEras } from '../lib/aura';
 import { auraReading, titleFit } from '../lib/music';
-import { spotifyEmbed } from '../lib/musicbrainz';
+import { slugify, spotifyEmbed } from '../lib/musicbrainz';
 import '../styles/aura-skins.css';
 
 const locale = (Astro.currentLocale ?? 'en') as Locale;
@@ -36,7 +36,8 @@ const data = {
   feelings: aura.feelings.map((f) => ({ id: f.id, why: L(f.why) })),
   eras: eras.map(({ id, name, years, tag, line }) => ({ id, name, years, tag, line, fit: titleFit(name) })),
   questions: aura.questions.map((q) => ({ kicker: L(q.kicker), options: q.options.map((o) => ({ era: o.era, feelings: o.feelings })) })),
-  deck: aura.deck.map((s) => ({ ...s, fit: titleFit(s.title), embed: s.spotify && spotifyEmbed(s.spotify), href: localePath(`/music/${s.release}/`, locale) })),
+  // each song has its own sticker (public/stickers/songs/<slug>.svg, drawn by scripts/song-stickers.py)
+  deck: aura.deck.map((s) => ({ ...s, fit: titleFit(s.title), embed: s.spotify && spotifyEmbed(s.spotify), href: localePath(`/music/${s.release}/`, locale), sticker: `/stickers/songs/${slugify(s.title)}.svg` })),
   s: Object.fromEntries(
     (['from', 'soloFrom', 'because', 'copyText', 'copyTextSolo', 'stamp', 'announce', 'announceSolo', 'copied', 'copyFailed', 'progress', 'next', 'finish', 'myAura', 'mySong', 'fanLine', 'cardAlt', 'whiteLight', 'last'] as const).map((k) => [k, t(locale, `aura.${k}`)]),
   ),
@@ -54,7 +55,7 @@ const json = JSON.stringify(data).replace(/</g, '\\u003c');
     <!-- ============ intro ============ -->
     <section class="intro" data-stage="intro" aria-labelledby="aura-title">
       <div class="intro-copy">
-        <p class="lcd chip">{t(locale, 'aura.chip')}</p>
+        <p class="lcd chip lcd-play">{t(locale, 'aura.chip')}</p>
         <p class="title" aria-hidden="true">{t(locale, 'aura.h1')}</p>
         <p class="lead" set:html={t(locale, 'aura.lead')} />
         <p class="note">{t(locale, 'aura.note')}</p>
@@ -166,15 +167,26 @@ const json = JSON.stringify(data).replace(/</g, '\\u003c');
     <!-- ============ result ============ -->
     <p class="visually-hidden" aria-live="polite" data-announce></p>
     <section class="result" data-stage="result" hidden>
-      <figure class="polaroid res-photo" aria-hidden="true">
-        <span class="tape"></span>
-        <div class="photo developed" data-res-skin data-aura-skin="halo">
-          <span class="blob b1"></span><span class="blob b2"></span><span class="blob b3"></span>
-          <img class="shroom" src="/stickers/halo-shroom.svg" alt="" width="248" height="248" />
-          <span class="stamp" data-stamp></span>
-        </div>
-        <figcaption class="hand" data-caption></figcaption>
-      </figure>
+      <!-- the reveal: a halo burst and sparks, the polaroid flips face up, develops, and the song's sticker stamps on -->
+      <div class="reveal-stage" data-res-skin data-aura-skin="halo" aria-hidden="true">
+        <span class="burst"></span>
+        <div class="flip"><figure class="polaroid res-photo">
+          <span class="tape"></span>
+          <div class="photo developed">
+            <span class="blob b1"></span><span class="blob b2"></span><span class="blob b3"></span>
+            <img class="shroom song-sticker" src="/stickers/halo-shroom.svg" alt="" width="248" height="248" data-song-sticker />
+            <span class="sheen"></span>
+            <span class="stamp" data-stamp></span>
+          </div>
+          <figcaption class="hand" data-caption></figcaption>
+          <span class="card-back"><span class="back-print">SHROOMIES HQ</span><span class="back-line">{t(locale, 'aura.h1')}</span><span class="back-dots"></span></span>
+        </figure></div>
+        <span class="sparks">
+          {Array.from({ length: 10 }, (_, i) => (
+            <svg class={`spark p${i}`} viewBox="-12 -12 24 24"><path d="M0 -11 Q2.4 -2.4 11 0 Q2.4 2.4 0 11 Q-2.4 2.4 -11 0 Q-2.4 -2.4 0 -11Z" /></svg>
+          ))}
+        </span>
+      </div>
 
       <div class="res-head">
         <div data-era-block>
@@ -318,26 +330,28 @@ const json = JSON.stringify(data).replace(/</g, '\\u003c');
     content: '';
     position: absolute;
     inset: 0;
-    z-index: 2;
-    background: radial-gradient(rgb(0 0 0 / 0.28) 0.9px, transparent 1.3px) 0 0 / 4px 4px;
+    z-index: 0; /* under the sticker: the print grain is in the light, not on the sticker */
+    background: radial-gradient(rgb(0 0 0 / 0.16) 0.8px, transparent 1.2px) 0 0 / 4px 4px;
     mix-blend-mode: multiply;
     pointer-events: none;
   }
+  /* soft light as radial gradients, not blurred boxes: a blur filter clipped by the photo left hard stripes at its edges */
   .blob, .dev-blob {
+    --c: var(--a1);
     position: absolute;
     border-radius: 50%;
-    filter: blur(18px);
+    background: radial-gradient(closest-side, var(--c), color-mix(in srgb, var(--c) 55%, transparent) 50%, transparent);
     mix-blend-mode: screen;
-    transition: background 500ms, opacity 500ms, scale 500ms;
+    transition: opacity 500ms, scale 500ms;
   }
-  .blob.b1 { inset: 4% 26% 30% -6%; background: var(--a1); }
-  .blob.b2 { inset: 22% -8% 6% 34%; background: var(--a2); opacity: 0.9; }
-  .blob.b3 { inset: 46% 30% -14% 8%; background: color-mix(in srgb, var(--a1) 60%, var(--a2)); opacity: 0.8; }
-  .blob.b4 { inset: -10% -6% 52% 46%; background: var(--a2); opacity: 0.7; }
+  .blob.b1 { inset: -6% 18% 22% -18%; }
+  .blob.b2 { inset: 12% -20% -4% 22%; --c: var(--a2); opacity: 0.9; }
+  .blob.b3 { inset: 38% 20% -26% -4%; --c: color-mix(in srgb, var(--a1) 60%, var(--a2)); opacity: 0.85; }
+  .blob.b4 { inset: -22% -18% 40% 34%; --c: var(--a2); opacity: 0.7; }
   .shroom { position: absolute; inset: 16% 18% 14%; z-index: 1; width: 64%; height: auto; filter: drop-shadow(0 10px 18px rgb(0 0 0 / 0.35)); }
 
   /* the intro polaroid mixes the four auras and keeps drifting */
-  [data-aura-skin='all'] .blob { background: var(--a1); }
+  [data-aura-skin='all'] .blob { --c: var(--a1); }
   [data-aura-skin='all'] .b4 { opacity: 1; }
   @keyframes drift {
     0% { translate: 0 0; scale: 1; }
@@ -351,7 +365,7 @@ const json = JSON.stringify(data).replace(/</g, '\\u003c');
   .hero .b4 { animation-duration: 7s; animation-direction: alternate-reverse; }
   .res-photo .blob { animation: drift 10s ease-in-out infinite alternate; }
   .res-photo .b2 { animation-direction: alternate-reverse; animation-duration: 12s; }
-  .hero .shroom, .res-photo .shroom { animation: float 5s ease-in-out infinite; }
+  .hero .shroom { animation: float 5s ease-in-out infinite; }
 
   /* ================= intro ================= */
   .intro {
@@ -362,7 +376,7 @@ const json = JSON.stringify(data).replace(/</g, '\\u003c');
     align-items: start;
   }
   .intro-copy { grid-area: copy; display: grid; gap: 1rem; justify-items: start; container-type: inline-size; min-width: 0; }
-  .chip { font-size: 1.125rem; padding-block: 0.125rem; }
+  .chip { font-size: 1.125rem; }
   .title {
     width: 100%;
     font-family: var(--font-display);
@@ -388,7 +402,7 @@ const json = JSON.stringify(data).replace(/</g, '\\u003c');
   .last .lcd { font-size: 1rem; }
 
   .hero { grid-area: photo; width: min(100%, 24rem); justify-self: center; margin-top: 1.5rem; }
-  .sticker-start { position: absolute; right: -0.25rem; bottom: -1.75rem; /* stuck on the corner: never past the column (1024 px) */ width: 6.5rem; height: auto; rotate: 12deg; }
+  .sticker-start { position: absolute; z-index: 3; right: -0.25rem; top: -1.5rem; /* the top corner: clear of the caption and never past the column (1024 px) */ width: 6rem; height: auto; rotate: 12deg; }
   .develops { grid-area: develops; justify-self: start; margin: 1.5rem 0 0 1rem; font-size: 1.25rem; color: var(--c-aura-text); rotate: -6deg; }
   :global([data-theme='dark']) .develops { color: var(--hot); }
 
@@ -496,16 +510,17 @@ const json = JSON.stringify(data).replace(/</g, '\\u003c');
   .dev { background: radial-gradient(120% 90% at 50% 40%, #4a4c58, #1c1d24); }
   .dev .shroom { opacity: 0.45; filter: grayscale(1) drop-shadow(0 10px 18px rgb(0 0 0 / 0.35)); transition: opacity 400ms, filter 400ms; }
   .dev:has([data-dev][data-aura-skin]) .shroom { opacity: 0.8; filter: grayscale(0.5) drop-shadow(0 10px 18px rgb(0 0 0 / 0.35)); }
-  .dev-blob { width: 55%; aspect-ratio: 1; opacity: 0; scale: 0.4; background: var(--a1); }
-  .dev-blob[data-aura-skin] { opacity: 0.85; scale: 1; }
-  .dev-blob:nth-child(even)[data-aura-skin] { background: var(--a2); opacity: 0.7; }
-  .s0 { left: -10%; top: -8%; } .s1 { right: -12%; top: 4%; } .s2 { left: 18%; top: 30%; } .s3 { right: -6%; bottom: 8%; }
-  .s4 { left: -14%; bottom: -10%; } .s5 { left: 30%; top: -16%; } .s6 { right: 18%; bottom: -18%; } .s7 { left: 22%; top: 22%; width: 60%; }
+  .dev-blob { width: 75%; aspect-ratio: 1; opacity: 0; scale: 0.4; }
+  .dev-blob[data-aura-skin] { opacity: 0.9; scale: 1; }
+  .dev-blob:nth-child(even)[data-aura-skin] { --c: var(--a2); opacity: 0.75; }
+  .s0 { left: -28%; top: -26%; } .s1 { right: -28%; top: -12%; } .s2 { left: 6%; top: 18%; } .s3 { right: -22%; bottom: -8%; }
+  .s4 { left: -28%; bottom: -28%; } .s5 { left: 22%; top: -34%; } .s6 { right: 4%; bottom: -34%; } .s7 { left: 14%; top: 12%; width: 72%; }
 
   .quiz-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; margin-top: 2rem; }
   .keys-hint { font-size: var(--fs-small); color: var(--muted); }
   .next { min-width: 11rem; min-height: 56px; font-size: 1.0625rem; }
-  .next:disabled { opacity: 0.45; cursor: not-allowed; transform: none; box-shadow: 4px 4px 0 var(--shadow); }
+  /* disabled: solid (never see-through), clearly off */
+  .next:disabled { cursor: not-allowed; transform: none; background: color-mix(in srgb, var(--accent) 22%, var(--surface)); color: color-mix(in srgb, var(--ink) 55%, transparent); box-shadow: 4px 4px 0 var(--shadow); }
 
   /* ---------- answers: shared parts ---------- */
   .opts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem; }
@@ -559,8 +574,8 @@ const json = JSON.stringify(data).replace(/</g, '\\u003c');
   .k-swatch { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .k-swatch .opt { padding: 0.625rem 0.625rem 1rem; background: var(--surface); border: var(--border) solid var(--line); color: var(--ink); }
   .sw { position: relative; display: block; aspect-ratio: 4 / 5; overflow: hidden; isolation: isolate; background: var(--a-bg); border: var(--border) solid var(--c-ink); }
-  .sw .blob.b1 { inset: 6% 10% 34% -10%; }
-  .sw .blob.b2 { inset: 40% -14% -6% 26%; }
+  .sw .blob.b1 { inset: -12% 0 22% -26%; }
+  .sw .blob.b2 { inset: 26% -30% -22% 8%; }
   .k-swatch .opt:hover .blob { scale: 1.15; }
 
   /* notification: a phone lock screen at 3 % */
@@ -746,7 +761,43 @@ const json = JSON.stringify(data).replace(/</g, '\\u003c');
     align-items: start;
     scroll-margin-top: 1rem;
   }
-  .res-photo { grid-area: photo; width: min(100%, 24rem); justify-self: center; rotate: -2.5deg; }
+  .reveal-stage { grid-area: photo; position: relative; display: grid; place-items: center; isolation: isolate; }
+  /* the 3D lives only in .flip, so the halo and sparks around it layer normally */
+  .flip { position: relative; z-index: 1; display: grid; place-items: center; width: 100%; perspective: 1400px; }
+  .res-photo { width: min(100%, 24rem); rotate: -2.5deg; transform-style: preserve-3d; }
+  .res-photo > :not(.card-back) { backface-visibility: hidden; }
+  /* the back of the print, seen while it flips face up */
+  .card-back {
+    position: absolute;
+    inset: calc(-1 * var(--border));
+    display: grid;
+    place-content: center;
+    gap: 0.5rem;
+    text-align: center;
+    background: radial-gradient(circle at 30% 20%, #ffffff, #ecebe4);
+    border: var(--border) solid var(--c-ink);
+    transform: rotateY(180deg) translateZ(1px);
+    backface-visibility: hidden;
+  }
+  .back-print { font: 900 1.375rem/1 var(--font-display); font-stretch: 150%; letter-spacing: 0.04em; color: color-mix(in srgb, var(--c-ink) 22%, transparent); }
+  .back-line { font: 1.125rem var(--font-lcd); color: color-mix(in srgb, var(--c-ink) 35%, transparent); text-transform: uppercase; }
+  .back-dots { justify-self: center; width: 4rem; height: 0.5rem; background: radial-gradient(circle, var(--a1) 40%, transparent 45%) 0 0 / 1rem 0.5rem; opacity: 0.7; }
+  /* the light: one halo ring and ten four-point sparks, in the aura's colours */
+  .burst, .sparks { position: absolute; inset: 0; margin: auto; pointer-events: none; }
+  /* over the card (later in the DOM and a higher layer: the flipping card is a 3D layer of its own) */
+  .sparks { z-index: 3; }
+  .burst { z-index: 0; }
+  .burst { width: 60%; aspect-ratio: 1; border-radius: 50%; border: 0.5rem solid var(--a1); box-shadow: 0 0 2rem var(--a1), inset 0 0 1.5rem var(--a2); opacity: 0; }
+  .sparks { width: 0; height: 0; }
+  /* the site's sparkle: a four-point star with an ink outline, so it reads on paper in every aura */
+  .spark { position: absolute; width: 1.75rem; height: 1.75rem; max-width: none; margin: -0.875rem; overflow: visible; opacity: 0; } /* max-width: the base reset would size it to the 0-wide .sparks */
+  .spark path { fill: var(--c-lemon); stroke: var(--c-ink); stroke-width: 1.6; stroke-linejoin: round; }
+  .spark:nth-child(odd) { width: 1.25rem; height: 1.25rem; margin: -0.625rem; }
+  .spark:nth-child(odd) path { fill: var(--a1); }
+  .spark:nth-child(4n) path { fill: var(--c-flash); }
+  .p0 { --x: 0rem; --y: -17rem; } .p1 { --x: 12rem; --y: -12rem; } .p2 { --x: 17rem; --y: 0rem; } .p3 { --x: 12rem; --y: 12rem; } .p4 { --x: 0rem; --y: 17rem; }
+  .p5 { --x: -12rem; --y: 12rem; } .p6 { --x: -17rem; --y: 0rem; } .p7 { --x: -12rem; --y: -12rem; } .p8 { --x: 7rem; --y: -16rem; } .p9 { --x: -7rem; --y: 16rem; }
+  .sheen { position: absolute; inset: 0; z-index: 2; pointer-events: none; background: linear-gradient(115deg, transparent 35%, rgb(255 255 255 / 0.55) 48%, rgb(255 255 255 / 0.1) 55%, transparent 65%); translate: -110% 0; }
   .stamp { position: absolute; top: 0.75rem; left: 0.75rem; z-index: 3; padding: 0.125rem 0.375rem; font: 1rem/1 var(--font-lcd); letter-spacing: 0.04em; color: var(--c-flash); background: rgb(0 0 0 / 0.45); }
   .res-head { grid-area: head; min-width: 0; container-type: inline-size; }
   /* sizes by titleFit (longest word ≤5 / ≤8 / ≤11 / more letters): a letter of this face is ≈ 1.03 em wide at 150 %,
@@ -816,11 +867,39 @@ const json = JSON.stringify(data).replace(/</g, '\\u003c');
   /* the reveal: the polaroid develops from grey, the rest fades in after it */
   @keyframes develop { from { filter: grayscale(1) brightness(0.35) contrast(1.4); } 60% { filter: grayscale(0.4) brightness(1.2); } to { filter: none; } }
   @keyframes rise { from { opacity: 0; translate: 0 12px; } }
-  .result.reveal .developed { animation: develop 1.8s ease-out both; }
+  /* opacity stays off the flipping card itself: it would flatten its 3D and hide the back */
+  /* arrives face down (its back printed), holds a beat, then turns over with a little overshoot */
+  @keyframes flip-in {
+    0% { transform: translateY(3rem) rotateY(180deg) rotateX(20deg) scale(0.6); animation-timing-function: cubic-bezier(0.2, 0.8, 0.3, 1); }
+    32% { transform: translateY(0) rotateY(180deg) rotateX(0deg) scale(1); animation-timing-function: cubic-bezier(0.55, 0, 0.3, 1); }
+    76% { transform: translateY(-0.5rem) rotateY(-10deg) scale(1.04); animation-timing-function: ease-out; }
+    100% { transform: none; }
+  }
+  @keyframes stage-in { from { opacity: 0; } }
+  @keyframes burst { 0% { scale: 0.2; opacity: 0; } 20% { opacity: 1; } 100% { scale: 2.2; opacity: 0; } }
+  @keyframes spark { 0% { translate: 0 0; scale: 0; opacity: 0; } 20% { opacity: 1; scale: 1.3; } 75% { opacity: 1; } 100% { translate: var(--x) var(--y); scale: 0.3; rotate: 180deg; opacity: 0; } }
+  @keyframes sheen { to { translate: 110% 0; } }
+  @keyframes stamp-on {
+    0% { transform: scale(1.9) rotate(-16deg); opacity: 0; }
+    55% { transform: scale(0.9) rotate(3deg); opacity: 1; }
+    75% { transform: scale(1.04) rotate(-1deg); }
+    100% { transform: none; opacity: 1; }
+  }
+  .result.reveal .burst { animation: burst 1.1s cubic-bezier(0.2, 0.7, 0.3, 1) 0.6s both; }
+  .result.reveal .spark { animation: spark 1.3s cubic-bezier(0.15, 0.75, 0.3, 1) both; animation-delay: calc(0.62s + var(--d, 0s)); }
+  .result.reveal .spark:nth-child(3n) { --d: 0.08s; }
+  .result.reveal .spark:nth-child(3n + 1) { --d: 0.16s; }
+  .result.reveal .reveal-stage { animation: stage-in 0.25s ease-out both; }
+  .result.reveal .res-photo { animation: flip-in 1.5s both; }
+  .result.reveal .developed { animation: develop 1.9s ease-out 0.9s both; }
+  .result.reveal .sheen { animation: sheen 1.1s ease-in-out 1.9s both; }
+  .result.reveal .song-sticker { animation: stamp-on 0.75s cubic-bezier(0.3, 1.3, 0.5, 1) 1.55s both, float 5s ease-in-out 2.4s infinite; }
   .result.reveal :is(.res-head, .song-card, .mix) { animation: rise 500ms ease-out both; }
-  .result.reveal .res-head { animation-delay: 500ms; }
-  .result.reveal .song-card { animation-delay: 800ms; }
-  .result.reveal .mix { animation-delay: 1100ms; }
+  .result.reveal .res-head { animation-delay: 1.7s; }
+  .result.reveal .song-card { animation-delay: 2s; }
+  .result.reveal .mix { animation-delay: 2.3s; }
+  /* until the song's sticker has loaded, nothing of the result shows (no flash of the previous one) */
+  .result.pending :is(.reveal-stage, .res-head, .song-card, .mix) { visibility: hidden; }
   .result[data-solo='true'] { grid-template-areas: 'photo head' 'photo song' 'actions actions'; }
 
   /* ---------- the aura card dialog ---------- */
@@ -919,11 +998,16 @@ const json = JSON.stringify(data).replace(/</g, '\\u003c');
     .k-fader .opt:has(:checked) .cap { left: 90%; }
     .k-fader .key { top: 50%; bottom: auto; right: 0.5rem; translate: 0 -50%; }
     .k-fader .tick { top: -0.5rem; right: -0.5rem; left: auto; }
-    .quiz-foot { position: sticky; bottom: calc(var(--remote-safe) - 0.5rem); z-index: 5; padding: 0.75rem 0; background: linear-gradient(transparent, var(--bg) 30%); }
+    /* phones: Next is pinned just above the remote (52 px keys + 2 × 8 px padding + its 24 px offset), never riding up the page */
+    .quiz { padding-bottom: 5.5rem; }
+    :global(body:has(.aura[data-at='quiz'])) { padding-bottom: calc(var(--remote-safe) + 5.5rem + env(safe-area-inset-bottom, 0px)); } /* the footer clears the pinned button too */
+    .quiz-foot { position: fixed; z-index: 40; inset-inline: 0; bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px) + 4.75rem); width: var(--column); margin: 0 auto; padding: 0.75rem 0 0.5rem; background: linear-gradient(transparent, var(--bg) 35%); }
     .keys-hint { display: none; }
     .next { flex: 1; }
     .result, .result[data-solo='true'] { grid-template-columns: minmax(0, 1fr); grid-template-areas: 'head' 'photo' 'song' 'mix' 'actions'; gap: 2rem; }
     .res-photo { width: min(78%, 20rem); }
+    .p0 { --y: -10rem; } .p1 { --x: 7rem; --y: -7rem; } .p2 { --x: 9rem; } .p3 { --x: 7rem; --y: 7rem; } .p4 { --y: 10rem; }
+    .p5 { --x: -7rem; --y: 7rem; } .p6 { --x: -9rem; } .p7 { --x: -7rem; --y: -7rem; }
     .res-actions .btn { flex: 1 1 100%; }
     .mix li { grid-template-columns: minmax(0, 1fr) 3rem; }
     .mix .bar { grid-column: 1 / -1; grid-row: 2; }
@@ -940,15 +1024,15 @@ const json = JSON.stringify(data).replace(/</g, '\\u003c');
     .k-swatch .sw { aspect-ratio: 1; }
     .k-swatch .label { font-size: 1.0625rem; font-stretch: 110%; } /* "anaranjado" in one line beside the swatch */
     .k-sticker .sub { display: none; }
-    .sticker-start { width: 5rem; right: -1rem; }
+    .sticker-start { width: 4.5rem; right: -0.5rem; }
   }
 
   /* calm mode and reduced motion: no drifting aura, no spinning disc, the reveal is a plain fade */
   :global(html[data-calm]) :is(.blob, .shroom, .disc, .developed),
-  :global(html[data-calm]) .result.reveal :is(.developed, .res-head, .song-card, .mix) { animation: none !important; }
+  :global(html[data-calm]) .result.reveal :is(.developed, .res-head, .song-card, .mix, .res-photo, .burst, .spark, .sheen, .song-sticker, .reveal-stage) { animation: none !important; }
   :global(html[data-calm]) .result.reveal { animation: fade 400ms ease-out; }
   @media (prefers-reduced-motion: reduce) {
-    .blob, .shroom, .disc, .developed, .result.reveal :is(.developed, .res-head, .song-card, .mix) { animation: none !important; }
+    .blob, .shroom, .disc, .developed, .result.reveal :is(.developed, .res-head, .song-card, .mix, .res-photo, .burst, .spark, .sheen, .song-sticker, .reveal-stage) { animation: none !important; }
     .result.reveal { animation: fade 400ms ease-out; }
     .cap, .tick, .meter span, .bar span { transition: none; }
   }

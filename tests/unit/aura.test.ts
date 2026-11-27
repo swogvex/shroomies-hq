@@ -1,9 +1,9 @@
-import { readFileSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { parse } from 'yaml'; // comes with Vite (and so with Vitest); the site reads the same files through Astro
 import { auraEras, buildDeck, read, type AuraQuestion, type AuraSongRule } from '../../src/lib/aura';
 import { applyCorrections, type EraId } from '../../src/lib/discography';
-import type { RawRelease } from '../../src/lib/musicbrainz';
+import { slugify, type RawRelease } from '../../src/lib/musicbrainz';
 import raw from '../../src/data/discography.json' with { type: 'json' };
 
 const front = (file: string) => parse(readFileSync(file, 'utf8').split(/^---$/m)[1]!);
@@ -22,6 +22,11 @@ describe('aura content', () => {
   it('every song of hers has feelings, and every title in aura.md is one of her songs', () => {
     expect(missing).toEqual([]);
     expect(unknown).toEqual([]);
+  });
+  it('every song has its own sticker (node scripts/song-stickers.ts draws them)', () => {
+    const missingArt = deck.filter((s) => !existsSync(`public/stickers/songs/${slugify(s.title)}.svg`)).map((s) => s.title);
+    expect(missingArt).toEqual([]);
+    expect(new Set(deck.map((s) => slugify(s.title))).size).toBe(deck.length); // one file per song, no two songs share one
   });
   it('uses only known feelings, 1 or 2 per song and per answer', () => {
     for (const s of deck) {

@@ -5,7 +5,7 @@ import { readJSON, writeJSON } from '../lib/storage';
 import { lcdText } from '../lib/lcd';
 import { drawCard, type CardFormat } from './aura-card';
 
-type Song = DeckSong & { fit: number; spotify: string | null; embed: string | null; href: string };
+type Song = DeckSong & { fit: number; spotify: string | null; embed: string | null; href: string; sticker: string };
 type Era = { id: AuraEra; name: string; years: string; tag: string; line: string; fit: number };
 type Data = {
   feelings: { id: string; why: string }[];
@@ -37,6 +37,7 @@ if (root) {
   const answers: (number | undefined)[] = Array(questions.length).fill(undefined);
   let step = -1; // -1 intro, 0–7 questions, 8 result
   let last: { era: AuraEra | null; song: Song } | null = null;
+  let reveals = 0;
 
   // the last reading (shq:aura) on the intro: a small return loop
   const saved = readJSON<Saved | null>('aura', null);
@@ -139,11 +140,21 @@ if (root) {
     $('[data-announce]').textContent = solo ? fill('announceSolo', { song: song.title }) : fill('announce', { era: era.name, song: song.title });
     lcd(`B1 · ${lcdText(song.title) || 'YOUR AURA'}`);
     writeJSON('aura', { era: last.era, song: song.title, date: new Date().toISOString().slice(0, 10) } satisfies Saved);
+    // the song's own sticker goes on the print; the reveal waits until it is decoded, so the old one never flashes
+    const sticker = $<HTMLImageElement>('[data-song-sticker]');
     res.classList.remove('reveal');
-    void res.offsetWidth; // restart the develop animation on "take it again"
-    res.classList.add('reveal');
+    res.classList.add('pending');
+    sticker.src = song.sticker;
+    const run = ++reveals;
+    sticker.decode().catch(() => {}).finally(() => {
+      if (run !== reveals) return; // a newer result started meanwhile
+      res.classList.remove('pending');
+      void res.offsetWidth; // restart the animations on "take it again"
+      res.classList.add('reveal');
+      // focus once it can be focused: a hidden (pending) heading would refuse it
+      $(solo ? '[data-solo-block] .era-name' : '[data-era-name]').focus({ preventScroll: true });
+    });
     res.scrollIntoView({ block: 'start' });
-    $(solo ? '[data-solo-block] .era-name' : '[data-era-name]').focus({ preventScroll: true });
   };
 
   // ---- answering: pointer picks move on by themselves; keyboard picks wait for Next (no surprise jumps) ----
@@ -167,7 +178,8 @@ if (root) {
   });
   $('[data-again]').addEventListener('click', () => start.click());
   addEventListener('popstate', (e) => {
-    const to = (e.state as { aura?: number } | null)?.aura ?? -1;
+    const raw = (e.state as { aura?: unknown } | null)?.aura;
+    const to = Number.isInteger(raw) ? Math.min(Math.max(raw as number, -1), questions.length) : -1; // only our own steps; anything else goes to the intro
     // never land on a question after an unanswered one, or on a result without all answers
     const firstGap = answers.findIndex((a) => a === undefined);
     go(firstGap === -1 ? to : Math.min(to, firstGap), false);
@@ -224,6 +236,7 @@ if (root) {
       era: era && eraOf[era],
       colours: (['--a1', '--a2', '--a-bg'] as const).map((v) => getComputedStyle($('[data-res-skin]')).getPropertyValue(v).trim()) as [string, string, string],
       song: song.title,
+      sticker: song.sticker,
       caption: era ? eraOf[era].tag : data.s.whiteLight!,
       s: data.s,
     });
