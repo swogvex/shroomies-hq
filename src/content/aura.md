@@ -38,7 +38,7 @@ eras:
     tag: { en: the meadow, es: la pradera }
     line: { en: "Soft synths, rabbits in a meadow, and missing people out loud.", es: "Sintes suaves, conejos en una pradera y extrañar a la gente en voz alta." }
   halo:
-    tag: { en: the strobe, es: el estrobo }
+    tag: { en: the light show, es: el show de luces }
     line: { en: "Huge drops under sad lyrics. Very online, and completely sure of it.", es: "Drops enormes bajo letras tristes. Muy online, y totalmente segura de ello." }
 
 # Eight questions, four options each, in era order (A first singles, B projects, C LTF, D HALO).
@@ -59,7 +59,7 @@ questions:
       - { era: first-singles, feelings: [bedroom], label: { en: Soft lilac, es: Lila suave }, sub: { en: a lamp left on, es: una lámpara encendida } }
       - { era: projects, feelings: [bite], label: { en: Red-orange, es: Rojo anaranjado }, sub: { en: like a warning light, es: como una luz de alarma } }
       - { era: ltf, feelings: [nostalgia], label: { en: Meadow green, es: Verde pradera }, sub: { en: with a pink flash, es: con un destello rosa } }
-      - { era: halo, feelings: [rave], label: { en: Strobe blue, es: Azul estrobo }, sub: { en: and flash white, es: y blanco flash } }
+      - { era: halo, feelings: [rave], label: { en: Electric blue, es: Azul eléctrico }, sub: { en: with a white flash, es: con un destello blanco } }
   - kicker: { en: BATTERY, es: BATERÍA }
     text: { en: "Your phone is on 3 %. Last move?", es: "Te queda 3 % de batería. ¿Último movimiento?" }
     kind: notif
@@ -107,7 +107,7 @@ questions:
       - { era: first-singles, feelings: [bedroom, hope], label: { en: Echo well, es: Pozo del eco }, sub: { en: where it all started, es: donde empezó todo } }
       - { era: projects, feelings: [bite, bedroom], label: { en: Mix for tiff, es: Mix para tiff }, sub: { en: "burned CD-R, 2022", es: "CD-R grabado, 2022" } }
       - { era: ltf, feelings: [nostalgia], label: { en: Bunny & fruit, es: Conejo y fruta }, sub: { en: from the meadow, es: de la pradera } }
-      - { era: halo, feelings: [rave, online], label: { en: Flash, es: Flash }, sub: { en: strobe on, es: estrobo encendido } }
+      - { era: halo, feelings: [rave, online], label: { en: Flash, es: Flash }, sub: { en: lights on, es: luces encendidas } }
 
 # Songs: title as in the discography → feelings (main first, then an optional second), explicit: true for the E tag,
 # hidden: true to leave a song out. A song of hers missing here stays out of the reading and the build prints a warning.
