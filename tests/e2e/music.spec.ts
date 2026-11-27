@@ -116,6 +116,23 @@ test.describe('phone', () => {
     const { violations } = await new AxeBuilder({ page }).analyze();
     expect(violations).toEqual([]);
   });
+
+  test('an open Show picker closes when the page scrolls or a finger drags elsewhere', async ({ page }) => {
+    await page.goto('/music/');
+    const select = page.locator('[data-filter]');
+    const isOpen = () => select.evaluate((e) => e.matches(':open'));
+    test.skip(!(await page.evaluate(() => CSS.supports('appearance', 'base-select'))), 'native picker');
+    await select.tap();
+    expect(await isOpen()).toBe(true);
+    await page.evaluate(() => scrollBy(0, 200));
+    await expect.poll(isOpen).toBe(false);
+    await select.tap();
+    await page.locator('.page-title').dispatchEvent('touchmove');
+    await expect.poll(isOpen).toBe(false);
+    await select.tap();
+    await page.getByRole('option', { name: 'EPs' }).click(); // still works after closing
+    await expect(page).toHaveURL(/show=eps/);
+  });
 });
 
 test('choosing an era tab never scrolls the tab row and cuts the tab tops', async ({ page }) => {
