@@ -80,7 +80,7 @@ const hidden = (day: string) => day !== buildDay;
           perDay.map(({ day, song, release, listen }) => (
             <div class="song-day" data-day={day} hidden={hidden(day)}>
               <p class="song-head">
-                <span class="lcd">▶ {lcd(t(locale, 'home.songChip'))} · {dayLabel(day)}</span>
+                <span class="lcd lcd-play">{lcd(t(locale, 'home.songChip'))} · {dayLabel(day)}</span>
                 <span class="same">{t(locale, 'home.same')}</span>
               </p>
               <h2 id={day === buildDay ? 'song-title' : undefined} class:list={['song-title', fits[titleFit(song.title)]]} lang="en">{song.title}</h2>
@@ -255,7 +255,7 @@ const hidden = (day: string) => day !== buildDay;
   .song .tape { left: 44%; }
   .song-day { display: grid; gap: 0.5rem; }
   .song-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 0.5rem; }
-  .song-head .lcd { font-size: 1.1875rem; padding: 0.1875rem 0.625rem; border-radius: 6px; }
+  .song-head .lcd { font-size: 1.1875rem; padding-inline: 0.625rem; border-radius: 6px; }
   .same { font-size: var(--fs-small); color: var(--muted); }
   .song-title { margin-top: 0.75rem; font-stretch: 150%; letter-spacing: -0.02em; line-height: 0.92; overflow-wrap: anywhere; }
   .fit-s { font-size: min(6rem, 17cqi); }
@@ -297,7 +297,7 @@ const hidden = (day: string) => day !== buildDay;
   .band { padding: 1.125rem 1.5rem; background: var(--band); color: var(--band-ink); box-shadow: 6px 6px 0 var(--shadow); }
   .band-day { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 0.75rem 2.5rem; font-size: 1.0625rem; }
   .band a { color: inherit; font-weight: 700; }
-  .band .lcd { font-size: 1.0625rem; padding-block: 0; margin-inline-end: 0.375rem; }
+  .band .lcd { font-size: 1.0625rem; margin-inline-end: 0.375rem; }
 
   .mid { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 1.625rem; align-items: start; }
   .journal { display: grid; gap: 1rem; }

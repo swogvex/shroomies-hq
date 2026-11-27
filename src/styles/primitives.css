@@ -77,6 +77,22 @@
     box-shadow: inset 0 2px 6px color-mix(in srgb, var(--c-ink) 45%, transparent);
     border-radius: 4px;
   }
+  /* LCD text sits in the middle of its screen: the box is trimmed to the capitals (VT323 is all caps here), so the
+     padding is the same above and below them. Symbols VT323 lacks (▶ – →) come from a fallback font with taller metrics
+     and used to push the letters up; the trim ignores them. Browsers without text-box keep the old padding. */
+  @supports (text-box: trim-both cap alphabetic) {
+    .lcd { text-box: trim-both cap alphabetic; padding-block: 0.42em; }
+  }
+  /* the ▶ of the LCDs, drawn: exactly cap height, on the baseline (the font has no ▶; the fallback glyph sat high) */
+  .lcd-play::before {
+    content: '';
+    display: inline-block;
+    width: 0.5em;
+    height: 0.56em;
+    margin-inline-end: 0.4em;
+    background: currentColor;
+    clip-path: polygon(0 0, 100% 50%, 0 100%);
+  }
 
   .flyer {
     position: relative;

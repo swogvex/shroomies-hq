@@ -22,7 +22,7 @@ const href = (i: number) => localePath(sections[i]!.path, locale);
   </a>
 
   <div class="remote-lcd lcd-desk skin" aria-hidden="true">
-    <span class="lcd-top"><span data-lcd-mode>▶ {t(locale, 'remote.mode')}</span><span class="clock"><span data-clock>--:--</span><span class="bars"></span></span></span>
+    <span class="lcd-top"><span class="lcd-play" data-lcd-mode>{t(locale, 'remote.mode')}</span><span class="clock"><span data-clock>--:--</span><span class="bars"></span></span></span>
     <span class="lcd-track" lang="en">{track}</span>
   </div>
   <button type="button" class="remote-lcd lcd-mob skin" aria-expanded="false" aria-controls="tracklist" data-tracklist-toggle>
@@ -132,7 +132,8 @@ const href = (i: number) => localePath(sections[i]!.path, locale);
       const on = root.hasAttribute('data-calm');
       calm.setAttribute('aria-checked', String(on));
       for (const el of remote.querySelectorAll('[data-lcd-mode]')) {
-        el.textContent = on ? calmOn! : el.closest('.lcd-desk') ? `▶ ${mode}` : 'SHROOMIES FM';
+        el.textContent = on ? calmOn! : el.closest('.lcd-desk') ? mode! : 'SHROOMIES FM';
+        el.classList.toggle('lcd-play', !on && !!el.closest('.lcd-desk')); // the drawn ▶, not in calm mode
       }
       glide();
     };
