@@ -573,6 +573,8 @@ const json = JSON.stringify(data).replace(/</g, '\\u003c');
   /* swatch: four auras to walk around in */
   .k-swatch { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .k-swatch .opt { padding: 0.625rem 0.625rem 1rem; background: var(--surface); border: var(--border) solid var(--line); color: var(--ink); }
+  .k-swatch .opt { grid-template-columns: minmax(0, 1fr); min-width: 0; } /* "anaranjado" may not widen the card */
+  .k-swatch .label { overflow-wrap: anywhere; hyphens: auto; }
   .sw { position: relative; display: block; aspect-ratio: 4 / 5; overflow: hidden; isolation: isolate; background: var(--a-bg); border: var(--border) solid var(--c-ink); }
   .sw .blob.b1 { inset: -12% 0 22% -26%; }
   .sw .blob.b2 { inset: 26% -30% -22% 8%; }

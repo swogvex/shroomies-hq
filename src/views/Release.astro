@@ -7,8 +7,6 @@ import PlayerGate from '../components/PlayerGate.astro';
 import { localePath, t, type Locale } from '../i18n';
 import { formatDate } from '../lib/dates';
 import { discography, duration, songsOfDays, titleFit } from '../lib/music';
-import { typeCode } from '../lib/musicbrainz';
-import '../styles/cd-disc.css';
 
 const { slug } = Astro.props as { slug: string };
 const locale = (Astro.currentLocale ?? 'en') as Locale;
@@ -62,10 +60,9 @@ const jsonLd = {
         <h1 class={fit}>{r.title}</h1>
       </div>
       <div class="side">
-        <figure class={`case tone-${r.spine}`}>
-          <!-- the release's own disc, pulled half out of its case; the clips on the right hold the booklet -->
-          <span class={`cd-disc case-disc print-${r.era}`} data-print={`${typeCode[r.type]} '${r.date.slice(2, 4)}`} aria-hidden="true"></span>
-          <span class="clip clip-top" aria-hidden="true"></span><span class="clip clip-bottom" aria-hidden="true"></span>
+        <figure class="case">
+          <!-- a closed jewel case: hinge knuckles on the spine, the lid's lip, light on the acrylic -->
+          <span class="knuckle knuckle-top" aria-hidden="true"></span><span class="knuckle knuckle-bottom" aria-hidden="true"></span>
           <span class="glint" aria-hidden="true"></span>
           <Cover image={r.image} title={r.title} alt={t(locale, 'release.coverAlt', { title: r.title })} widths={[360, 720]} sizes="(min-width: 52rem) 360px, min(19rem, 80vw)" eager />
           {r.note?.data.coverCredit ? <figcaption>{r.note.data.coverCredit}</figcaption> : r.image && <figcaption>{t(locale, 'release.coverSource')}</figcaption>}
@@ -140,9 +137,23 @@ const jsonLd = {
       jewel.dataset.follow = '';
       jewel.style.setProperty('--gx', `${Math.round((((e.clientX - r.left) / r.width) - 0.5) * 36)}%`); // CSSOM, allowed by the CSP
     });
+    const glint = jewel.querySelector<HTMLElement>('.glint')!;
     jewel.addEventListener('pointerleave', () => {
+      if (!('follow' in jewel.dataset)) return;
+      const from = parseFloat(jewel.style.getPropertyValue('--gx')) || 0;
       delete jewel.dataset.follow;
-      jewel.style.removeProperty('--gx');
+      jewel.dataset.drift = '';
+      // from where the pointer left the band, glide on to one end, then back and forth as before
+      const to = from > 0 ? 18 : -18;
+      const leg = glint.animate([{ transform: `translateX(${from}%)` }, { transform: `translateX(${to}%)` }], { duration: 3500 * (Math.abs(to - from) / 36) + 300, easing: 'ease-in-out', pseudoElement: '::before', fill: 'forwards' });
+      leg.onfinish = () => {
+        if (!('drift' in jewel.dataset)) return;
+        glint.animate([{ transform: `translateX(${to}%)` }, { transform: `translateX(${-to}%)` }], { duration: 7000, easing: 'ease-in-out', iterations: Infinity, direction: 'alternate', pseudoElement: '::before' });
+      };
+    });
+    jewel.addEventListener('pointerenter', () => {
+      jewel.getAnimations({ subtree: true }).forEach((a) => a.cancel());
+      delete jewel.dataset.drift;
     });
   }
 </script>
@@ -166,9 +177,8 @@ const jsonLd = {
      shared large one; the margin keeps it inside the column on phones. */
   .case {
     --plastic: color-mix(in srgb, var(--ink) 30%, var(--surface));
-    --peek: clamp(2.5rem, 17%, 4.25rem); /* how much of the disc shows beside the case: space kept for it in the column */
     position: relative;
-    margin-inline-end: var(--peek);
+    margin-inline-end: 8px;
     padding: 0.875rem 0.875rem 0.875rem 1.875rem;
     background: linear-gradient(135deg, rgb(255 255 255 / 0.55), rgb(255 255 255 / 0.08) 45%, rgb(255 255 255 / 0.3)), var(--surface);
     border: var(--border) solid var(--line);
@@ -178,18 +188,26 @@ const jsonLd = {
     content: '';
     position: absolute;
     inset: 0 auto 0 0;
-    width: 1.25rem;
-    border-inline-end: 1px solid color-mix(in srgb, var(--line) 45%, transparent);
+    width: 1.375rem;
     background:
-      /* the two knuckles of the hinge */
-      linear-gradient(180deg, transparent 0.5rem, var(--plastic) 0.5rem 2.25rem, transparent 2.25rem) 0.25rem 0 / 0.75rem 100% no-repeat,
-      linear-gradient(0deg, transparent 0.5rem, var(--plastic) 0.5rem 2.25rem, transparent 2.25rem) 0.25rem 0 / 0.75rem 100% no-repeat,
-      /* fine moulded ribs */
-      repeating-linear-gradient(90deg, color-mix(in srgb, var(--ink) 10%, transparent) 0 1px, transparent 1px 4px),
-      /* the spine: round, lit along its edge */
-      linear-gradient(90deg, color-mix(in srgb, var(--ink) 20%, var(--surface)), var(--surface) 55%, color-mix(in srgb, var(--ink) 9%, var(--surface)));
-    box-shadow: inset -2px 0 0 rgb(255 255 255 / 0.65);
+      repeating-linear-gradient(0deg, rgb(255 255 255 / 0.07) 0 1px, transparent 1px 4px),
+      linear-gradient(90deg, #15161c, #3e404c 38%, #24252e 70%, #1b1c23);
+    box-shadow: inset -1px 0 0 rgb(255 255 255 / 0.3), inset 1px 0 0 rgb(255 255 255 / 0.12), 1px 0 0 rgb(0 0 0 / 0.35);
   }
+  /* the hinge knuckles stick out of the spine, top and bottom, like on a real case */
+  .knuckle {
+    position: absolute;
+    z-index: 2;
+    left: calc(-1 * var(--border) - 5px);
+    width: 8px;
+    height: 1.75rem;
+    border-radius: 4px 0 0 4px;
+    background: linear-gradient(90deg, #8f91a3, #e3e4ea 45%, #a3a6b3);
+    border: 1px solid var(--line);
+    border-right: 0;
+  }
+  .knuckle-top { top: 0.75rem; }
+  .knuckle-bottom { bottom: 0.75rem; }
   /* light on acrylic, above the cover: a corner sheen, lit edges, and a feathered band of light that drifts on its own
      and follows a mouse (the band moves with transform, so it costs the main thread nothing); still in calm mode */
   .glint {
@@ -204,6 +222,14 @@ const jsonLd = {
       radial-gradient(60% 40% at 100% 100%, rgb(255 255 255 / calc(0.22 * var(--glint, 1))), transparent 70%);
     box-shadow: inset 0 1px 0 rgb(255 255 255 / calc(0.75 * var(--glint, 1))), inset 1px 0 0 rgb(255 255 255 / calc(0.45 * var(--glint, 1)));
   }
+  .glint::after {
+    content: '';
+    position: absolute;
+    inset: 0.3rem 0.3rem 0.3rem calc(1.375rem + 0.3rem);
+    border: 1px solid rgb(255 255 255 / calc(0.55 * var(--glint, 1)));
+    border-radius: 2px;
+    box-shadow: 0 0 0 1px rgb(0 0 0 / 0.07);
+  }
   .glint::before {
     content: '';
     position: absolute;
@@ -213,30 +239,10 @@ const jsonLd = {
   }
   @keyframes glint-drift { from { transform: translateX(-18%); } to { transform: translateX(18%); } }
   .case[data-follow] .glint::before { animation: none; transform: translateX(var(--gx, 0%)); transition: transform 180ms ease-out; }
+  .case[data-drift] .glint::before { animation: none; } /* the script carries the drift on from where the pointer left it */
   :global(html[data-calm]) .glint::before { animation: none; }
   @media (prefers-reduced-motion: reduce) { .glint::before { animation: none; } }
   .case :global(.cover) { position: relative; border: 1px solid var(--line); }
-  /* the disc sits behind the case, half pulled out on the right; it slides out once when the page opens */
-  .case-disc { position: absolute; z-index: -1; top: 50%; right: calc(-1 * var(--peek) - 0.5rem); width: 78%; translate: 0 -50%; }
-  .case-disc::after { right: 3%; width: 20%; font-size: 0.875rem; line-height: 1.05; } /* the code and year on the slice that shows */
-  @keyframes disc-out { from { translate: calc(-1 * var(--peek) - 1rem) -50%; rotate: -60deg; } }
-  .case-disc { animation: disc-out 900ms cubic-bezier(0.2, 0.8, 0.2, 1) 250ms both; }
-  :global(html[data-calm]) .case-disc { animation: none; }
-  @media (prefers-reduced-motion: reduce) { .case-disc { animation: none; } }
-  /* the two clear plastic clips of the lid, holding the booklet's right edge */
-  .clip {
-    position: absolute;
-    z-index: 2;
-    right: calc(0.875rem - 5px);
-    width: 9px;
-    height: 1.75rem;
-    border-radius: 3px;
-    background: linear-gradient(90deg, color-mix(in srgb, var(--ink) 22%, var(--surface)), var(--surface) 60%, color-mix(in srgb, var(--ink) 12%, var(--surface)));
-    border: 1px solid color-mix(in srgb, var(--line) 55%, transparent);
-    box-shadow: -1px 1px 2px rgb(0 0 0 / 0.18);
-  }
-  .clip-top { top: 18%; }
-  .clip-bottom { top: 58%; }
   :global([data-theme='dark']) .case { --glint: 0.45; }
   figcaption { margin-top: 0.5rem; font-size: var(--fs-small); color: var(--muted); }
 
