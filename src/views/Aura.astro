@@ -1,0 +1,1212 @@
+---
+// B1 · The aura reading (25-spec-aura-reading, board B2-Aura adapted). Intro → 8 questions → result, all in the browser.
+// The 8 questions and the deck are built here; the scoring is src/lib/aura.ts. Without JS: the intro and the full deck.
+import { getCollection, getEntry } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import PlayerGate from '../components/PlayerGate.astro';
+import { localePath, t, type Locale } from '../i18n';
+import { auraEras } from '../lib/aura';
+import { auraReading, titleFit } from '../lib/music';
+import { spotifyEmbed } from '../lib/musicbrainz';
+
+const locale = (Astro.currentLocale ?? 'en') as Locale;
+const aura = await auraReading();
+const site = (await getEntry('site', 'site'))!.data;
+const L = (b: { en: string; es: string }) => b[locale];
+const eraData = new Map((await getCollection('eras')).map((e) => [e.id, e.data]));
+const eras = auraEras.map((id) => ({ id, name: eraData.get(id)!.title, years: eraData.get(id)!.years, tag: L(aura.eras[id].tag), line: L(aura.eras[id].line) }));
+const keys = ['A', 'B', 'C', 'D'];
+const pad = (n: number) => String(n).padStart(2, '0');
+
+// art drawn on the cards: the series 01 stickers (scene and sticker questions)
+const sceneArt = ['plushie-backpack', 'over-ears', 'ict-lax', 'nail-salon-rave'];
+const stickerArt = ['echo-well', 'mix-for-tiff', 'bunny-fruit', 'flash'];
+
+// the deck, grouped for the "every possible result" list
+const byEra = eras.map((e) => {
+  const songs = aura.deck.filter((s) => s.era === e.id && !s.standalone);
+  const releases = [...new Set(songs.map((s) => s.releaseTitle))].map((title) => ({ title, songs: songs.filter((s) => s.releaseTitle === title) }));
+  return { ...e, count: songs.length, releases };
+});
+const solo = aura.deck.filter((s) => s.standalone);
+
+// compact data for the script (the deck is inlined at build: no request, no framework)
+const data = {
+  feelings: aura.feelings.map((f) => ({ id: f.id, why: L(f.why) })),
+  eras: eras.map(({ id, name, years, tag, line }) => ({ id, name, years, tag, line, fit: titleFit(name) })),
+  questions: aura.questions.map((q) => ({ kicker: L(q.kicker), options: q.options.map((o) => ({ era: o.era, feelings: o.feelings })) })),
+  deck: aura.deck.map((s) => ({ ...s, fit: titleFit(s.title), embed: s.spotify && spotifyEmbed(s.spotify), href: localePath(`/music/${s.release}/`, locale) })),
+  s: Object.fromEntries(
+    (['from', 'soloFrom', 'because', 'copyText', 'copyTextSolo', 'stamp', 'announce', 'announceSolo', 'copied', 'copyFailed', 'progress', 'next', 'finish', 'myAura', 'mySong', 'fanLine', 'cardAlt', 'whiteLight', 'last'] as const).map((k) => [k, t(locale, `aura.${k}`)]),
+  ),
+  locale,
+};
+const json = JSON.stringify(data).replace(/</g, '\\u003c');
+---
+
+<Base title={t(locale, 'aura.title')} description={t(locale, 'aura.description')}>
+  <div class="aura" data-aura>
+    <script type="application/json" data-aura-data set:html={json} />
+    <!-- one h1 for every stage (intro, questions, result); the intro's huge title is its visual twin -->
+    <h1 id="aura-title" class="visually-hidden">{t(locale, 'aura.h1')}</h1>
+
+    <!-- ============ intro ============ -->
+    <section class="intro" data-stage="intro" aria-labelledby="aura-title">
+      <div class="intro-copy">
+        <p class="lcd chip">{t(locale, 'aura.chip')}</p>
+        <p class="title" aria-hidden="true">{t(locale, 'aura.h1')}</p>
+        <p class="lead" set:html={t(locale, 'aura.lead')} />
+        <p class="note">{t(locale, 'aura.note')}</p>
+        <div class="cta">
+          <button type="button" class="btn btn-primary btn-big" data-start hidden><span aria-hidden="true">▶</span> {t(locale, 'aura.start')}</button>
+          <a class="see-all" href="#deck">{t(locale, 'aura.seeAll')}</a>
+        </div>
+        <p class="meta">{t(locale, 'aura.meta')}</p>
+        <p class="nojs" data-nojs>{t(locale, 'aura.noJs')}</p>
+        <p class="last" data-last hidden><span class="lcd">{t(locale, 'aura.last')}</span> <a href="#" data-last-link></a></p>
+      </div>
+
+      <figure class="polaroid hero" aria-hidden="true">
+        <span class="tape"></span>
+        <div class="photo" data-aura-skin="all">
+          <span class="blob b1"></span><span class="blob b2"></span><span class="blob b3"></span><span class="blob b4"></span>
+          <img class="shroom" src="/stickers/halo-shroom.svg" alt="" width="248" height="248" />
+        </div>
+        <figcaption class="hand">{t(locale, 'aura.goesHere')}</figcaption>
+        <img class="sticker-start" src="/stickers/start-over.svg" alt="" width="120" height="120" loading="lazy" />
+      </figure>
+      <p class="hand develops" aria-hidden="true">{t(locale, 'aura.develops')} <span>↘</span></p>
+
+      <div class="auras">
+        <p class="auras-label">{t(locale, 'aura.fourAuras')}</p>
+        <ul>
+          {eras.map((e) => (
+            <li class="aura-chip"><span class="swatch" data-aura-skin={e.id}></span><b>{e.name}</b> <span class="yrs">{e.years}</span></li>
+          ))}
+          <li class="aura-chip solo"><span class="swatch" data-aura-skin="solo"></span><b>{t(locale, 'aura.soloDeck')}</b> <span class="yrs">{t(locale, 'aura.justSong')}</span></li>
+        </ul>
+      </div>
+
+      <div class="strip">
+        <p class="strip-title"><b>{t(locale, 'aura.tracklist')}</b><span class="lcd-text">{t(locale, 'aura.sideB')}</span></p>
+        <ol>
+          {aura.questions.map((q, i) => (
+            <li><span class="n">{pad(i + 1)}</span> <b>{L(q.kicker).charAt(0) + L(q.kicker).slice(1).toLowerCase()}</b> · {L(q.text)}</li>
+          ))}
+        </ol>
+      </div>
+    </section>
+
+    <!-- ============ the eight questions ============ -->
+    <section class="quiz" data-stage="quiz" hidden>
+      <div class="quiz-head">
+        <p class="qnum" aria-hidden="true"><span class="big" data-qn>Q01</span><span class="of">/ 08 · <span data-qk></span></span></p>
+        <p class="progress-text" data-progress-text></p>
+        <ol class="discs" aria-hidden="true">
+          {aura.questions.map(() => <li class="disc"></li>)}
+        </ol>
+        <button type="button" class="btn btn-secondary btn-sm back" data-back><span aria-hidden="true">←</span> {t(locale, 'aura.back')}</button>
+      </div>
+
+      <div class="quiz-body">
+        <div class="questions">
+          {aura.questions.map((q, i) => (
+            <div class="q" data-q={i} data-kind={q.kind} hidden>
+              <h2 id={`aura-q${i}`} class="q-title" tabindex="-1">{L(q.text)}</h2>
+              <div role="radiogroup" aria-labelledby={`aura-q${i}`} class:list={['opts', `k-${q.kind}`]}>
+                {q.kind === 'notif' && (
+                  <p class="lock-status" aria-hidden="true"><span>2:14</span><span class="batt"><span></span>3%</span></p>
+                )}
+                {q.options.map((o, j) => (
+                  <label class:list={['opt', { lift: ['scene', 'swatch', 'postcard'].includes(q.kind) }]} data-era={o.era}>
+                    <input class="visually-hidden" type="radio" name={`aura-q${i}`} value={j} />
+                    {q.kind === 'scene' && <img class="art" src={`/stickers/${sceneArt[j]}.svg`} alt="" width="96" height="96" loading="lazy" />}
+                    {q.kind === 'swatch' && <span class="sw" data-aura-skin={o.era} aria-hidden="true"><span class="blob b1"></span><span class="blob b2"></span></span>}
+                    {q.kind === 'notif' && (
+                      <span class="app" aria-hidden="true"><span class="app-icon" data-aura-skin={o.era}></span><span class="app-name">{o.art && L(o.art)}</span><span class="now">{t(locale, 'aura.now')}</span></span>
+                    )}
+                    {q.kind === 'postcard' && (
+                      <span class="pc-front" aria-hidden="true"><span class="greet">{t(locale, 'aura.greetings')}</span><span class="state" data-aura-skin={o.era}>{o.art && L(o.art)}</span><span class="postmark"></span></span>
+                    )}
+                    {q.kind === 'fader' && (
+                      <span class="strip-ch" aria-hidden="true"><span class="scribble">CH {j + 1}</span><span class="meter"><span></span></span><span class="slot"><span class="cap"></span></span></span>
+                    )}
+                    {q.kind === 'sticker' && <img class="art" src={`/stickers/${stickerArt[j]}.svg`} alt="" width="160" height="160" loading="lazy" />}
+                    <span class="txt">
+                      <span class="label">{L(o.label)}</span>
+                      {o.sub && <span class="sub">{L(o.sub)}</span>}
+                    </span>
+                    <span class="key" aria-hidden="true">{keys[j]}</span>
+                    <span class="tick" aria-hidden="true">✓</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <!-- the polaroid that develops: each answer adds a blob in its era colour -->
+        <figure class="polaroid developing" aria-hidden="true">
+          <span class="tape"></span>
+          <div class="photo dev" data-aura-skin="none">
+            {aura.questions.map((_, i) => <span class:list={['dev-blob', `s${i}`]} data-dev={i}></span>)}
+            <img class="shroom" src="/stickers/halo-shroom.svg" alt="" width="248" height="248" />
+          </div>
+          <figcaption class="hand">{t(locale, 'aura.develops')}</figcaption>
+        </figure>
+      </div>
+
+      <div class="quiz-foot">
+        <p class="keys-hint">{t(locale, 'aura.keys')}</p>
+        <button type="button" class="btn btn-primary next" data-next disabled>{t(locale, 'aura.next')} <span aria-hidden="true">→</span></button>
+      </div>
+    </section>
+
+    <!-- ============ result ============ -->
+    <p class="visually-hidden" aria-live="polite" data-announce></p>
+    <section class="result" data-stage="result" hidden>
+      <figure class="polaroid res-photo" aria-hidden="true">
+        <span class="tape"></span>
+        <div class="photo developed" data-res-skin data-aura-skin="halo">
+          <span class="blob b1"></span><span class="blob b2"></span><span class="blob b3"></span>
+          <img class="shroom" src="/stickers/halo-shroom.svg" alt="" width="248" height="248" />
+          <span class="stamp" data-stamp></span>
+        </div>
+        <figcaption class="hand" data-caption></figcaption>
+      </figure>
+
+      <div class="res-head">
+        <div data-era-block>
+          <p class="kicker">{t(locale, 'aura.yourEra')}</p>
+          <h2 class="era-name" tabindex="-1" data-era-name></h2>
+          <p class="era-meta"><span class="lcd" data-era-years></span> <span class="era-tag" data-era-tag></span></p>
+          <p class="era-line" data-era-line></p>
+        </div>
+        <div data-solo-block hidden>
+          <p class="kicker">{t(locale, 'aura.noEra')}</p>
+          <h2 class="era-name fit-2" tabindex="-1">{t(locale, 'aura.soloTitle')}</h2>
+          <p class="era-line">{t(locale, 'aura.soloLine')}</p>
+        </div>
+      </div>
+
+      <article class="song-card" aria-labelledby="aura-song">
+        <p class="kicker">{t(locale, 'aura.yourSong')}</p>
+        <h3 id="aura-song" class="song-title"><span data-song-title></span> <abbr class="e-tag" title={t(locale, 'aura.explicit')} data-explicit hidden>E</abbr></h3>
+        <p class="song-from" data-song-from></p>
+        <p class="why" data-why></p>
+        <PlayerGate locale={locale} title="" links={{ spotify: site.official.spotify.url ?? 'https://open.spotify.com/' }} inline>
+          <a slot="beside" class="btn btn-secondary open-release" href="#" data-open-release>{t(locale, 'aura.openRelease')} <span aria-hidden="true">→</span></a>
+        </PlayerGate>
+      </article>
+
+      <div class="mix" data-mix-block>
+        <h3 class="mix-title">{t(locale, 'aura.mix')}</h3>
+        <ul>
+          {eras.map((e) => (
+            <li data-mix={e.id}>
+              <span class="mix-name">{e.name}</span>
+              <span class="bar" data-aura-skin={e.id}><span data-mix-bar></span></span>
+              <span class="pct" data-mix-pct>0%</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div class="res-actions">
+        <button type="button" class="btn btn-hot" data-again><span aria-hidden="true">↻</span> {t(locale, 'aura.again')}</button>
+        <button type="button" class="btn btn-secondary" data-make-card>{t(locale, 'aura.makeCard')}</button>
+        <button type="button" class="btn btn-secondary" data-copy>{t(locale, 'aura.copy')}</button>
+        <p class="copy-status" role="status" data-copy-status></p>
+      </div>
+    </section>
+
+    <dialog class="card-dialog" aria-labelledby="aura-card-title" data-card-dialog>
+      <div class="card-head">
+        <h2 id="aura-card-title">{t(locale, 'aura.cardTitle')}</h2>
+        <button type="button" class="btn btn-secondary btn-sm" data-card-close>{t(locale, 'aura.close')}</button>
+      </div>
+      <div class="formats" role="radiogroup" aria-label={t(locale, 'aura.cardTitle')}>
+        <label class="lift fmt"><input class="visually-hidden" type="radio" name="aura-fmt" value="wide" checked /> {t(locale, 'aura.cardWide')} <small>1200×630</small></label>
+        <label class="lift fmt"><input class="visually-hidden" type="radio" name="aura-fmt" value="story" /> {t(locale, 'aura.cardStory')} <small>1080×1350</small></label>
+      </div>
+      <canvas class="card-canvas" width="1200" height="630" role="img" data-card-canvas></canvas>
+      <p class="card-note">{t(locale, 'aura.cardNote')}</p>
+      <div class="card-actions">
+        <button type="button" class="btn btn-primary" data-card-save>{t(locale, 'aura.cardSave')}</button>
+        <button type="button" class="btn btn-secondary" data-card-share hidden>{t(locale, 'aura.cardShare')}</button>
+      </div>
+    </dialog>
+
+    <!-- ============ every possible result (also the no-JS view) ============ -->
+    <section class="deck" id="deck" aria-labelledby="deck-title">
+      <h2 id="deck-title" class="deck-title">{t(locale, 'aura.deckTitle')}</h2>
+      <p class="deck-lead">{t(locale, 'aura.deckLead', { n: String(aura.deck.length) })}</p>
+      <div class="booklets">
+        {byEra.map((e) => (
+          <article class="booklet" aria-labelledby={`deck-${e.id}`}>
+            <header>
+              <span class="swatch" data-aura-skin={e.id} aria-hidden="true"></span>
+              <h3 id={`deck-${e.id}`}>{e.name}</h3>
+              <span class="count">{t(locale, 'aura.songs', { n: String(e.count) })}</span>
+            </header>
+            {e.releases.map((r) => (
+              <div class="rel">
+                <p class="rel-title">{r.title}</p>
+                <ul class="songs">
+                  {r.songs.map((s) => (
+                    <li><a href={localePath(`/music/${s.release}/`, locale)}>{s.title}</a>{s.explicit && <abbr class="e-tag" title={t(locale, 'aura.explicit')}>E</abbr>}</li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </article>
+        ))}
+        <article class="booklet solo" aria-labelledby="deck-solo">
+          <header>
+            <span class="swatch" data-aura-skin="solo" aria-hidden="true"></span>
+            <h3 id="deck-solo">{t(locale, 'aura.soloDeck')}</h3>
+            <span class="count">{t(locale, 'aura.songs', { n: String(solo.length) })}</span>
+          </header>
+          <ul class="songs">
+            {solo.map((s) => (
+              <li><a href={localePath(`/music/${s.release}/`, locale)}>{s.title}</a> <span class="yr">{s.year}</span>{s.explicit && <abbr class="e-tag" title={t(locale, 'aura.explicit')}>E</abbr>}</li>
+            ))}
+          </ul>
+          <p class="solo-note">{t(locale, 'aura.soloDeckNote')}</p>
+        </article>
+      </div>
+    </section>
+  </div>
+</Base>
+
+<script>
+  import { read, type AuraEra, type DeckSong } from '../lib/aura';
+  import { readJSON, writeJSON } from '../lib/storage';
+  import { drawCard, type CardFormat } from '../scripts/aura-card';
+
+  type Song = DeckSong & { fit: number; spotify: string | null; embed: string | null; href: string };
+  type Era = { id: AuraEra; name: string; years: string; tag: string; line: string; fit: number };
+  type Data = {
+    feelings: { id: string; why: string }[];
+    eras: Era[];
+    questions: { kicker: string; options: { era: AuraEra; feelings: string[] }[] }[];
+    deck: Song[];
+    s: Record<string, string>;
+    locale: 'en' | 'es';
+  };
+  type Saved = { era: AuraEra | null; song: string; date: string };
+
+  const root = document.querySelector<HTMLElement>('[data-aura]');
+  if (root) {
+    const data = JSON.parse(root.querySelector('[data-aura-data]')!.textContent!) as Data;
+    const $ = <T extends HTMLElement = HTMLElement>(sel: string, from: ParentNode = root) => from.querySelector<T>(sel)!;
+    const fill = (key: string, vars: Record<string, string> = {}) => data.s[key]!.replace(/\{(\w+)\}/g, (_, k: string) => vars[k] ?? '');
+    const order = data.feelings.map((f) => f.id);
+    const why = Object.fromEntries(data.feelings.map((f) => [f.id, f.why]));
+    const eraOf = Object.fromEntries(data.eras.map((e) => [e.id, e])) as Record<AuraEra, Era>;
+    const lcdSafe = (s: string) => s.replace(/[‘’]/g, "'").toUpperCase();
+    const lcd = (text: string) => dispatchEvent(new CustomEvent('shq:lcd', { detail: text }));
+
+    const stages: Record<string, HTMLElement> = Object.fromEntries([...root.querySelectorAll<HTMLElement>('[data-stage]')].map((el) => [el.dataset.stage!, el]));
+    const questions = [...root.querySelectorAll<HTMLElement>('.q')];
+    const discs = [...root.querySelectorAll<HTMLElement>('.disc')];
+    const devBlobs = [...root.querySelectorAll<HTMLElement>('[data-dev]')];
+    const next = $<HTMLButtonElement>('[data-next]');
+    const start = $<HTMLButtonElement>('[data-start]');
+    $('[data-nojs]').hidden = true;
+    start.hidden = false;
+
+    const answers: (number | undefined)[] = Array(questions.length).fill(undefined);
+    let step = -1; // -1 intro, 0–7 questions, 8 result
+    let last: { era: AuraEra | null; song: Song } | null = null;
+
+    // the last reading (shq:aura) on the intro: a small return loop
+    const saved = readJSON<Saved | null>('aura', null);
+    const savedSong = saved && data.deck.find((s) => s.title === saved.song);
+    if (savedSong) {
+      $('[data-last]').hidden = false;
+      const a = $<HTMLAnchorElement>('[data-last-link]');
+      a.textContent = savedSong.title;
+      a.href = savedSong.href;
+    }
+
+    const show = (name: 'intro' | 'quiz' | 'result') => {
+      for (const [k, el] of Object.entries(stages)) el.hidden = k !== name;
+      root.dataset.at = name;
+    };
+
+    const paintQuestion = (i: number) => {
+      questions.forEach((q, j) => (q.hidden = j !== i));
+      const kicker = data.questions[i]!.kicker;
+      $('[data-qn]').textContent = `Q${String(i + 1).padStart(2, '0')}`;
+      $('[data-qk]').textContent = kicker;
+      $('[data-progress-text]').textContent = fill('progress', { n: String(i + 1), total: String(questions.length) });
+      discs.forEach((d, j) => {
+        d.dataset.state = j < i ? 'done' : j === i ? 'now' : 'todo';
+        const a = answers[j];
+        if (a === undefined) delete d.dataset.auraSkin;
+        else d.dataset.auraSkin = data.questions[j]!.options[a]!.era;
+      });
+      devBlobs.forEach((b, j) => {
+        const a = answers[j]; // later answers are cleared when one changes, so this is the picture so far
+        if (a === undefined) delete b.dataset.auraSkin;
+        else b.dataset.auraSkin = data.questions[j]!.options[a]!.era;
+      });
+      next.disabled = answers[i] === undefined;
+      next.firstChild!.textContent = `${data.s[i === questions.length - 1 ? 'finish' : 'next']} `;
+      lcd(`B1 · Q ${i + 1}/${questions.length}`);
+    };
+
+    const go = (to: number, push = true) => {
+      step = to;
+      if (push) history.pushState({ aura: to }, '');
+      if (to < 0) {
+        show('intro');
+        lcd('B1 · AURA READING');
+        start.focus();
+      } else if (to < questions.length) {
+        show('quiz');
+        paintQuestion(to);
+        $(`#aura-q${to}`).focus({ preventScroll: true });
+        stages.quiz!.scrollIntoView({ block: 'start' });
+      } else result();
+    };
+
+    const result = () => {
+      const r = read(answers as number[], data.questions, data.deck, order) as ReturnType<typeof read> & { song: Song };
+      const song = r.song;
+      const solo = song.standalone;
+      const era = eraOf[r.era];
+      last = { era: solo ? null : r.era, song };
+      show('result');
+      const res = stages.result!;
+      res.dataset.solo = String(solo);
+      $('[data-res-skin]').dataset.auraSkin = solo ? 'solo' : r.era;
+      $('[data-era-block]').hidden = solo;
+      $('[data-solo-block]').hidden = !solo;
+      $('[data-mix-block]').hidden = solo;
+      const date = new Date().toLocaleDateString(data.locale, { day: 'numeric', month: 'short' }).toUpperCase().replace('.', '');
+      $('[data-stamp]').textContent = fill('stamp', { date });
+      $('[data-caption]').textContent = solo ? data.s.whiteLight! : era.tag;
+      const name = $('[data-era-name]');
+      name.textContent = era.name;
+      name.className = `era-name fit-${era.fit}`;
+      $('[data-era-years]').textContent = era.years;
+      $('[data-era-tag]').textContent = era.tag;
+      $('[data-era-line]').textContent = era.line;
+      const title = $('[data-song-title]');
+      title.textContent = song.title;
+      title.parentElement!.className = `song-title fit-${song.fit}`;
+      $('[data-explicit]').hidden = !song.explicit;
+      $('[data-song-from]').textContent = solo ? fill('soloFrom', { year: song.year }) : fill('from', { release: song.releaseTitle, year: song.year });
+      $('[data-why]').textContent = fill('because', { a: why[r.why[0]]!, b: why[r.why[1]]! });
+      $<HTMLAnchorElement>('[data-open-release]').href = song.href;
+      // the player gate of the result: re-armed for this song (nothing loads before the click)
+      const gate = $('[data-gate]', res);
+      for (const el of gate.querySelectorAll<HTMLElement>('[data-gate-load], .gate-small')) el.hidden = !song.embed; // no Spotify link: the release page only
+      if (song.embed) {
+        gate.dataset.gate = song.embed;
+        gate.dataset.frameTitle = song.title;
+        gate.toggleAttribute('data-tall', song.embed.includes('/album/')); // same rule as PlayerGate.astro
+        gate.querySelector<HTMLAnchorElement>('[data-gate-fallback] a')!.href = song.spotify!;
+        gate.dispatchEvent(new Event('gate:reset'));
+      }
+      for (const e of data.eras) {
+        const row = $(`[data-mix="${e.id}"]`);
+        $('[data-mix-bar]', row).style.inlineSize = `${r.mix[e.id]}%`; // CSSOM, allowed by the CSP
+        $('[data-mix-pct]', row).textContent = `${r.mix[e.id]}%`;
+        row.classList.toggle('win', e.id === r.era);
+      }
+      $('[data-copy-status]').textContent = '';
+      $('[data-announce]').textContent = solo ? fill('announceSolo', { song: song.title }) : fill('announce', { era: era.name, song: song.title });
+      lcd(/^[\x20-\x7e]+$/.test(lcdSafe(song.title)) ? `B1 · ${lcdSafe(song.title)}` : 'B1 · YOUR AURA');
+      writeJSON('aura', { era: last.era, song: song.title, date: new Date().toISOString().slice(0, 10) } satisfies Saved);
+      res.classList.remove('reveal');
+      void res.offsetWidth; // restart the develop animation on "take it again"
+      res.classList.add('reveal');
+      res.scrollIntoView({ block: 'start' });
+      $(solo ? '[data-solo-block] .era-name' : '[data-era-name]').focus({ preventScroll: true });
+    };
+
+    // ---- answering: pointer picks move on by themselves; keyboard picks wait for Next (no surprise jumps) ----
+    let pointer = false;
+    root.addEventListener('pointerdown', () => (pointer = true), true);
+    root.addEventListener('keydown', () => (pointer = false), true);
+    questions.forEach((q, i) => {
+      q.addEventListener('change', (e) => {
+        answers[i] = Number((e.target as HTMLInputElement).value);
+        for (let j = i + 1; j < answers.length; j++) answers[j] = undefined; // a changed answer re-asks the rest
+        paintQuestion(i);
+        if (pointer) setTimeout(() => step === i && go(i + 1), 420);
+      });
+    });
+    next.addEventListener('click', () => answers[step] !== undefined && go(step + 1));
+    $('[data-back]').addEventListener('click', () => history.back());
+    start.addEventListener('click', () => {
+      answers.fill(undefined);
+      for (const input of root.querySelectorAll<HTMLInputElement>('.q input')) input.checked = false;
+      go(0);
+    });
+    $('[data-again]').addEventListener('click', () => start.click());
+    addEventListener('popstate', (e) => {
+      const to = (e.state as { aura?: number } | null)?.aura ?? -1;
+      // never land on a question after an unanswered one, or on a result without all answers
+      const firstGap = answers.findIndex((a) => a === undefined);
+      go(firstGap === -1 ? to : Math.min(to, firstGap), false);
+    });
+    history.replaceState({ aura: -1 }, '');
+
+    // shortcuts on a question: 1–4 / A–D pick, Enter next, Backspace back (never while typing; the remote's 1–7 wait)
+    addEventListener(
+      'keydown',
+      (e) => {
+        if (step < 0 || step >= questions.length || e.altKey || e.ctrlKey || e.metaKey) return;
+        const t = e.target as HTMLElement;
+        if (t.isContentEditable || t.closest('textarea, select, input:not([type="radio"]), dialog')) return;
+        const k = e.key.toUpperCase();
+        const i = '1234'.indexOf(k) >= 0 ? '1234'.indexOf(k) : k.length === 1 ? 'ABCD'.indexOf(k) : -1;
+        if (/^[5-9]$/.test(k)) e.stopPropagation(); // the remote's 5–7 would leave the reading halfway
+        if (i >= 0) {
+          e.preventDefault();
+          e.stopPropagation();
+          const input = questions[step]!.querySelectorAll<HTMLInputElement>('input')[i]!;
+          input.checked = true;
+          input.focus();
+          input.dispatchEvent(new Event('change', { bubbles: true }));
+        } else if (e.key === 'Enter' && answers[step] !== undefined) {
+          e.preventDefault();
+          go(step + 1);
+        } else if (e.key === 'Backspace') {
+          e.preventDefault();
+          history.back();
+        }
+      },
+      true,
+    );
+
+    // ---- copy and the aura card ----
+    const copyText = () => (last!.era ? fill('copyText', { era: eraOf[last!.era].name, song: last!.song.title }) : fill('copyTextSolo', { song: last!.song.title })) + ' — shroomieshq.fan/aura';
+    $('[data-copy]').addEventListener('click', async () => {
+      const status = $('[data-copy-status]');
+      try {
+        await navigator.clipboard.writeText(copyText());
+        status.textContent = data.s.copied!;
+      } catch {
+        status.textContent = `${data.s.copyFailed} ${copyText()}`;
+      }
+    });
+
+    const dialog = $<HTMLDialogElement>('[data-card-dialog]');
+    const canvas = $<HTMLCanvasElement>('[data-card-canvas]');
+    const share = $<HTMLButtonElement>('[data-card-share]');
+    let format: CardFormat = 'wide';
+    const paintCard = async () => {
+      const { era, song } = last!;
+      await drawCard(canvas, format, {
+        era: era && eraOf[era],
+        aura: era ?? 'solo',
+        song: song.title,
+        caption: era ? eraOf[era].tag : data.s.whiteLight!,
+        s: data.s,
+      });
+      canvas.setAttribute('aria-label', fill('cardAlt', { era: era ? eraOf[era].name : '—', song: song.title }));
+    };
+    const blob = () => new Promise<Blob | null>((ok) => canvas.toBlob(ok, 'image/png'));
+    const fileName = () => `tiff-aura-${last!.song.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}-${format}.png`;
+    $('[data-make-card]').addEventListener('click', async () => {
+      dialog.showModal();
+      await paintCard();
+      const probe = new File([new Blob()], 'x.png', { type: 'image/png' });
+      share.hidden = !navigator.canShare?.({ files: [probe] });
+    });
+    $('[data-card-close]').addEventListener('click', () => dialog.close());
+    dialog.addEventListener('click', (e) => e.target === dialog && dialog.close()); // a click on the backdrop
+    for (const input of dialog.querySelectorAll<HTMLInputElement>('[name="aura-fmt"]')) {
+      input.addEventListener('change', () => {
+        format = input.value as CardFormat;
+        paintCard();
+      });
+    }
+    $('[data-card-save]').addEventListener('click', async () => {
+      const b = await blob();
+      if (!b) return;
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(b);
+      a.download = fileName();
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    });
+    share.addEventListener('click', async () => {
+      const b = await blob();
+      if (!b) return;
+      try {
+        await navigator.share({ files: [new File([b], fileName(), { type: 'image/png' })], text: copyText() });
+      } catch {} // the visitor closed the share sheet
+    });
+  }
+</script>
+
+<style>
+  /* ---------- aura colours: one pair per era (approved era skins), the standalone white light, the intro mix ---------- */
+  [data-aura-skin] { --a1: #c9cbd6; --a2: #8f91a3; --a-bg: #2a2c36; }
+  [data-aura-skin='first-singles'] { --a1: #9aa6ff; --a2: #ffd6ea; --a-bg: #241f4a; }
+  [data-aura-skin='projects'] { --a1: #ff4a1c; --a2: #ffb347; --a-bg: #3a1208; }
+  [data-aura-skin='ltf'] { --a1: #3f9a3a; --a2: #ff8fc7; --a-bg: #0f2618; }
+  [data-aura-skin='halo'] { --a1: #2335f0; --a2: #ffffff; --a-bg: #070a2a; }
+  [data-aura-skin='solo'] { --a1: #f4f4f7; --a2: #c9cbd6; --a-bg: #2a2c36; }
+
+  .aura { width: var(--column); margin-inline: auto; padding-block: 2rem 1rem; }
+  .kicker { margin-bottom: 0.375rem; font-size: var(--fs-small); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--c-aura-text); }
+  :global([data-theme='dark']) .kicker { color: var(--hot); }
+  .hand { font-family: var(--font-hand); }
+
+  /* ---------- the polaroid (shared by intro, quiz and result) ---------- */
+  .polaroid {
+    position: relative;
+    padding: 0.875rem 0.875rem 0;
+    background: #fbfaf6;
+    color: var(--c-ink);
+    border: var(--border) solid var(--c-ink);
+    box-shadow: var(--shadow-lg);
+    rotate: 2.5deg;
+  }
+  .polaroid .tape { top: -0.875rem; }
+  .polaroid figcaption { padding: 0.875rem 0.25rem 1.125rem; text-align: center; font-size: clamp(1.125rem, 0.9rem + 0.8vw, 1.5rem); line-height: 1.1; }
+  .photo {
+    position: relative;
+    aspect-ratio: 1;
+    overflow: hidden;
+    isolation: isolate;
+    background: radial-gradient(120% 90% at 50% 40%, color-mix(in srgb, var(--a-bg) 70%, #ffffff), var(--a-bg));
+    border: var(--border) solid var(--c-ink);
+    transition: background 600ms;
+  }
+  /* xerox halftone over the light: it reads as a printed photo, not a CSS gradient */
+  .photo::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    background: radial-gradient(rgb(0 0 0 / 0.28) 0.9px, transparent 1.3px) 0 0 / 4px 4px;
+    mix-blend-mode: multiply;
+    pointer-events: none;
+  }
+  .blob, .dev-blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(18px);
+    mix-blend-mode: screen;
+    transition: background 500ms, opacity 500ms, scale 500ms;
+  }
+  .blob.b1 { inset: 4% 26% 30% -6%; background: var(--a1); }
+  .blob.b2 { inset: 22% -8% 6% 34%; background: var(--a2); opacity: 0.9; }
+  .blob.b3 { inset: 46% 30% -14% 8%; background: color-mix(in srgb, var(--a1) 60%, var(--a2)); opacity: 0.8; }
+  .blob.b4 { inset: -10% -6% 52% 46%; background: var(--a2); opacity: 0.7; }
+  .shroom { position: absolute; inset: 16% 18% 14%; z-index: 1; width: 64%; height: auto; filter: drop-shadow(0 10px 18px rgb(0 0 0 / 0.35)); }
+
+  /* the intro polaroid mixes the four auras and keeps drifting */
+  [data-aura-skin='all'] { --a-bg: #14163a; }
+  [data-aura-skin='all'] .b1 { background: #9aa6ff; }
+  [data-aura-skin='all'] .b2 { background: #ff4a1c; }
+  [data-aura-skin='all'] .b3 { background: #3f9a3a; }
+  [data-aura-skin='all'] .b4 { background: #2335f0; opacity: 1; }
+  @keyframes drift {
+    0% { translate: 0 0; scale: 1; }
+    50% { translate: 8% -6%; scale: 1.12; }
+    100% { translate: -6% 7%; scale: 0.94; }
+  }
+  @keyframes float { 50% { translate: 0 -4%; rotate: -2deg; } }
+  .hero .blob { animation: drift 9s ease-in-out infinite alternate; }
+  .hero .b2 { animation-duration: 11s; animation-direction: alternate-reverse; }
+  .hero .b3 { animation-duration: 13s; }
+  .hero .b4 { animation-duration: 7s; animation-direction: alternate-reverse; }
+  .res-photo .blob { animation: drift 10s ease-in-out infinite alternate; }
+  .res-photo .b2 { animation-direction: alternate-reverse; animation-duration: 12s; }
+  .hero .shroom, .res-photo .shroom { animation: float 5s ease-in-out infinite; }
+
+  /* ================= intro ================= */
+  .intro {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.9fr);
+    grid-template-areas: 'copy photo' 'copy develops' 'auras auras' 'strip strip';
+    gap: 0 2.5rem;
+    align-items: start;
+  }
+  .intro-copy { grid-area: copy; display: grid; gap: 1rem; justify-items: start; container-type: inline-size; min-width: 0; }
+  .chip { font-size: 1.125rem; padding-block: 0.125rem; }
+  .title {
+    width: 100%;
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: min(7.25rem, 13.6cqi);
+    font-stretch: 150%;
+    letter-spacing: -0.03em;
+    line-height: 0.86;
+    text-transform: uppercase;
+    overflow-wrap: break-word;
+    text-wrap: balance;
+  }
+  .lead { max-width: 34rem; font-size: clamp(1.125rem, 1rem + 0.4vw, 1.3125rem); line-height: 1.45; }
+  .note { max-width: 34rem; font-size: 0.9375rem; color: var(--muted); }
+  .cta { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 1.5rem; margin-top: 0.25rem; }
+  .btn-big { min-height: 56px; padding-inline: 1.75rem; font-size: 1.125rem; }
+  .see-all { font-weight: 700; }
+  .meta { font-size: var(--fs-small); color: var(--muted); }
+  .nojs { padding: 0.75rem 1rem; background: var(--c-lemon); color: var(--c-ink); border: var(--border) solid var(--c-ink); font-weight: 700; }
+  .last { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; font-weight: 700; }
+  .last .lcd { font-size: 1rem; }
+
+  .hero { grid-area: photo; width: min(100%, 24rem); justify-self: center; margin-top: 1.5rem; }
+  .sticker-start { position: absolute; right: -2.25rem; bottom: -1.75rem; width: 6.5rem; height: auto; rotate: 12deg; }
+  .develops { grid-area: develops; justify-self: start; margin: 1.5rem 0 0 1rem; font-size: 1.25rem; color: var(--c-aura-text); rotate: -6deg; }
+  :global([data-theme='dark']) .develops { color: var(--hot); }
+
+  .auras { grid-area: auras; display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem 1rem; margin-top: 2.5rem; }
+  .auras-label { font-size: var(--fs-small); font-weight: 700; }
+  .auras ul { display: flex; flex-wrap: wrap; gap: 0.625rem; padding: 0; list-style: none; }
+  .aura-chip {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.375rem 0.75rem 0.375rem 0.375rem;
+    background: var(--surface);
+    border: var(--border) solid var(--line);
+    box-shadow: var(--shadow-sm);
+    font-size: 0.875rem;
+  }
+  .aura-chip b { font-family: var(--font-display); font-weight: 900; font-stretch: 125%; text-transform: uppercase; }
+  .aura-chip .yrs { font: 1rem var(--font-lcd); color: var(--muted); }
+  .aura-chip.solo { border-style: dashed; box-shadow: none; background: transparent; }
+  .swatch {
+    flex: none;
+    width: 1.75rem;
+    height: 1.75rem;
+    border: var(--border) solid var(--c-ink);
+    background: radial-gradient(circle at 30% 30%, var(--a2), transparent 70%), radial-gradient(circle at 70% 75%, var(--a1) 10%, var(--a-bg) 80%);
+  }
+
+  /* the dark tracklist strip: side B of the CD booklet */
+  .strip {
+    grid-area: strip;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 1rem 2rem;
+    margin-top: 2.5rem;
+    padding: 1.5rem 1.75rem;
+    background: var(--c-ink);
+    color: var(--c-flash);
+    border: var(--border) solid var(--line);
+    box-shadow: 8px 8px 0 var(--c-strobe);
+  }
+  .strip-title { display: grid; align-content: start; gap: 0.25rem; }
+  .strip-title b { font: 900 1.625rem/1 var(--font-display); font-stretch: 150%; text-transform: uppercase; }
+  .lcd-text { font: 1.0625rem var(--font-lcd); color: var(--c-lcd-1); }
+  .strip ol { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 2rem; padding: 0; list-style: none; counter-reset: none; }
+  .strip li { padding: 0.5rem 0; border-bottom: 1px dashed var(--c-remote-line); font-size: 0.9375rem; color: var(--c-remote-label); }
+  .strip li b { color: var(--c-flash); }
+  .strip .n { margin-inline-end: 0.375rem; font: 1.125rem var(--font-lcd); color: var(--c-lcd-1); }
+
+  /* ================= questions ================= */
+  .quiz { scroll-margin-top: 1rem; }
+  .quiz-head {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-areas: 'num discs back' 'num text back';
+    align-items: center;
+    gap: 0.25rem 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: var(--border-strong) solid var(--line);
+  }
+  .qnum { grid-area: num; display: flex; align-items: baseline; gap: 0.5rem; }
+  .qnum .big { font: 900 clamp(3rem, 2rem + 4vw, 5rem)/0.85 var(--font-display); font-stretch: 62%; letter-spacing: -0.02em; }
+  .qnum .of { font: 1.375rem var(--font-lcd); color: var(--muted); white-space: nowrap; }
+  .progress-text { grid-area: text; font-size: var(--fs-small); font-weight: 700; color: var(--muted); }
+  .back { grid-area: back; }
+  .discs { grid-area: discs; display: flex; gap: 0.5rem; padding: 0; list-style: none; }
+  /* progress: eight little CDs; a done one prints in the colour of the era its answer gave */
+  .disc {
+    position: relative;
+    width: 1.75rem;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    border: var(--border) solid var(--line);
+    background:
+      radial-gradient(circle, var(--bg) 0 18%, var(--line) 19% 24%, transparent 25%),
+      conic-gradient(from 30deg, color-mix(in srgb, var(--surface) 80%, #c9e6ff), var(--surface), color-mix(in srgb, var(--surface) 80%, #ffd6ea), var(--surface));
+    transition: background 300ms, scale 200ms;
+  }
+  .disc[data-state='done'] {
+    background:
+      radial-gradient(circle, var(--bg) 0 18%, var(--c-ink) 19% 24%, transparent 25%),
+      conic-gradient(from 30deg, var(--a1), var(--a2), var(--a1));
+  }
+  .disc[data-state='now'] { scale: 1.2; border-color: var(--c-aura); box-shadow: 0 0 0 3px color-mix(in srgb, var(--c-aura) 30%, transparent); animation: spin 4s linear infinite; }
+  @keyframes spin { to { rotate: 360deg; } }
+
+  .quiz-body { display: grid; grid-template-columns: minmax(0, 1fr) 13rem; gap: 2.5rem; align-items: start; margin-top: 1.75rem; }
+  .q-title {
+    margin-bottom: 1.5rem;
+    font-size: clamp(1.75rem, 1.1rem + 2.6vw, 3.25rem);
+    font-stretch: 125%;
+    letter-spacing: -0.015em;
+    line-height: 1;
+    text-wrap: balance;
+  }
+  .q-title:focus { outline: none; }
+  .q-title:focus-visible { outline: none; text-decoration: underline 4px var(--accent); text-underline-offset: 0.2em; }
+  .developing { position: sticky; top: 1.5rem; width: 100%; rotate: -3deg; margin-top: 0.5rem; }
+  .developing figcaption { font-size: 1rem; }
+  .dev { background: radial-gradient(120% 90% at 50% 40%, #4a4c58, #1c1d24); }
+  .dev .shroom { opacity: 0.45; filter: grayscale(1) drop-shadow(0 10px 18px rgb(0 0 0 / 0.35)); transition: opacity 400ms, filter 400ms; }
+  .dev:has([data-dev][data-aura-skin]) .shroom { opacity: 0.8; filter: grayscale(0.5) drop-shadow(0 10px 18px rgb(0 0 0 / 0.35)); }
+  .dev-blob { width: 55%; aspect-ratio: 1; opacity: 0; scale: 0.4; background: var(--a1); }
+  .dev-blob[data-aura-skin] { opacity: 0.85; scale: 1; }
+  .dev-blob:nth-child(even)[data-aura-skin] { background: var(--a2); opacity: 0.7; }
+  .s0 { left: -10%; top: -8%; } .s1 { right: -12%; top: 4%; } .s2 { left: 18%; top: 30%; } .s3 { right: -6%; bottom: 8%; }
+  .s4 { left: -14%; bottom: -10%; } .s5 { left: 30%; top: -16%; } .s6 { right: 18%; bottom: -18%; } .s7 { left: 22%; top: 22%; width: 60%; }
+
+  .quiz-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; margin-top: 2rem; }
+  .keys-hint { font-size: var(--fs-small); color: var(--muted); }
+  .next { min-width: 11rem; min-height: 56px; font-size: 1.0625rem; }
+  .next:disabled { opacity: 0.45; cursor: not-allowed; transform: none; box-shadow: 4px 4px 0 var(--shadow); }
+
+  /* ---------- answers: shared parts ---------- */
+  .opts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem; }
+  .opt { position: relative; display: grid; gap: 0.5rem; align-content: start; cursor: pointer; color: var(--c-ink); }
+  .txt { display: grid; gap: 0.25rem; }
+  .label { font: 900 clamp(1.125rem, 1rem + 0.5vw, 1.375rem)/1.1 var(--font-display); font-stretch: 125%; }
+  .sub { font-size: 0.9375rem; line-height: 1.35; color: color-mix(in srgb, currentColor 72%, transparent); }
+  .key {
+    position: absolute;
+    top: 0.625rem;
+    right: 0.625rem;
+    display: grid;
+    place-items: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    font: 1.125rem/1 var(--font-lcd);
+    color: var(--c-lcd-ink);
+    background: linear-gradient(var(--c-lcd-1), var(--c-lcd-2));
+    border: var(--border) solid var(--c-ink);
+    border-radius: 4px;
+  }
+  .tick {
+    position: absolute;
+    top: -0.75rem;
+    left: -0.75rem;
+    z-index: 3;
+    display: grid;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    background: var(--accent);
+    color: var(--on-accent);
+    border: var(--border) solid var(--c-ink);
+    font-weight: 900;
+    scale: 0;
+    transition: scale 180ms cubic-bezier(0.3, 1.6, 0.5, 1);
+  }
+  .opt:has(:checked) .tick { scale: 1; }
+  /* selected: tick + a thick blue outline (never colour alone); focus: the site's lift with the blue shadow */
+  .opt:has(:checked) { outline: 3px solid var(--accent); outline-offset: 4px; }
+  .opt:has(:focus-visible) { transform: translate(-1px, -2px); box-shadow: 5px 6px 0 var(--accent); }
+
+  /* scene: white cards with a sticker drawing */
+  .k-scene .opt { padding: 1.25rem; background: var(--surface); border: var(--border) solid var(--line); color: var(--ink); min-height: 11rem; }
+  .k-scene .art { width: 5.5rem; height: auto; margin: -0.25rem 0 0.25rem -0.25rem; rotate: -6deg; transition: rotate 200ms, scale 200ms; }
+  .k-scene .opt:nth-child(even) .art { rotate: 5deg; }
+  .k-scene .opt:hover .art { rotate: 0deg; scale: 1.08; }
+
+  /* swatch: four auras to walk around in */
+  .k-swatch { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .k-swatch .opt { padding: 0.625rem 0.625rem 1rem; background: var(--surface); border: var(--border) solid var(--line); color: var(--ink); }
+  .sw { position: relative; display: block; aspect-ratio: 4 / 5; overflow: hidden; isolation: isolate; background: var(--a-bg); border: var(--border) solid var(--c-ink); }
+  .sw .blob.b1 { inset: 6% 10% 34% -10%; }
+  .sw .blob.b2 { inset: 40% -14% -6% 26%; }
+  .k-swatch .opt:hover .blob { scale: 1.15; }
+
+  /* notification: a phone lock screen at 3 % */
+  .k-notif {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.625rem;
+    max-width: 30rem;
+    margin-inline: auto;
+    padding: 1rem 1rem 1.5rem;
+    border-radius: 2.25rem;
+    border: 0.625rem solid #1a1b22;
+    background:
+      radial-gradient(80% 50% at 20% 0%, color-mix(in srgb, #ff4a1c 55%, transparent), transparent),
+      radial-gradient(70% 60% at 100% 100%, color-mix(in srgb, #2335f0 70%, transparent), transparent),
+      #101116;
+    box-shadow: 8px 8px 0 var(--c-strobe);
+  }
+  .lock-status { display: flex; justify-content: space-between; padding: 0 0.75rem 0.75rem; color: var(--c-flash); font: 700 0.9375rem var(--font-body); }
+  .batt { display: flex; align-items: center; gap: 0.375rem; color: #ff6a52; }
+  .batt span { width: 1.625rem; height: 0.75rem; border: 2px solid currentColor; border-radius: 3px; background: linear-gradient(90deg, currentColor 12%, transparent 12%); }
+  .k-notif .opt {
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 0.25rem 0.75rem;
+    padding: 0.75rem 3rem 0.875rem 0.875rem;
+    border-radius: 1.25rem;
+    background: color-mix(in srgb, #f4f4f7 88%, transparent);
+    backdrop-filter: blur(6px);
+    transition: transform 120ms, background 120ms;
+  }
+  .k-notif .opt:hover { transform: translateY(-2px); background: #ffffff; }
+  .k-notif .app { grid-column: 1 / -1; display: flex; align-items: center; gap: 0.5rem; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.06em; color: #4a4b55; }
+  .k-notif .app-icon { width: 1.25rem; height: 1.25rem; border-radius: 0.375rem; background: linear-gradient(135deg, var(--a1), var(--a2)); border: 1px solid rgb(0 0 0 / 0.2); }
+  .k-notif .now { margin-inline-start: auto; font-weight: 400; letter-spacing: 0; }
+  .k-notif .txt { grid-column: 1 / -1; }
+  .k-notif .label { font: 700 1.0625rem var(--font-body); }
+  .k-notif .key { top: 50%; translate: 0 -50%; }
+  .k-notif .opt:has(:checked) { outline-color: var(--c-lcd-1); }
+
+  /* postcard: greetings from four places */
+  .k-postcard .opt { gap: 0.75rem; padding: 0.75rem 0.75rem 1rem; background: #fbf6e9; border: var(--border) solid var(--line); }
+  .pc-front {
+    position: relative;
+    display: grid;
+    align-content: center;
+    justify-items: center;
+    aspect-ratio: 16 / 7;
+    padding: 0.5rem;
+    overflow: hidden;
+    background: radial-gradient(90% 120% at 20% 0%, color-mix(in srgb, var(--a1) 45%, transparent), transparent), var(--a-bg);
+    border: var(--border) solid var(--c-ink);
+  }
+  .pc-front[data-aura-skin], .k-postcard .pc-front { color: var(--c-flash); }
+  .greet { font: 1.25rem/1 var(--font-hand); color: #fbf6e9; rotate: -4deg; }
+  .state {
+    font: 900 3.75rem/0.9 var(--font-display);
+    font-stretch: 150%;
+    color: transparent;
+    background: linear-gradient(160deg, var(--a2), var(--a1) 70%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-stroke: 2px #fbf6e9;
+    filter: drop-shadow(3px 3px 0 var(--c-ink));
+  }
+  .postmark { position: absolute; right: -0.75rem; bottom: -0.75rem; width: 3.5rem; height: 3.5rem; border: 2px dashed color-mix(in srgb, #fbf6e9 70%, transparent); border-radius: 50%; }
+  .k-postcard .txt { padding-inline: 0.25rem 2.5rem; }
+  .k-postcard .key { top: auto; bottom: 0.875rem; }
+
+  /* post-its: what you do when someone hurts you */
+  .k-postit { gap: 1.75rem; padding-top: 0.5rem; }
+  .k-postit .opt {
+    min-height: 10rem;
+    padding: 1.75rem 1.25rem 1.25rem;
+    background: var(--note, var(--c-lemon));
+    box-shadow: 2px 10px 14px -8px rgb(0 0 0 / 0.45);
+    rotate: var(--tilt);
+    transition: rotate 160ms, translate 160ms;
+  }
+  .k-postit .opt::before { content: ''; position: absolute; top: -0.625rem; left: 50%; width: 5rem; height: 1.25rem; translate: -50% 0; rotate: -3deg; background: color-mix(in srgb, #ffffff 55%, transparent); border: 1px solid rgb(0 0 0 / 0.08); }
+  .k-postit .opt:nth-child(1) { --note: #fff36b; --tilt: -2deg; }
+  .k-postit .opt:nth-child(2) { --note: #ffb38f; --tilt: 1.5deg; }
+  .k-postit .opt:nth-child(3) { --note: #b8f0a8; --tilt: 2deg; }
+  .k-postit .opt:nth-child(4) { --note: #9fd6ff; --tilt: -1.5deg; }
+  .k-postit .opt:hover { rotate: 0deg; translate: 0 -3px; }
+  .k-postit .label { font: 400 clamp(1.375rem, 1.1rem + 0.9vw, 1.75rem)/1.1 var(--font-hand); font-stretch: 100%; }
+  .k-postit .sub { color: rgb(18 18 22 / 0.78); }
+  .k-postit .key { top: auto; bottom: 0.625rem; }
+  .k-postit .txt { padding-bottom: 1.5rem; }
+
+  /* fader: a four-channel mixing desk */
+  .k-fader {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0;
+    padding: 1.25rem 0.75rem 1rem;
+    border-radius: 14px;
+    background: linear-gradient(180deg, var(--c-remote-hi), var(--c-remote-lo));
+    border: 1px solid var(--c-remote-edge);
+    box-shadow: 0 4px 0 var(--c-remote-edge), 8px 10px 0 var(--c-strobe);
+  }
+  .k-fader .opt { justify-items: center; gap: 0.75rem; padding: 0.25rem 0.75rem 3rem; color: var(--c-flash); text-align: center; border-inline-start: 1px solid var(--c-remote-line); }
+  .k-fader .opt:first-of-type { border-inline-start: 0; }
+  .strip-ch { display: grid; justify-items: center; gap: 0.625rem; width: 100%; }
+  .scribble { width: 100%; padding: 0.125rem; font: 1rem var(--font-lcd); color: var(--c-lcd-ink); background: linear-gradient(var(--c-lcd-1), var(--c-lcd-2)); border-radius: 3px; }
+  .meter { display: block; width: 0.5rem; height: 2.25rem; border-radius: 2px; background: #1a1b22; overflow: hidden; }
+  .meter span { display: block; height: 100%; translate: 0 100%; background: linear-gradient(#ff4a1c, #fff36b 35%, #c7f26a 70%); transition: translate 400ms; }
+  .slot { position: relative; display: block; width: 0.5rem; height: 9rem; border-radius: 4px; background: #050507; box-shadow: inset 0 1px 3px #000; }
+  .cap {
+    position: absolute;
+    left: 50%;
+    bottom: 6%;
+    width: 2.75rem;
+    height: 1.375rem;
+    translate: -50% 50%;
+    border-radius: 4px;
+    background: linear-gradient(#e3e4ea, #8f91a3);
+    box-shadow: 0 3px 0 #050507, inset 0 -3px 0 rgb(0 0 0 / 0.25);
+    transition: bottom 420ms cubic-bezier(0.3, 1.4, 0.5, 1);
+  }
+  .cap::after { content: ''; position: absolute; inset: 45% 10%; height: 2px; background: var(--c-ink); }
+  .k-fader .opt:hover .cap { bottom: 16%; }
+  .k-fader .opt:has(:checked) .cap { bottom: 88%; background: linear-gradient(var(--c-flash), var(--c-lcd-1)); }
+  .k-fader .opt:has(:checked) .meter span { translate: 0 10%; }
+  .k-fader .label { font-size: 1rem; }
+  .k-fader .sub { color: var(--c-remote-label); font-size: 0.8125rem; }
+  .k-fader .key { top: auto; bottom: 0.5rem; right: 50%; translate: 50% 0; }
+  .k-fader .tick { left: auto; right: -0.25rem; top: -0.75rem; }
+  .k-fader .opt:has(:checked) { outline-color: var(--c-lcd-1); outline-offset: -2px; }
+  .k-fader .opt:has(:focus-visible) { transform: none; box-shadow: inset 0 0 0 3px var(--c-strobe); }
+
+  /* speech bubbles: what people get wrong */
+  .k-bubble { gap: 1.5rem 2rem; }
+  .k-bubble .opt {
+    min-height: 7rem;
+    align-content: center;
+    padding: 1.25rem 3rem 1.25rem 1.5rem;
+    background: var(--surface);
+    color: var(--ink);
+    border: var(--border-strong) solid var(--line);
+    border-radius: 2rem;
+    transition: transform 140ms;
+  }
+  /* the tail: an ink triangle with a paper one inside, so the bubble's border opens into it */
+  .k-bubble .opt::before, .k-bubble .opt::after { content: ''; position: absolute; top: 100%; left: 2rem; width: 1.75rem; height: 1.375rem; clip-path: polygon(0 0, 100% 0, 15% 100%); }
+  .k-bubble .opt::before { margin-top: -1px; background: var(--line); }
+  .k-bubble .opt::after { left: calc(2rem + 4px); width: calc(1.75rem - 9px); height: calc(1.375rem - 5px); margin-top: -4px; background: var(--surface); }
+  .k-bubble .opt:nth-child(even)::before, .k-bubble .opt:nth-child(even)::after { left: auto; right: 2rem; clip-path: polygon(0 0, 100% 0, 85% 100%); }
+  .k-bubble .opt:nth-child(even)::after { right: calc(2rem + 4px); }
+  .k-bubble .opt:hover { transform: rotate(-1deg) scale(1.02); }
+  .k-bubble .label { font-size: clamp(1.25rem, 1.05rem + 0.8vw, 1.625rem); }
+  .k-bubble .label::before { content: '“'; margin-inline-end: 0.125rem; color: var(--c-aura-text); }
+  :global([data-theme='dark']) .k-bubble .label::before { color: var(--hot); }
+  .k-bubble .key { top: 50%; translate: 0 -50%; right: 1rem; }
+
+  /* stickers: pick one for your backpack */
+  .k-sticker {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    padding: 1.5rem 1rem 1.25rem;
+    background:
+      repeating-linear-gradient(45deg, rgb(255 255 255 / 0.04) 0 2px, transparent 2px 6px),
+      linear-gradient(160deg, #3a4f7a, #24324f);
+    border: var(--border) solid var(--line);
+    border-radius: 1.5rem;
+    outline: 2px dashed rgb(255 255 255 / 0.35);
+    outline-offset: -0.75rem;
+    box-shadow: 8px 8px 0 var(--shadow);
+  }
+  .k-sticker .opt { justify-items: center; text-align: center; padding: 0.5rem 0.25rem 2.5rem; color: var(--c-flash); border-radius: 1rem; }
+  .k-sticker .art { width: min(100%, 8.5rem); height: auto; transition: rotate 200ms, scale 200ms; }
+  .k-sticker .opt:nth-child(odd) .art { rotate: -5deg; }
+  .k-sticker .opt:nth-child(even) .art { rotate: 4deg; }
+  .k-sticker .opt:hover .art, .k-sticker .opt:has(:checked) .art { rotate: 0deg; scale: 1.08; }
+  .k-sticker .label { font-size: 1rem; }
+  .k-sticker .sub { color: #dfe4f2; font-size: 0.8125rem; }
+  .k-sticker .key { top: auto; bottom: 0.5rem; right: 50%; translate: 50% 0; }
+  .k-sticker .opt:has(:checked) { outline-color: var(--c-lcd-1); outline-offset: 0; }
+  .k-sticker .opt:has(:focus-visible) { transform: none; box-shadow: none; background: rgb(255 255 255 / 0.12); }
+
+  /* ================= result ================= */
+  .result {
+    display: grid;
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+    grid-template-areas: 'photo head' 'photo song' 'mix song' 'actions actions';
+    gap: 2rem 3rem;
+    align-items: start;
+    scroll-margin-top: 1rem;
+  }
+  .res-photo { grid-area: photo; width: min(100%, 24rem); justify-self: center; rotate: -2.5deg; }
+  .stamp { position: absolute; top: 0.75rem; left: 0.75rem; z-index: 3; padding: 0.125rem 0.375rem; font: 1rem/1 var(--font-lcd); letter-spacing: 0.04em; color: var(--c-flash); background: rgb(0 0 0 / 0.45); }
+  .res-head { grid-area: head; min-width: 0; container-type: inline-size; }
+  .era-name { font-size: min(6rem, 19cqi); font-stretch: 150%; letter-spacing: -0.025em; line-height: 0.88; text-transform: uppercase; overflow-wrap: break-word; text-wrap: balance; }
+  .era-name:focus { outline: none; }
+  .era-name.fit-1 { font-size: min(5rem, 14cqi); }
+  .era-name.fit-2 { font-size: min(4.25rem, 11cqi); }
+  .era-name.fit-3 { font-size: min(3.5rem, 9cqi); }
+  .era-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 0.75rem; margin-top: 0.875rem; font-weight: 700; }
+  .era-meta .lcd { font-size: 1.125rem; }
+  .era-line { max-width: 32rem; margin-top: 0.75rem; font-size: 1.0625rem; }
+  [data-solo-block] .era-line { color: var(--muted); }
+
+  .song-card {
+    grid-area: song;
+    display: grid;
+    gap: 0.625rem;
+    padding: 1.5rem 1.5rem 1.75rem;
+    background: var(--c-ink);
+    color: var(--c-flash);
+    border: var(--border) solid var(--line);
+    box-shadow: 8px 8px 0 var(--c-strobe);
+    container-type: inline-size;
+  }
+  .song-card .kicker { color: #ff8a6a; }
+  .song-title { font-size: min(4.25rem, 13cqi); font-stretch: 150%; letter-spacing: -0.02em; line-height: 0.9; text-transform: uppercase; overflow-wrap: break-word; text-wrap: balance; }
+  .song-title.fit-1 { font-size: min(3.5rem, 10.5cqi); }
+  .song-title.fit-2 { font-size: min(2.75rem, 8.5cqi); }
+  .song-title.fit-3 { font-size: min(2.25rem, 7cqi); }
+  .e-tag {
+    display: inline-grid;
+    place-items: center;
+    width: 1.375rem;
+    height: 1.375rem;
+    margin-inline-start: 0.375rem;
+    vertical-align: 0.25em;
+    font: 700 0.875rem/1 var(--font-body);
+    font-stretch: 100%;
+    text-decoration: none;
+    color: var(--c-ink);
+    background: var(--c-paper);
+    border-radius: 3px;
+  }
+  .song-from { font-size: 0.9375rem; color: var(--c-remote-label); }
+  .why { max-width: 34rem; padding: 0.75rem 0 0.25rem; border-top: 1px dashed var(--c-remote-line); font-size: 1.0625rem; }
+  .song-card :global(.gate) { margin-top: 0.5rem; }
+  .song-card :global(.gate-small), .song-card :global(.gate-fallback) { color: var(--c-remote-label); }
+  .song-card :global(.gate a:not(.btn)) { color: var(--c-flash); }
+  .open-release { background: var(--c-flash); color: var(--c-ink); box-shadow: 4px 4px 0 var(--c-strobe); }
+  .open-release:hover { box-shadow: 5px 6px 0 var(--c-strobe); }
+
+  .mix { grid-area: mix; display: grid; gap: 0.75rem; padding: 1.25rem; background: var(--surface); border: var(--border) solid var(--line); box-shadow: var(--shadow-md); }
+  .mix-title { font-size: 1.125rem; font-stretch: 125%; text-transform: uppercase; }
+  .mix ul { display: grid; gap: 0.625rem; padding: 0; list-style: none; }
+  .mix li { display: grid; grid-template-columns: minmax(0, 8.5rem) minmax(0, 1fr) 3rem; align-items: center; gap: 0.75rem; font-size: 0.875rem; }
+  .mix-name { font-weight: 700; overflow-wrap: anywhere; }
+  .bar { height: 1rem; background: color-mix(in srgb, var(--ink) 10%, transparent); border: 1px solid var(--line); }
+  .bar span { display: block; height: 100%; inline-size: 0; background: linear-gradient(90deg, var(--a1), var(--a2)); transition: inline-size 900ms cubic-bezier(0.2, 0.8, 0.2, 1) 300ms; }
+  .pct { font: 1.125rem var(--font-lcd); text-align: end; }
+  .mix li.win .mix-name::after { content: ' ★'; color: var(--c-aura-text); }
+  :global([data-theme='dark']) .mix li.win .mix-name::after { color: var(--hot); }
+
+  .res-actions { grid-area: actions; display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; padding-top: 1.5rem; border-top: var(--border-strong) solid var(--line); }
+  .copy-status { font-weight: 700; }
+
+  /* the reveal: the polaroid develops from grey, the rest fades in after it */
+  @keyframes develop { from { filter: grayscale(1) brightness(0.35) contrast(1.4); } 60% { filter: grayscale(0.4) brightness(1.2); } to { filter: none; } }
+  @keyframes rise { from { opacity: 0; translate: 0 12px; } }
+  .result.reveal .developed { animation: develop 1.8s ease-out both; }
+  .result.reveal :is(.res-head, .song-card, .mix) { animation: rise 500ms ease-out both; }
+  .result.reveal .res-head { animation-delay: 500ms; }
+  .result.reveal .song-card { animation-delay: 800ms; }
+  .result.reveal .mix { animation-delay: 1100ms; }
+  .result[data-solo='true'] { grid-template-areas: 'photo head' 'photo song' 'actions actions'; }
+
+  /* ---------- the aura card dialog ---------- */
+  .card-dialog {
+    width: min(100% - 2rem, 46rem);
+    max-height: calc(100dvh - 2rem);
+    padding: 1.25rem;
+    background: var(--surface);
+    color: var(--ink);
+    border: var(--border) solid var(--line);
+    box-shadow: var(--shadow-lg);
+  }
+  .card-dialog::backdrop { background: rgb(18 18 22 / 0.6); }
+  .card-dialog[open] { display: grid; gap: 1rem; }
+  .card-head { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+  .card-head h2 { font-size: 1.5rem; font-stretch: 125%; }
+  .formats { display: flex; flex-wrap: wrap; gap: 0.625rem; }
+  .fmt { display: inline-flex; align-items: center; gap: 0.5rem; min-height: 44px; padding: 0 0.875rem; font-weight: 700; background: var(--surface); border: var(--border) solid var(--line); }
+  .fmt small { font: 1rem var(--font-lcd); color: var(--muted); }
+  .fmt:has(:checked) { background: var(--accent); color: var(--on-accent); }
+  .fmt:has(:checked) small { color: inherit; }
+  .fmt:has(:focus-visible) { transform: translate(-1px, -2px); box-shadow: 5px 6px 0 var(--accent); }
+  .card-canvas { justify-self: center; width: auto; max-width: 100%; max-height: 52dvh; height: auto; border: var(--border) solid var(--line); background: var(--c-paper); }
+  .card-note { font-size: var(--fs-small); color: var(--muted); }
+  .card-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+
+  /* ================= every possible result ================= */
+  .deck { margin-top: 5rem; scroll-margin-top: 1rem; }
+  .aura[data-at='quiz'] .deck { display: none; } /* no spoilers (and no distraction) while answering */
+  .aura[data-at='result'] .deck { margin-top: 6rem; }
+  .deck-title { font-size: clamp(2rem, 1.2rem + 3vw, 3.5rem); font-stretch: 150%; letter-spacing: -0.02em; text-transform: uppercase; line-height: 0.95; }
+  .deck-lead { max-width: 40rem; margin-top: 0.75rem; color: var(--muted); }
+  .booklets { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1.5rem; margin-top: 2rem; align-items: start; }
+  .booklet { display: grid; gap: 0.875rem; padding: 1.125rem; background: var(--surface); border: var(--border) solid var(--line); box-shadow: var(--shadow-md); min-width: 0; }
+  .booklet header { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 0.25rem 0.625rem; padding-bottom: 0.75rem; border-bottom: 2px solid var(--line); }
+  .booklet h3 { font-size: 1.125rem; font-stretch: 125%; text-transform: uppercase; line-height: 1; overflow-wrap: break-word; }
+  .booklet .count { grid-column: 2; font: 1rem var(--font-lcd); color: var(--muted); }
+  .booklet header .swatch { grid-row: span 2; }
+  .rel-title { margin-bottom: 0.25rem; font-size: 0.8125rem; font-weight: 700; }
+  .songs { display: flex; flex-wrap: wrap; gap: 0.125rem 0; padding: 0; list-style: none; font-size: 0.8125rem; line-height: 1.6; }
+  .songs li:not(:last-child)::after { content: '·'; margin-inline: 0.375rem; color: var(--muted); }
+  .songs a { text-decoration: none; text-transform: uppercase; }
+  .songs a:hover { text-decoration: underline; }
+  .songs .yr { font-family: var(--font-lcd); color: var(--muted); }
+  .booklet .e-tag { width: 1rem; height: 1rem; margin-inline-start: 0.25rem; font-size: 0.6875rem; vertical-align: 0.125em; color: var(--c-flash); background: var(--c-ink); }
+  :global([data-theme='dark']) .booklet .e-tag { color: var(--c-ink); background: var(--c-paper); }
+  .booklet.solo { grid-column: 1 / -1; border-style: dashed; box-shadow: none; background: color-mix(in srgb, var(--surface) 60%, transparent); }
+  .booklet.solo header { grid-template-columns: auto auto 1fr; }
+  .booklet.solo .count { grid-column: auto; }
+  .booklet.solo header .swatch { grid-row: auto; }
+  .solo-note { font-size: var(--fs-small); color: var(--muted); }
+
+  /* ================= smaller screens ================= */
+  @media (max-width: 60rem) {
+    .booklets { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .quiz-body { grid-template-columns: minmax(0, 1fr); }
+    .developing { display: none; }
+    .k-swatch, .k-sticker { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .k-sticker { row-gap: 0.5rem; }
+  }
+  @media (max-width: 48rem) {
+    .intro { grid-template-columns: minmax(0, 1fr); grid-template-areas: 'copy' 'photo' 'auras' 'strip'; }
+    .hero { width: min(80%, 20rem); margin-top: 2.5rem; }
+    .develops { display: none; }
+    .strip { grid-template-columns: minmax(0, 1fr); padding: 1.25rem; }
+    .strip ol { grid-template-columns: minmax(0, 1fr); }
+    .quiz-head { grid-template-columns: auto minmax(0, 1fr); grid-template-areas: 'num back' 'discs discs' 'text text'; gap: 0.75rem 1rem; }
+    .back { justify-self: end; }
+    .discs { gap: 0; justify-content: space-between; }
+    .k-scene, .k-postcard, .k-bubble, .k-notif { grid-template-columns: minmax(0, 1fr); gap: 0.875rem; }
+    .k-swatch .sw { aspect-ratio: 5 / 3; }
+    .k-sticker .art { width: min(100%, 6.5rem); }
+    .k-scene .opt { grid-template-columns: 4rem minmax(0, 1fr); align-items: center; min-height: 0; padding: 0.875rem 3rem 0.875rem 0.875rem; }
+    .k-scene .art { width: 4rem; margin: 0; }
+    .k-postit { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem 1rem; }
+    .k-postit .opt { min-height: 8.5rem; padding: 1.5rem 0.875rem 1rem; }
+    .k-postcard .opt { grid-template-columns: 7.5rem minmax(0, 1fr); align-items: center; gap: 0.875rem; padding: 0.625rem; }
+    .k-postcard .pc-front { aspect-ratio: 1; }
+    .k-postcard .txt { padding-inline: 0 2.25rem; }
+    .greet { font-size: 0.875rem; }
+    .state { font-size: 2.5rem; }
+    .k-bubble { gap: 1.5rem; }
+    .k-bubble .opt { min-height: 0; padding-block: 1rem; }
+    /* phones: the desk turns into four rows with horizontal faders that slide right when picked */
+    .k-fader { grid-template-columns: minmax(0, 1fr); padding: 0.5rem 0.75rem; }
+    .k-fader .opt { grid-template-columns: minmax(0, 1fr) 6.5rem; align-items: center; justify-items: stretch; gap: 0.75rem; padding: 0.875rem 2.75rem 0.875rem 0.5rem; text-align: start; border-inline-start: 0; border-top: 1px solid var(--c-remote-line); }
+    .k-fader .opt:first-of-type { border-top: 0; }
+    .k-fader .strip-ch { order: 2; }
+    .k-fader :is(.scribble, .meter) { display: none; }
+    .k-fader .slot { width: 100%; height: 0.5rem; }
+    .k-fader .cap, .k-fader .opt:hover .cap, .k-fader .opt:has(:checked) .cap { bottom: 50%; width: 1.25rem; height: 2rem; }
+    .k-fader .cap { left: 10%; transition: left 420ms cubic-bezier(0.3, 1.4, 0.5, 1); }
+    .k-fader .cap::after { inset: 10% 45%; width: 2px; height: auto; }
+    .k-fader .opt:hover .cap { left: 22%; }
+    .k-fader .opt:has(:checked) .cap { left: 90%; }
+    .k-fader .key { top: 50%; bottom: auto; right: 0.5rem; translate: 0 -50%; }
+    .k-fader .tick { top: -0.5rem; right: -0.5rem; left: auto; }
+    .quiz-foot { position: sticky; bottom: calc(var(--remote-safe) - 0.5rem); z-index: 5; padding: 0.75rem 0; background: linear-gradient(transparent, var(--bg) 30%); }
+    .keys-hint { display: none; }
+    .next { flex: 1; }
+    .result, .result[data-solo='true'] { grid-template-columns: minmax(0, 1fr); grid-template-areas: 'head' 'photo' 'song' 'mix' 'actions'; gap: 2rem; }
+    .res-photo { width: min(78%, 20rem); }
+    .res-actions .btn { flex: 1 1 100%; }
+    .mix li { grid-template-columns: minmax(0, 1fr) 3rem; }
+    .mix .bar { grid-column: 1 / -1; grid-row: 2; }
+    .booklets { grid-template-columns: minmax(0, 1fr); }
+    .booklet.solo header { grid-template-columns: auto minmax(0, 1fr); }
+    .booklet.solo .count { grid-column: 2; }
+    .booklet.solo header .swatch { grid-row: span 2; }
+  }
+  @media (max-width: 30rem) {
+    .disc { width: 1.5rem; }
+    .k-swatch { gap: 0.75rem; }
+    .k-sticker .sub { display: none; }
+    .sticker-start { width: 5rem; right: -1rem; }
+  }
+
+  /* calm mode and reduced motion: no drifting aura, no spinning disc, the reveal is a plain fade */
+  :global(html[data-calm]) :is(.blob, .shroom, .disc, .developed),
+  :global(html[data-calm]) .result.reveal :is(.developed, .res-head, .song-card, .mix) { animation: none !important; }
+  :global(html[data-calm]) .result.reveal { animation: fade 400ms ease-out; }
+  @media (prefers-reduced-motion: reduce) {
+    .blob, .shroom, .disc, .developed, .result.reveal :is(.developed, .res-head, .song-card, .mix) { animation: none !important; }
+    .result.reveal { animation: fade 400ms ease-out; }
+    .cap, .tick, .meter span, .bar span { transition: none; }
+  }
+  @keyframes fade { from { opacity: 0; } }
+</style>

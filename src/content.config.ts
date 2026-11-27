@@ -3,6 +3,7 @@ import { defineCollection } from 'astro:content';
 import { glob } from 'astro/loaders';
 import { z } from 'astro/zod';
 import { eraIds } from './lib/discography.ts';
+import { auraEras } from './lib/aura.ts';
 import { releaseTypes } from './lib/musicbrainz.ts';
 import { journalTypes } from './lib/journal.ts';
 
@@ -188,5 +189,35 @@ export const collections = {
   'song-of-day': defineCollection({
     loader: one('song-of-day.md'),
     schema: z.object({ pins: z.record(date, trackRef).default({}), exclude: z.array(trackRef).default([]) }),
+  }),
+
+  // the aura reading (25-spec-aura-reading); feeling ids used in questions and songs must be listed in feelings
+  aura: defineCollection({
+    loader: one('aura.md'),
+    schema: z
+      .object({
+        reviewed: z.boolean().default(false),
+        feelings: z.array(z.object({ id: z.string().regex(/^[a-z]+$/), label: bilingual, why: bilingual })).min(2),
+        eras: z.record(z.enum(auraEras), z.object({ tag: bilingual, line: bilingual })),
+        questions: z
+          .array(
+            z.object({
+              kicker: bilingual,
+              text: bilingual,
+              kind: z.enum(['scene', 'swatch', 'notif', 'postcard', 'postit', 'fader', 'bubble', 'sticker']),
+              options: z.array(z.object({ era: z.enum(auraEras), feelings: z.array(z.string()).min(1).max(2), label: bilingual, sub: bilingual.optional(), art: bilingual.optional() })).length(4),
+            }),
+          )
+          .length(8),
+        songs: z.record(z.string(), z.object({ feelings: z.array(z.string()).min(1).max(2), explicit: z.boolean().optional(), hidden: z.boolean().optional() })),
+      })
+      .superRefine((a, ctx) => {
+        const ids = new Set(a.feelings.map((f) => f.id));
+        const check = (list: string[], where: string) => {
+          for (const f of list) if (!ids.has(f)) ctx.addIssue({ code: 'custom', message: `${where}: unknown feeling "${f}" (add it to feelings)` });
+        };
+        a.questions.forEach((q, i) => q.options.forEach((o, j) => check(o.feelings, `question ${i + 1}, option ${'ABCD'[j]}`)));
+        for (const [title, s] of Object.entries(a.songs)) check(s.feelings, `song "${title}"`);
+      }),
   }),
 };

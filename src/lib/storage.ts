@@ -3,7 +3,7 @@
 
 export type StorageKey =
   | 'theme' | 'calm' | 'era' | 'lang-hint' | 'stickers' | 'streak' | 'visits' | 'opened-songs'
-  | 'coin-day' | 'guess' | 'device' | 'wall-sent' | 'wall-reacted';
+  | 'coin-day' | 'guess' | 'device' | 'wall-sent' | 'wall-reacted' | 'aura';
 
 const store = (): Storage | null => {
   try {

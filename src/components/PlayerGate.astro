@@ -2,7 +2,7 @@
 // Player gate (08-spec-music): nothing from Spotify loads until the visitor presses the button, on every page view.
 // Without JS the button stays hidden and the plain "Open it on Spotify" link does the job.
 import { t, type Locale } from '../i18n';
-import type { Links } from '../lib/musicbrainz';
+import { spotifyEmbed, type Links } from '../lib/musicbrainz';
 
 interface Props {
   locale: Locale;
@@ -16,7 +16,7 @@ interface Props {
 
 const { locale, title, links, artistSpotify, inline = false } = Astro.props;
 const spotify = links.spotify;
-const embed = spotify?.replace('open.spotify.com/', 'open.spotify.com/embed/');
+const embed = spotify && spotifyEmbed(spotify);
 const others = (
   [
     ['apple', 'Apple Music'],
@@ -76,6 +76,17 @@ const others = (
     if (!load) continue;
     load.hidden = false;
     fallback.hidden = true;
+    const failed = gate.querySelector<HTMLElement>('[data-gate-failed]')!;
+    const box = gate.querySelector<HTMLElement>('[data-gate-frame]')!;
+    let timer = 0;
+    // a page that changes the song in place (the aura reading) re-arms the gate: data-gate holds the new embed
+    gate.addEventListener('gate:reset', () => {
+      clearTimeout(timer);
+      box.replaceChildren();
+      load.hidden = false;
+      fallback.hidden = true;
+      failed.hidden = true;
+    });
     load.addEventListener('click', () => {
       const frame = document.createElement('iframe');
       frame.src = gate.dataset.gate!;
@@ -84,13 +95,13 @@ const others = (
       frame.allow = 'autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture';
       frame.height = 'tall' in gate.dataset ? '352' : '152';
       // A blocked or offline embed never fires load: after a while, say so and offer the link.
-      const timer = setTimeout(() => {
+      timer = window.setTimeout(() => {
         fallback.hidden = false;
-        gate.querySelector<HTMLElement>('[data-gate-failed]')!.hidden = false;
+        failed.hidden = false;
       }, 10_000);
       frame.addEventListener('load', () => clearTimeout(timer), { once: true });
-      gate.querySelector('[data-gate-frame]')!.append(frame);
-      load.remove();
+      box.append(frame);
+      load.hidden = true;
       frame.focus();
     });
   }

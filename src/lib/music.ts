@@ -10,6 +10,7 @@ import { matches, songOfDay } from './song-of-day.ts';
 import { aroundDay, utcDateKey } from './dates.ts';
 import tour from '../data/tour.json';
 import { mergeShows, type Show } from './tour.ts';
+import { buildDeck } from './aura.ts';
 
 /** Drafts show everywhere except the production site, so previews and local builds can review them. */
 export const published = (e: { data: { draft?: boolean } }) => !e.data.draft || process.env.VERCEL_ENV !== 'production';
@@ -102,6 +103,19 @@ export async function surprisePool(): Promise<string[]> {
     .filter((t) => solo.has(t.release) && !exclude.some((ref) => matches(ref)(t)))
     .map((t) => `${t.release}#${t.n}`);
 }
+
+let auraCache: ReturnType<typeof loadAura> | undefined;
+async function loadAura() {
+  const releases = await discography();
+  const aura = (await getEntry('aura', 'aura'))!.data;
+  const { deck, missing, unknown } = buildDeck(releases, aura.songs);
+  // a new song without feelings stays out of the reading; the build never fails for it (25-spec)
+  if (missing.length) console.warn(`[aura] src/content/aura.md: no feelings yet, left out of the reading: ${missing.join(' · ')}`);
+  if (unknown.length) console.warn(`[aura] src/content/aura.md: these titles match none of her songs: ${unknown.join(' · ')}`);
+  return { ...aura, deck: deck.map((s) => ({ ...s, spotify: listenFor(releases, s).spotify ?? null })) };
+}
+/** The aura reading: aura.md plus the deck of songs that can come out, each with where it plays. */
+export const auraReading = () => (auraCache ??= loadAura());
 
 /** Show filter of the shelf: singles include remixes, collabs include her guest features. */
 export const showGroup = { album: 'albums', ep: 'eps', single: 'singles', remix: 'singles', collab: 'collabs', guest: 'collabs' } as const;

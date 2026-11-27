@@ -12,11 +12,11 @@ test.describe('desktop remote', () => {
     await expect(main(page).getByRole('link', { name: /01.*Home/ })).toHaveAttribute('aria-current', 'page');
     const names: string[] = [];
     await page.getByRole('link', { name: 'Previous section' }).focus();
-    for (let i = 0; i < 12; i++) {
+    for (let i = 0; i < 13; i++) {
       names.push((await page.evaluate(() => document.activeElement?.textContent?.trim() ?? '')).replace(/\s+/g, ' '));
       await page.keyboard.press('Tab');
     }
-    expect(names.join(' | ')).toMatch(/back.*skip.*play.*01.*07.*search.*calm mode/i);
+    expect(names.join(' | ')).toMatch(/back.*skip.*play.*01.*07.*B1.*search.*calm mode/i);
   });
 
   test('arrow keys on the remote and number keys walk the tracklist', async ({ page }) => {
@@ -74,7 +74,7 @@ test.describe('phone remote', () => {
 
 
 // small phones, large phones, iPad portrait/landscape, laptops and big screens
-const widths = [320, 360, 375, 393, 430, 768, 1024, 1180, 1280, 1440, 1920];
+const widths = [320, 360, 375, 393, 430, 768, 1024, 1180, 1279, 1280, 1440, 1920];
 const lcd = (page: import('@playwright/test').Page) => page.locator('.remote-lcd:visible');
 
 for (const width of widths) {
@@ -143,7 +143,7 @@ test.describe('without JavaScript', () => {
   test.use({ javaScriptEnabled: false });
   test('the plain dock list is the navigation', async ({ page }) => {
     await page.goto('/');
-    await expect(main(page).getByRole('link')).toHaveCount(7);
+    await expect(main(page).getByRole('link')).toHaveCount(8); // 01–07 and B1
     await expect(main(page).getByRole('link', { name: /Wall/ })).toBeVisible();
     await expect(page.getByRole('link', { name: 'Previous section' })).toBeHidden();
     await expect(page.getByRole('switch')).toBeHidden();

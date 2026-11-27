@@ -1,6 +1,6 @@
 // An open customizable <select> picker is anchored to its select and rides along when the page scrolls
 // (iOS keeps it open while you drag). Close it as soon as the page scrolls or a finger drags outside it.
-const close = (e: Event) => {
+const closePicker = (e: Event) => {
   let open: HTMLSelectElement | null = null;
   try { open = document.querySelector<HTMLSelectElement>('select:open'); } catch { return; } // no :open, no base-select picker
   if (!open || (e.target instanceof Node && open.contains(e.target))) return; // scrolling inside the list itself is fine
@@ -9,5 +9,5 @@ const close = (e: Event) => {
   open.parentNode!.insertBefore(open, open.nextSibling);
   open.focus({ preventScroll: true });
 };
-addEventListener('scroll', close, { capture: true, passive: true });
-addEventListener('touchmove', close, { passive: true });
+addEventListener('scroll', closePicker, { capture: true, passive: true });
+addEventListener('touchmove', closePicker, { passive: true });
