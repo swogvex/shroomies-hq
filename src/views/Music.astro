@@ -6,6 +6,7 @@ import { getCollection, render } from 'astro:content';
 import Base from '../layouts/Base.astro';
 import Cover from '../components/Cover.astro';
 import Cassette from '../components/Cassette.astro';
+import AuraTeaser from '../components/AuraTeaser.astro';
 import { localePath, t, type Locale } from '../i18n';
 import { formatDate } from '../lib/dates';
 import { discography, mixtapes, showGroup, surprisePool, type ShelfRelease } from '../lib/music';
@@ -61,6 +62,7 @@ const lcd = (text: string) => text.toUpperCase().replace(/[’‘]/g, "'").norma
         </label>
         <span class="visually-hidden" role="status" data-count data-label={t(locale, 'music.count')}></span>
       </div>
+      <AuraTeaser locale={locale} class="teaser-head" />
     </header>
 
     <section class="cabinet-wrap" aria-label={t(locale, 'music.heading')}>
@@ -146,6 +148,7 @@ const lcd = (text: string) => text.toUpperCase().replace(/[’‘]/g, "'").norma
       )
     }
 
+    <AuraTeaser locale={locale} class="teaser-foot" />
     <p class="data-note">{t(locale, 'music.dataNote')}</p>
   </div>
 </Base>
@@ -256,6 +259,17 @@ const lcd = (text: string) => text.toUpperCase().replace(/[’‘]/g, "'").norma
   .music { width: var(--column); margin-inline: auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: 2.5rem; padding-block: 0.5rem 1rem; }
 
   .music-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 1rem 1.25rem; }
+  /* the B1 teaser fills the space right of the tools (never beside the title: it would squeeze it); on phones it moves to the end of the page (nothing pushed down) */
+  .music-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: 'title title' 'tools teaser'; align-items: end; }
+  .music-head > div:first-child { grid-area: title; }
+  .music-head .tools { grid-area: tools; justify-self: start; }
+  .music-head :global(.teaser-head) { grid-area: teaser; align-self: center; max-width: 19rem; }
+  .music > :global(.teaser-foot) { display: none; }
+  @media (max-width: 48rem) {
+    .music-head { grid-template-columns: minmax(0, 1fr); grid-template-areas: 'title' 'tools'; }
+    .music-head :global(.teaser-head) { display: none; }
+    .music > :global(.teaser-foot) { display: grid; max-width: 22rem; margin: 1rem auto 0; }
+  }
   /* JS-only controls show from first paint when init.js has set html[data-js], so nothing jumps when the script runs */
   .tools, .tabs, .hint-touch { display: none; }
   :global(html[data-js]) .tools { display: flex; }

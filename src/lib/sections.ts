@@ -1,6 +1,7 @@
 import type { Key } from '../i18n';
 
-/** The seven tracks of the site, in remote order. One list for the remote, its dock fallback and the tracklist. */
+/** The tracks of the site, in remote order: seven numbered ones and the B1 bonus track (the aura reading, 25-spec).
+ *  One list for the remote, its dock fallback and the tracklist. Number keys 1–7 never reach B1. */
 export const sections = [
   { n: '01', path: '/', label: 'nav.home', lcd: 'PORTAL' },
   { n: '02', path: '/music/', label: 'nav.music', lcd: 'THE SHELF' },
@@ -9,6 +10,7 @@ export const sections = [
   { n: '05', path: '/gallery/', label: 'nav.gallery', lcd: 'SCRAPBOOK' },
   { n: '06', path: '/journal/', label: 'nav.journal', lcd: 'THE JOURNAL' },
   { n: '07', path: '/wall/', label: 'nav.wall', lcd: 'CORKBOARD' },
+  { n: 'B1', path: '/aura/', label: 'nav.aura', lcd: 'AURA READING' },
 ] as const satisfies readonly { n: string; path: string; label: Key; lcd: string }[];
 
 /** Index of the section a locale-free path belongs to, or -1 (legal pages, /dev/kit/…). Home only matches exactly. */

@@ -8,6 +8,8 @@ export type Credit = { role: string; name: string };
 export type Track = { mbid: string; n: number; title: string; durationMs: number | null; credits: Credit[] };
 /** Official streaming pages, from the release's URL relations on MusicBrainz. */
 export type Links = Partial<Record<'spotify' | 'apple' | 'youtube' | 'bandcamp', string>>;
+/** The player-gate embed address of a Spotify link. */
+export const spotifyEmbed = (url: string) => url.replace('open.spotify.com/', 'open.spotify.com/embed/');
 export type RawRelease = {
   mbid: string; // release group: stable across reissues
   releaseMbid: string; // the edition the tracklist comes from

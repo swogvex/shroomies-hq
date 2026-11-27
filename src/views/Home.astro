@@ -5,6 +5,7 @@ import { getEntry } from 'astro:content';
 import Base from '../layouts/Base.astro';
 import PlayerGate from '../components/PlayerGate.astro';
 import Cassette from '../components/Cassette.astro';
+import AuraTeaser from '../components/AuraTeaser.astro';
 import { localePath, t, type Locale } from '../i18n';
 import { anniversaries, formatDate } from '../lib/dates';
 import { allShows, discography, journal, listenFor, mixtapes, songsOfDays, surprisePool, titleFit } from '../lib/music';
@@ -121,28 +122,31 @@ const hidden = (day: string) => day !== buildDay;
       </aside>
     </section>
 
-    <section class="band" data-days aria-label={t(locale, 'home.band')}>
-      {
-        perDay.map(({ day, anniversary, show }) => (
-          <div class="band-day" data-day={day} hidden={hidden(day)}>
-            {anniversary && (
-              <p>
-                <span class="lcd">{lcd(t(locale, 'home.onThisDay'))}</span>{' '}
-                {t(locale, anniversary.years === 1 ? 'home.yearAgo' : 'home.yearsAgo', { n: String(anniversary.years) })}{' '}
-                <a href={localePath(`/music/${anniversary.item.slug}/`, locale)}>{anniversary.item.title}</a>
-              </p>
-            )}
-            {show ? (
-              <p>
-                <b>{t(locale, 'home.nextShow')}</b> · {show.city} · {formatDate(show.date, locale, { weekday: 'short', day: 'numeric', month: 'short' })}
-              </p>
-            ) : (
-              !anniversary && <p>{t(locale, 'home.quiet')}</p>
-            )}
-          </div>
-        ))
-      }
-    </section>
+    <div class="band-row">
+      <section class="band" data-days aria-label={t(locale, 'home.band')}>
+        {
+          perDay.map(({ day, anniversary, show }) => (
+            <div class="band-day" data-day={day} hidden={hidden(day)}>
+              {anniversary && (
+                <p>
+                  <span class="lcd">{lcd(t(locale, 'home.onThisDay'))}</span>{' '}
+                  {t(locale, anniversary.years === 1 ? 'home.yearAgo' : 'home.yearsAgo', { n: String(anniversary.years) })}{' '}
+                  <a href={localePath(`/music/${anniversary.item.slug}/`, locale)}>{anniversary.item.title}</a>
+                </p>
+              )}
+              {show ? (
+                <p>
+                  <b>{t(locale, 'home.nextShow')}</b> · {show.city} · {formatDate(show.date, locale, { weekday: 'short', day: 'numeric', month: 'short' })}
+                </p>
+              ) : (
+                !anniversary && <p>{t(locale, 'home.quiet')}</p>
+              )}
+            </div>
+          ))
+        }
+      </section>
+      <AuraTeaser locale={locale} />
+    </div>
 
     <section class="mid">
       {
@@ -286,6 +290,9 @@ const hidden = (day: string) => day !== buildDay;
   .since-link { font-weight: 700; }
 
   /* the blue band */
+  /* the band and the B1 teaser share a row, so the teaser pushes nothing down */
+  .band-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 1.5rem 2rem; }
+  .band-row :global(.aura-teaser) { max-width: 19rem; }
   .band { padding: 1.125rem 1.5rem; background: var(--band); color: var(--band-ink); box-shadow: 6px 6px 0 var(--shadow); }
   .band-day { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 0.75rem 2.5rem; font-size: 1.0625rem; }
   .band a { color: inherit; font-weight: 700; }
@@ -358,7 +365,8 @@ const hidden = (day: string) => day !== buildDay;
   .pick-tape { margin-top: 0.75rem; }
 
   @media (max-width: 52rem) {
-    .top, .mid, .lower { grid-template-columns: minmax(0, 1fr); }
+    .top, .mid, .lower, .band-row { grid-template-columns: minmax(0, 1fr); }
+    .band-row :global(.aura-teaser) { justify-self: center; width: min(100%, 22rem); }
     .song { padding: 1.5rem 1.125rem 1.25rem; }
     .since-n { font-size: 7.5rem; }
     .band-day { flex-direction: column; align-items: flex-start; gap: 0.5rem; }

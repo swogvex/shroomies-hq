@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 // Owner's rule: every boxed control (a link, button, select or summary drawn as a box with a hard shadow or a 2 px+
 // border) lifts on hover like the buttons do. Add new pages here as they ship.
-const pages = ['/', '/music/', '/music/halo/', '/music/mixtapes/when-the-drop-hits/', '/tracker/', '/journal/', '/journal/meant-to-be/'];
+const pages = ['/', '/music/', '/music/halo/', '/music/mixtapes/when-the-drop-hits/', '/tracker/', '/journal/', '/journal/meant-to-be/', '/aura/'];
 const keyboardOnly = ['skip-link']; // only visible while focused from the keyboard
 
 for (const width of [1280, 390]) {
